@@ -1,4 +1,8 @@
 #include <Windows.h>
+#include <stdint.h>
+
+#include <chrono>
+#include <thread>
 
 LRESULT CALLBACK
 WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -8,6 +12,12 @@ WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             result = DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
     return result;
+}
+
+inline int64_t
+GetElapsedMicroseconds(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER freq) {
+    int64_t elapsedMicroseconds = (1000000 * (end.QuadPart - start.QuadPart) / freq.QuadPart);
+    return elapsedMicroseconds;
 }
 
 int WINAPI
@@ -35,8 +45,13 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
         OutputDebugString("Could not create window.");
         return EXIT_FAILURE;
     }
+    
+    LARGE_INTEGER tStart, tEnd;
+    LARGE_INTEGER cpuFreq;
+    QueryPerformanceFrequency(&cpuFreq);
 
     bool running = true;
+
     while(running) {
 
         // Main game loop:
@@ -44,12 +59,23 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
         // - Update game state
         // - Render
         // - Delay to keep 60 fps
+        
+
+        QueryPerformanceCounter(&tStart);
 
         MSG msg;
         while (PeekMessage(&msg, window, NULL, NULL, PM_REMOVE)) {
             // Handle input.
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+        }
+        
+        QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...
+        uint64_t tElapsedUs = GetElapsedMicroseconds(tStart, tEnd, cpuFreq);
+        const int64_t targetTime = 15666; // us in 1 frame at 60 fps
+        int64_t sleepTime = (targetTime - tElapsedUs);
+        if (sleepTime > 0) {
+            std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
         }
     }
 
