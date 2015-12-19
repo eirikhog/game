@@ -1,0 +1,18 @@
+
+
+Things left to do:
+
+- Allocate memory for the game
+- Hot loading of game code
+- Asset file creation.
+  - Load bitmaps
+  - Create fonts
+- Asset loading
+- Render
+  - Software renderer?
+  - OpenGL renderer
+- World generation
+- Game input
+  - Keyboard
+  - XInput
+

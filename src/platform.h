@@ -30,9 +30,23 @@ typedef float real64;
 #endif
 
 typedef void update_game(float dt);
+typedef void read_entire_file(char *);
 
 typedef struct {
     void (*DebugOutput)(char *);
     update_game* UpdateGame;
+    read_entire_file* ReadEntireFile(char *);
 } game_functions;
+
+typedef struct {
+    void *GameMemory;
+} program_state;
+
+typedef struct {
+    uint32 width;
+    uint32 height;
+    uint32 pitch;
+    void *data;
+} bitmap;
+
 

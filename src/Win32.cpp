@@ -16,9 +16,60 @@
 #define Assert(x)
 #endif
 
+typedef struct {
+    bitmap content;
+    BITMAPINFO info;
+} backbuffer;
+
+static backbuffer buffer = {};
+
+void ResizeWindow(uint32 width, uint32 height) {
+   if (buffer.content.data) {
+       VirtualFree(buffer.content.data, 0, MEM_RELEASE);
+   }
+   
+   buffer.info = {};
+   buffer.info.bmiHeader.biSize = sizeof(buffer.info.bmiHeader);
+   buffer.info.bmiHeader.biWidth = width;
+   buffer.info.bmiHeader.biHeight = -height;
+   buffer.info.bmiHeader.biPlanes = 1;
+   buffer.info.bmiHeader.biBitCount = 32;
+   buffer.info.bmiHeader.biCompression = BI_RGB;
+
+   buffer.content.data = VirtualAlloc(0, 32 * width * height, MEM_COMMIT, PAGE_READWRITE);
+
+   uint32 *pixel = (uint32*)buffer.content.data;
+   for (int y = 0; y < width; ++y) {
+       for (int x = 0; x < height; ++x) {
+           *pixel = 0x00FF00FF;
+           pixel++;
+           
+       }
+   }
+}
+
+void RenderBackbuffer(HWND hwnd, backbuffer *buff) {
+    HDC target = GetDC(hwnd);
+
+    RECT targetRect;
+    GetClientRect(hwnd, &targetRect);
+
+    int32 width = targetRect.right - targetRect.left;
+    int32 height = targetRect.bottom - targetRect.top;
+
+    StretchDIBits(target, 0, 0, width, height, 0, 0, width, height, buff->content.data, &buff->info, DIB_RGB_COLORS, SRCCOPY);
+
+    ReleaseDC(hwnd, target);
+}
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     LRESULT result;
     switch (uMsg) {
+        case WM_SIZE:{
+            RECT windowRect;
+            GetClientRect(hwnd, &windowRect);
+            ResizeWindow(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
+        }
         default:
             result = DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
@@ -87,6 +138,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         
         QueryPerformanceCounter(&tStart);
         gameLib.UpdateGame(0.f);
+        RenderBackbuffer(window, &buffer);
 
         MSG msg;
         while (PeekMessage(&msg, window, NULL, NULL, PM_REMOVE)) {
