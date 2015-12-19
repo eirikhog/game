@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(Game)
 
+SET (LIB_TYPE SHARED)
+
 # Game as library
 add_library(Game game.cpp)
 

@@ -1,11 +1,22 @@
+#include "Platform.h"
+
 #include <Windows.h>
-#include <stdint.h>
 
 #include <chrono>
 #include <thread>
 
-LRESULT CALLBACK
-WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+#define DEBUG
+
+// TODO: Unify this with platform.h
+#ifdef DEBUG
+#undef Assert
+#define Assert(x) if(!(x)) { OutputDebugString("Assert failed: " #x "\n"); (*(int*)(0)) = 0; }
+#else
+#undef Assert
+#define Assert(x)
+#endif
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     LRESULT result;
     switch (uMsg) {
         default:
@@ -14,15 +25,28 @@ WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     return result;
 }
 
-inline int64_t
-GetElapsedMicroseconds(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER freq) {
+inline int64_t GetElapsedMicroseconds(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER freq) {
     int64_t elapsedMicroseconds = (1000000 * (end.QuadPart - start.QuadPart) / freq.QuadPart);
     return elapsedMicroseconds;
 }
 
-int WINAPI
-WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+extern "C" void OutputDebug(char *text) {
+    OutputDebugString(text);
+}
 
+game_functions LoadGameLibrary() {
+    game_functions library = {};
+    library.DebugOutput = OutputDebug;
+
+    HMODULE module = LoadLibrary("Game.dll");
+    library.UpdateGame = (update_game *)GetProcAddress(module, "UpdateGame");
+    Assert(library.UpdateGame);
+    Assert(module);
+
+    return library;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     WNDCLASS myclass = {};
     myclass.style = CS_HREDRAW | CS_VREDRAW;
     myclass.lpfnWndProc = WindowProc;
@@ -50,18 +74,19 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
     LARGE_INTEGER cpuFreq;
     QueryPerformanceFrequency(&cpuFreq);
 
+    // Initialize game functions.
+    game_functions gameLib = LoadGameLibrary();
+    
     bool running = true;
-
     while(running) {
 
         // Main game loop:
         // - Handle input
         // - Update game state
         // - Render
-        // - Delay to keep 60 fps
         
-
         QueryPerformanceCounter(&tStart);
+        gameLib.UpdateGame(0.f);
 
         MSG msg;
         while (PeekMessage(&msg, window, NULL, NULL, PM_REMOVE)) {

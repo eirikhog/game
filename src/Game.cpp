@@ -1,9 +1,13 @@
 
+#include "Platform.h"
 
-int test_function () {
+#include <Windows.h>
 
-    return 4;
+extern "C"
+void EXPORT UpdateGame(float dt) {
+
+    OutputDebugString("Hello from Game.dll!\n");
+    // stuff...
 }
-
 
 
