@@ -23,6 +23,9 @@ typedef struct {
 
 static backbuffer buffer = {};
 
+// TODO: Move to program state.
+static bool isRunning;
+
 void ResizeWindow(uint32 width, uint32 height) {
    if (buffer.content.data) {
        VirtualFree(buffer.content.data, 0, MEM_RELEASE);
@@ -30,8 +33,8 @@ void ResizeWindow(uint32 width, uint32 height) {
    
    buffer.info = {};
    buffer.info.bmiHeader.biSize = sizeof(buffer.info.bmiHeader);
-   buffer.info.bmiHeader.biWidth = width;
-   buffer.info.bmiHeader.biHeight = -height;
+   buffer.info.bmiHeader.biWidth = (LONG)width;
+   buffer.info.bmiHeader.biHeight = -(LONG)height;
    buffer.info.bmiHeader.biPlanes = 1;
    buffer.info.bmiHeader.biBitCount = 32;
    buffer.info.bmiHeader.biCompression = BI_RGB;
@@ -39,8 +42,8 @@ void ResizeWindow(uint32 width, uint32 height) {
    buffer.content.data = VirtualAlloc(0, 32 * width * height, MEM_COMMIT, PAGE_READWRITE);
 
    uint32 *pixel = (uint32*)buffer.content.data;
-   for (int y = 0; y < width; ++y) {
-       for (int x = 0; x < height; ++x) {
+   for (uint32 y = 0; y < width; ++y) {
+       for (uint32 x = 0; x < height; ++x) {
            *pixel = 0x00FF00FF;
            pixel++;
            
@@ -63,13 +66,16 @@ void RenderBackbuffer(HWND hwnd, backbuffer *buff) {
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    LRESULT result;
+    LRESULT result = 0;
     switch (uMsg) {
+        case WM_CLOSE:{
+                          isRunning = false;
+                      }break;
         case WM_SIZE:{
             RECT windowRect;
             GetClientRect(hwnd, &windowRect);
             ResizeWindow(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
-        }
+        }break;
         default:
             result = DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
@@ -127,9 +133,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Initialize game functions.
     game_functions gameLib = LoadGameLibrary();
+    game_memory memory = {};
+    const uint32 transientMemorySize = 1024 * 1024 * 32;
+    memory.transient = VirtualAlloc(0, transientMemorySize, MEM_COMMIT, PAGE_READWRITE);
+    memory.transientSize = transientMemorySize;
+    ZeroMemory(memory.transient, memory.transientSize);
+    // TODO: Load permanent memory from file?
     
-    bool running = true;
-    while(running) {
+    isRunning = true;
+    while(isRunning) {
 
         // Main game loop:
         // - Handle input
@@ -137,7 +149,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // - Render
         
         QueryPerformanceCounter(&tStart);
-        gameLib.UpdateGame(0.f);
+        gameLib.UpdateGame(NULL, NULL, NULL);
         RenderBackbuffer(window, &buffer);
 
         MSG msg;

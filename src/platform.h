@@ -29,7 +29,18 @@ typedef float real64;
 #  define EXPORT
 #endif
 
-typedef void update_game(float dt);
+struct game_input;
+struct game_buffer;
+
+typedef struct {
+    void *transient;
+    uint32 transientSize;
+    // Permanent game data (save files, etc?)
+    void *permanent;
+    uint32 permanentSize;
+} game_memory;
+
+typedef void update_game(game_memory *memory, game_input *input, game_buffer *buffer);
 typedef void read_entire_file(char *);
 
 typedef struct {
