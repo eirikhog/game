@@ -7,10 +7,8 @@
 #include <chrono>
 #include <thread>
 
-#define DEBUG
-
 // TODO: Unify this with platform.h
-#ifdef DEBUG
+#ifdef _DEBUG
 #undef Assert
 #define Assert(x) if(!(x)) { OutputDebugString("Assert failed: " #x "\n"); (*(int*)(0)) = 0; }
 #else
