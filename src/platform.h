@@ -15,7 +15,7 @@ typedef int64_t int64;
 typedef float real32;
 typedef float real64;
 
-#ifdef DEBUG
+#ifdef _DEBUG
 #undef Assert
 #define Assert(x) if(!(x)) { (*(int*)(0)) = 0; }
 #else
