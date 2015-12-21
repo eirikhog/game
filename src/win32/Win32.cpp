@@ -1,4 +1,4 @@
-#include "Platform.h"
+#include "../Platform.h"
 
 #include <Windows.h>
 #include <GL/glew.h>
@@ -32,7 +32,7 @@ static backbuffer buffer = {};
 static bool isRunning;
 static bool isInitialized = 0;
 
-GLfloat vertices[] = { -1.0f,0.0f,0.0f, 0.0f,1.0f,0.0f, 0.0f,0.0f,0.0f };
+GLfloat vertices[] = { 0.0f,0.0f,0.0f, 0.0f,100.0f,0.0f, 100.0f,100.0f,0.0f };
 GLfloat colours[] = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 GLfloat vertices2[] = { 0.0f,0.0f,0.0f, 0.0f,-1.0f,0.0f, 1.0f,0.0f,0.0f };
 
@@ -148,7 +148,7 @@ char *load_file(char *fname, int &fSize) {
     {
         size = file.tellg();
         fSize = (GLuint)size;
-        memblock = new char[size];
+        memblock = new char[(uint32)size];
         file.seekg(0, ios::beg);
         file.read(memblock, size);
         file.close();
