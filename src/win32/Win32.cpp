@@ -6,9 +6,6 @@
 
 #include <chrono>
 #include <thread>
-#include <fstream>
-
-using namespace std;
 
 #define DEBUG
 
@@ -137,28 +134,23 @@ game_functions LoadGameLibrary() {
     return library;
 }
 
-char *load_file(char *fname, int &fSize) {
-    std::ifstream::pos_type size;
-    char * memblock;
-    string text;
+// TODO: We do not want to use this function later... The asset
+// system should handle all resources.
+char *load_file(char *filename, int &filesize) {
+    HANDLE handle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    Assert(handle != INVALID_HANDLE_VALUE);
+    if (handle == INVALID_HANDLE_VALUE) {
+        filesize = 0;
+        return 0;
+    }
 
-    // file read based on example in cplusplus.com tutorial
-    ifstream file(fname, ios::in | ios::binary | ios::ate);
-    if (file.is_open())
-    {
-        size = file.tellg();
-        fSize = (GLuint)size;
-        memblock = new char[(uint32)size];
-        file.seekg(0, ios::beg);
-        file.read(memblock, size);
-        file.close();
-        text.assign(memblock);
-    }
-    else
-    {
-        exit(1);
-    }
-    return memblock;
+    DWORD size = GetFileSize(handle, NULL);
+    void *content = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
+
+    ReadFile(handle, content, size, NULL, NULL);
+    filesize = size;
+
+    return (char*)content;
 }
 
 void InitializeOpenGL() {
@@ -230,8 +222,8 @@ void PrepareOpenGL() {
     glLinkProgram(p);
     glUseProgram(p);
 
-    delete[] vs; // dont forget to free allocated memory
-    delete[] fs; // we allocated this in the loadFile function...
+    VirtualFree(vs, 0, MEM_RELEASE);
+    VirtualFree(fs, 0, MEM_RELEASE);
 }
 
 void SetupOpenGL(HDC hdc) {
