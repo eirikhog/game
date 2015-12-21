@@ -31,6 +31,7 @@ typedef float real64;
 
 struct game_input;
 struct game_buffer;
+struct platform_api;
 
 typedef struct {
     void *transient;
@@ -40,13 +41,16 @@ typedef struct {
     uint32 permanentSize;
 } game_memory;
 
-typedef void update_game(game_memory *memory, game_input *input, game_buffer *buffer);
-typedef void read_entire_file(char *);
+typedef void update_game(platform_api *api, game_memory *memory, game_input *input);
+typedef char *read_entire_file(char *filename, uint32 *size);
+
+typedef struct platform_api {
+    read_entire_file* ReadEntireFile;
+} platform_api;
 
 typedef struct {
     void (*DebugOutput)(char *);
     update_game* UpdateGame;
-    read_entire_file* ReadEntireFile(char *);
 } game_functions;
 
 typedef struct {
@@ -59,5 +63,7 @@ typedef struct {
     uint32 pitch;
     void *data;
 } bitmap;
+
+
 
 

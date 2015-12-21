@@ -27,14 +27,6 @@ static backbuffer buffer = {};
 static bool isRunning;
 static bool isInitialized = 0;
 
-GLfloat vertices[] = { 0.0f,0.0f,0.0f, 0.0f,100.0f,0.0f, 100.0f,100.0f,0.0f };
-GLfloat colours[] = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
-GLfloat vertices2[] = { 0.0f,0.0f,0.0f, 0.0f,-1.0f,0.0f, 1.0f,0.0f,0.0f };
-
-// two vertex array objects, one for each object drawn
-unsigned int vertexArrayObjID[2];
-// three vertex buffer objects in this example
-unsigned int vertexBufferObjID[3];
 
 void ResizeWindow(uint32 width, uint32 height) {
    if (buffer.content.data) {
@@ -72,23 +64,6 @@ void RenderBackbuffer(HWND hwnd, backbuffer *buff) {
 
     //StretchDIBits(target, 0, 0, width, height, 0, 0, width, height, buff->content.data, &buff->info, DIB_RGB_COLORS, SRCCOPY);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    if (isInitialized) {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0, 0, height, width, 0, 1);
-
-        glBindVertexArray(vertexArrayObjID[0]);	// First VAO
-        glDrawArrays(GL_TRIANGLES, 0, 3);	// draw first object
-
-        glBindVertexArray(vertexArrayObjID[1]);		// select second VAO
-        glVertexAttrib3f((GLuint)1, 1.0, 0.0, 0.0); // set constant color attribute
-        glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
-
-        glBindVertexArray(0);
-    }
-
     SwapBuffers(target);
 
     ReleaseDC(hwnd, target);
@@ -120,21 +95,9 @@ extern "C" void OutputDebug(char *text) {
     OutputDebugString(text);
 }
 
-game_functions LoadGameLibrary() {
-    game_functions library = {};
-    library.DebugOutput = OutputDebug;
-
-    HMODULE module = LoadLibrary("Game.dll");
-    library.UpdateGame = (update_game *)GetProcAddress(module, "UpdateGame");
-    Assert(library.UpdateGame);
-    Assert(module);
-
-    return library;
-}
-
 // TODO: We do not want to use this function later... The asset
 // system should handle all resources.
-char *load_file(char *filename, int &filesize) {
+char *load_file(char *filename, uint32 *filesize) {
     HANDLE handle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     Assert(handle != INVALID_HANDLE_VALUE);
     if (handle == INVALID_HANDLE_VALUE) {
@@ -146,82 +109,21 @@ char *load_file(char *filename, int &filesize) {
     void *content = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
 
     ReadFile(handle, content, size, NULL, NULL);
-    filesize = size;
+    *filesize = size;
 
     return (char*)content;
 }
 
-void InitializeOpenGL() {
-    glGenVertexArrays(2, &vertexArrayObjID[0]);
-    glBindVertexArray(vertexArrayObjID[0]);
-    glGenBuffers(2, vertexBufferObjID);
+game_functions LoadGameLibrary() {
+    game_functions library = {};
+    library.DebugOutput = OutputDebug;
 
-    // VBO for vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[0]);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
+    HMODULE module = LoadLibrary("Game.dll");
+    library.UpdateGame = (update_game *)GetProcAddress(module, "UpdateGame");
+    Assert(library.UpdateGame);
+    Assert(module);
 
-    // VBO for color data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[1]);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), colours, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(vertexArrayObjID[1]);
-    glGenBuffers(1, &vertexBufferObjID[2]);
-
-    // VBO for vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[2]);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GL_FLOAT), vertices2, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
-
-    isInitialized = true;
-}
-
-void PrepareOpenGL() {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    
-    GLuint v = glCreateShader(GL_VERTEX_SHADER);
-    GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
-
-    char *vs, *fs;
-
-    // load shaders & get length of each
-    GLint vlen;
-    GLint flen;
-    vs = load_file("../data/shaders/minimal.vert", vlen);
-    fs = load_file("../data/shaders/minimal.frag", flen);
-
-    const char * vv = vs;
-    const char * ff = fs;
-    glShaderSource(v, 1, &vv, &vlen);
-    glShaderSource(f, 1, &ff, &flen);
-    GLint compiled;
-
-    glCompileShader(v);
-    glGetShaderiv(v, GL_COMPILE_STATUS, &compiled);
-    Assert(compiled);
-
-    glCompileShader(f);
-    glGetShaderiv(f, GL_COMPILE_STATUS, &compiled);
-    Assert(compiled);
-
-    GLuint p = glCreateProgram();
-    glBindAttribLocation(p, 0, "in_Position");
-    glBindAttribLocation(p, 1, "in_Color");
-
-    glAttachShader(p, v);
-    glAttachShader(p, f);
-
-    glLinkProgram(p);
-    glUseProgram(p);
-
-    VirtualFree(vs, 0, MEM_RELEASE);
-    VirtualFree(fs, 0, MEM_RELEASE);
+    return library;
 }
 
 void SetupOpenGL(HDC hdc) {
@@ -246,7 +148,6 @@ void SetupOpenGL(HDC hdc) {
     HGLRC tempContext = wglCreateContext(hdc);
     wglMakeCurrent(hdc, tempContext);
     
-    
     GLenum glresult = glewInit();
     Assert(glresult == GLEW_OK);
    
@@ -268,9 +169,6 @@ void SetupOpenGL(HDC hdc) {
         wglDeleteContext(tempContext);
         wglMakeCurrent(hdc, myContext);
     }
-
-    PrepareOpenGL();
-    InitializeOpenGL();
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -307,13 +205,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     const uint32 transientMemorySize = 1024 * 1024 * 32;
     memory.transient = VirtualAlloc(0, transientMemorySize, MEM_COMMIT, PAGE_READWRITE);
     memory.transientSize = transientMemorySize;
-    ZeroMemory(memory.transient, memory.transientSize);
-    // TODO: Load permanent memory from file?
-    
+    const uint32 permanentMemorySize = 1024 * 1024 * 16;
+    memory.permanent = VirtualAlloc(0, permanentMemorySize, MEM_COMMIT, PAGE_READWRITE);
+    memory.permanentSize = permanentMemorySize;
     // TODO: Move this 
     HDC hdc = GetDC(window);
     SetupOpenGL(hdc);
-    ReleaseDC(window, hdc);
+
+    platform_api api = {};
+    api.ReadEntireFile = load_file;
 
     isRunning = true;
     while(isRunning) {
@@ -324,7 +224,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // - Render
         
         QueryPerformanceCounter(&tStart);
-        gameLib.UpdateGame(NULL, NULL, NULL);
+        gameLib.UpdateGame(&api, &memory, NULL);
         RenderBackbuffer(window, &buffer);
 
         MSG msg;
@@ -342,6 +242,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
         }
     }
+    ReleaseDC(window, hdc);
 
     return EXIT_SUCCESS;
 }

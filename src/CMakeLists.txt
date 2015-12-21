@@ -8,7 +8,8 @@ find_package(OpenGL)
 
 # Game as library
 file(GLOB GameSources *.cpp *.h)
-add_library(Game SHARED ${GameSources})
+add_library(Game SHARED ${GameSources} ../dep/glew-1.13.0/src/glew.c)
+target_link_libraries(Game ${OPENGL_gl_LIBRARY})
 
 # Windows executable
 if (WIN32)
