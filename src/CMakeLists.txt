@@ -7,12 +7,12 @@ find_package(OpenGL)
 # find_package(GLUT)
 
 # Game as library
-file(GLOB GameSources *.cpp)
+file(GLOB GameSources *.cpp *.h)
 add_library(Game SHARED ${GameSources})
 
 # Windows executable
 if (WIN32)
-    file(GLOB WindowsSources win32/*.cpp)
+    file(GLOB WindowsSources win32/*.cpp win32/*.h)
     add_executable(Windows WIN32 ${WindowsSources} ../dep/glew-1.13.0/src/glew.c)
     add_definitions(-DGLEW_BUILD)
     include_directories(${PROJECT_SOURCE_DIR}/../dep/glew-1.13.0/include)
