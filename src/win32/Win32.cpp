@@ -43,14 +43,8 @@ void ResizeWindow(uint32 width, uint32 height) {
 
    buffer.content.data = VirtualAlloc(0, 32 * width * height, MEM_COMMIT, PAGE_READWRITE);
 
-   uint32 *pixel = (uint32*)buffer.content.data;
-   for (uint32 y = 0; y < width; ++y) {
-       for (uint32 x = 0; x < height; ++x) {
-           *pixel = 0x00FF00FF;
-           pixel++;
-           
-       }
-   }
+
+   glViewport(0, 0, width, height);
 }
 
 void RenderBackbuffer(HWND hwnd, backbuffer *buff) {

@@ -7,7 +7,7 @@ unsigned int vertexArrayObjID[2];
 // three vertex buffer objects in this example
 unsigned int vertexBufferObjID[3];
 
-GLfloat vertices[] = { 0.0f,0.0f,0.0f, 0.0f,250.0f,0.0f, 100.0f,100.0f,0.0f };
+GLfloat vertices[] = { 0.0f,0.0f,0.0f, 0.0f,250.0f,0.0f, 250.0f,0.0f,0.0f };
 GLfloat colours[] = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 GLfloat vertices2[] = { 0.0f,0.0f,0.0f, 0.0f,-1.0f,0.0f, 1.0f,0.0f,0.0f };
 
@@ -103,6 +103,22 @@ render_context initialize_renderer(platform_api *api) {
 }
 
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c) {
+    
+    //render_object obj = {};
+    //obj.vertices = malloc(sizeof(float)*3*4);
+    //obj.verticesCount = 4;
+    //obj.colors = malloc(sizeof(float)*3*4);
+    //obj.colorsCount = 4;
+
+
+    //unsigned int vertexArrayObjId;
+    //unsigned int vertexBufferObjID;
+    //glGenVertexArrays(1, &vertexArrayObjId);
+    //glBindVertexArray(vertexArrayObjId);
+    //glGenBuffers(1, vertexBufferObjID);
+
+    //glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID);
+    //glBufferData(GL_ARRAY_BUFFER, 4*3*sizeof(real32), obj.vertices, GL_STATIC_DRAW);
 }
 
 
@@ -110,14 +126,27 @@ void render_start(render_context *ctx) {
     // Do the actual rendering...
     //
 
-    /*
+    
     // Cheating! We probably want this from somewhere else...
     GLint viewport_size[4];
     glGetIntegerv(GL_VIEWPORT, viewport_size);
 
-    int32 width = (int32)viewport[2];
-    int32 height = (int32)viewport[3];
-    */
+    int32 width = (int32)viewport_size[2];
+    int32 height = (int32)viewport_size[3];
+
+    GLint id;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &id);
+
+    GLint loc = glGetUniformLocation(id, "width");
+    if (loc != -1)
+    {
+        glUniform1f(loc, (float)width);
+    }
+    loc = glGetUniformLocation(id, "height");
+    if (loc != -1)
+    {
+        glUniform1f(loc, (float)height);
+    }
 
     glClear(GL_COLOR_BUFFER_BIT);
 

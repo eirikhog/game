@@ -18,6 +18,7 @@ if (WIN32)
     add_definitions(-DGLEW_BUILD)
     include_directories(${PROJECT_SOURCE_DIR}/../dep/glew-1.13.0/include)
     target_link_libraries(Windows user32.lib gdi32.lib winmm.lib xinput.lib ${OPENGL_gl_LIBRARY})
+    add_dependencies(Windows Game)
 endif()
 
 
