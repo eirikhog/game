@@ -27,23 +27,15 @@ static backbuffer buffer = {};
 static bool isRunning;
 static bool isInitialized = 0;
 
+#ifdef _DEBUG
+typedef struct {
+    uint32 frame_count;
+    uint64 work_time;
+    uint64 sleep_time;
+} win32_performance;
+#endif
 
 void ResizeWindow(uint32 width, uint32 height) {
-   if (buffer.content.data) {
-       VirtualFree(buffer.content.data, 0, MEM_RELEASE);
-   }
-   
-   buffer.info = {};
-   buffer.info.bmiHeader.biSize = sizeof(buffer.info.bmiHeader);
-   buffer.info.bmiHeader.biWidth = (LONG)width;
-   buffer.info.bmiHeader.biHeight = -(LONG)height;
-   buffer.info.bmiHeader.biPlanes = 1;
-   buffer.info.bmiHeader.biBitCount = 32;
-   buffer.info.bmiHeader.biCompression = BI_RGB;
-
-   buffer.content.data = VirtualAlloc(0, 32 * width * height, MEM_COMMIT, PAGE_READWRITE);
-
-
    glViewport(0, 0, width, height);
 }
 
@@ -209,6 +201,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     platform_api api = {};
     api.ReadEntireFile = load_file;
 
+    LARGE_INTEGER ftStart, ftEnd;
+    QueryPerformanceCounter(&ftStart);
+
+    win32_performance perf = {};
+
     isRunning = true;
     while(isRunning) {
 
@@ -230,11 +227,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...
         uint64_t tElapsedUs = GetElapsedMicroseconds(tStart, tEnd, cpuFreq);
-        const int64_t targetTime = 15666; // us in 1 frame at 60 fps
+        perf.work_time += tElapsedUs;
+        const int64_t targetTime = 1000000 / 60; // us in 1 frame at 60 fps
         int64_t sleepTime = (targetTime - tElapsedUs);
+        perf.sleep_time += sleepTime;
         if (sleepTime > 0) {
             std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
         }
+
+#ifdef _DEBUG
+        perf.frame_count++;
+        if (perf.frame_count == 59) {
+            QueryPerformanceCounter(&ftEnd);
+            uint64 a = GetElapsedMicroseconds(ftStart, ftEnd, cpuFreq);
+            float time_per_frame = (float)perf.work_time / 60000.0f;
+            float sleep_per_frame = (float)perf.sleep_time / 60000.0f;
+            float utilization = 100.0f * time_per_frame / (sleep_per_frame + time_per_frame);
+            char text[256];
+            sprintf_s(text, 256, "Performance: Time per frame: %f ms. Sleep per frame: %f (%f %%)\n", time_per_frame, sleep_per_frame, utilization);
+            OutputDebugString(text);
+            perf.frame_count = 0;
+            perf.work_time = 0;
+            perf.sleep_time = 0;
+            QueryPerformanceCounter(&ftStart);
+        }
+#endif
+
     }
     ReleaseDC(window, hdc);
 

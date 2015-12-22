@@ -10,10 +10,12 @@ typedef struct render_entry {
     render_entry *next;
 } render_entry;
 
+typedef struct render_buffer {
+    render_entry entries[128];
+    uint32 count;
+} render_buffer;
 
-void InitializeOpenGL(render_context *ctx) {
-    ctx->initialized = true;
-}
+static void draw(render_context *ctx);
 
 void PrepareOpenGL(platform_api *api) {
     GLenum err = glewInit();
@@ -60,6 +62,7 @@ void PrepareOpenGL(platform_api *api) {
     glLinkProgram(p);
     glUseProgram(p);
 
+    GLuint res = glGetAttribLocation(p, "in_Position");
     // TODO: FREE MEMORY!
     // VirtualFree(vs, 0, MEM_RELEASE);
     // VirtualFree(fs, 0, MEM_RELEASE);
@@ -72,8 +75,10 @@ render_context initialize_renderer(platform_api *api) {
     ctx.initialized = false;
     ctx.rendering = false;
     ctx.sprites = NULL;
+
     PrepareOpenGL(api);
-    InitializeOpenGL(&ctx);
+
+    ctx.initialized = true;
     return ctx;
 }
 
@@ -90,10 +95,10 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
         obj.colors[i] = { c.r, c.g, c.b };
     }
 
-    obj.colors[0] = { 1.0f, 0.0f, 0.0f };
-    obj.colors[1] = { 0.0f, 1.0f, 0.0f };
-    obj.colors[2] = { 0.0f, 0.0f, 1.0f };
-    obj.colors[3] = { 0.0f, 1.0f, 1.0f };
+    //obj.colors[0] = { 1.0f, 0.0f, 0.0f };
+    //obj.colors[1] = { 0.0f, 1.0f, 0.0f };
+    //obj.colors[2] = { 0.0f, 0.0f, 1.0f };
+    //obj.colors[3] = { 0.0f, 1.0f, 1.0f };
 
     unsigned int vertexArrayObjId;
     unsigned int vertexBufferObjID[2];
@@ -129,6 +134,7 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
         current->next = entry;
     }
 
+    glBindVertexArray(0);
     // TODO: Better memory management!
 }
 
@@ -147,8 +153,8 @@ void render_end(render_context *ctx) {
         render_entry *current = sprite;
         sprite = sprite->next;
 
-        glDeleteVertexArrays(1, current->vbo);
         glDeleteBuffers(2, current->vbo);
+        glDeleteVertexArrays(1, &current->vab);
         free(current);
     }
     ctx->sprites = NULL;

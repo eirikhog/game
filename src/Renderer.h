@@ -28,4 +28,3 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
 
 void render_start(render_context *ctx);
 void render_end(render_context *ctx);
-void draw(render_context *ctx);
