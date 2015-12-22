@@ -27,14 +27,14 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
 
     render_start(&ctx);
 
-    color background = { 0.392156862745098, 0.5843137254901961, 0.9294117647058824 };
-    render_rect(&ctx, 0, 0, 1350, 750, background);
+    color cornflower_blue = { 0.392156862745098f, 0.5843137254901961f, 0.9294117647058824f };
+    render_rect(&ctx, 0, 0, 1350, 750, cornflower_blue);
 
     color c1 = { 1.0f, 1.0f, 1.0f, 1.0f };
-    render_rect(&ctx, pos.x, pos.y, 100, 100, c1);
+    render_rect(&ctx, (int32)pos.x, (int32)pos.y, 100, 100, c1);
 
     color c2 = { 0.0f, 1.0f, 0.0f, 1.0f };
-    render_rect(&ctx, pos.x + 75, pos.y + 75, 60, 60, c2);
+    render_rect(&ctx, (int32)pos.x + 75, (int32)pos.y + 75, 60, 60, c2);
 
     render_end(&ctx);
 }

@@ -2,8 +2,7 @@
 
 #version 140
 
-uniform float width;
-uniform float height;
+uniform vec2 size;
 
 in  vec3 in_Position;
 in  vec3 in_Color;
@@ -13,8 +12,8 @@ void main(void)
 {
     // Transform to pixel values.
     // TODO: Transform the Z coordinates?
-	mat4 projectionMatrix = mat4( 2.0/width, 0.0, 0.0, -1.0,
-                              0.0, -2.0/height, 0.0, 1.0,
+	mat4 projectionMatrix = mat4( 2.0/size.x, 0.0, 0.0, -1.0,
+                              0.0, -2.0/size.y, 0.0, 1.0,
                               0.0, 0.0, 1, 0,
                               0.0, 0.0, 0.0, 1.0);    
 	gl_Position = vec4(in_Position, 1.0);

@@ -167,21 +167,17 @@ void draw(render_context *ctx) {
     GLint viewport_size[4];
     glGetIntegerv(GL_VIEWPORT, viewport_size);
 
-    int32 width = (int32)viewport_size[2];
-    int32 height = (int32)viewport_size[3];
+    GLfloat width = (GLfloat)viewport_size[2];
+    GLfloat height = (GLfloat)viewport_size[3];
+    GLfloat size[2] = { width, height };
 
     GLint id;
     glGetIntegerv(GL_CURRENT_PROGRAM, &id);
 
-    GLint loc = glGetUniformLocation(id, "width");
+    GLint loc = glGetUniformLocation(id, "size");
     if (loc != -1)
     {
-        glUniform1f(loc, (float)width);
-    }
-    loc = glGetUniformLocation(id, "height");
-    if (loc != -1)
-    {
-        glUniform1f(loc, (float)height);
+        glUniform2f(loc, size[0], size[1]);
     }
 
     glClear(GL_COLOR_BUFFER_BIT);
