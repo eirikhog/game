@@ -16,13 +16,6 @@
 #define Assert(x)
 #endif
 
-typedef struct {
-    bitmap content;
-    BITMAPINFO info;
-} backbuffer;
-
-static backbuffer buffer = {};
-
 // TODO: Move to program state.
 static bool isRunning;
 static bool isInitialized = 0;
@@ -39,19 +32,9 @@ void ResizeWindow(uint32 width, uint32 height) {
    glViewport(0, 0, width, height);
 }
 
-void RenderBackbuffer(HWND hwnd, backbuffer *buff) {
+void SwapBackbuffer(HWND hwnd) {
     HDC target = GetDC(hwnd);
-
-    RECT targetRect;
-    GetClientRect(hwnd, &targetRect);
-
-    int32 width = targetRect.right - targetRect.left;
-    int32 height = targetRect.bottom - targetRect.top;
-
-    //StretchDIBits(target, 0, 0, width, height, 0, 0, width, height, buff->content.data, &buff->info, DIB_RGB_COLORS, SRCCOPY);
-
     SwapBuffers(target);
-
     ReleaseDC(hwnd, target);
 }
 
@@ -216,7 +199,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         
         QueryPerformanceCounter(&tStart);
         gameLib.UpdateGame(&api, &memory, NULL);
-        RenderBackbuffer(window, &buffer);
+        SwapBackbuffer(window);
 
         MSG msg;
         while (PeekMessage(&msg, window, NULL, NULL, PM_REMOVE)) {
