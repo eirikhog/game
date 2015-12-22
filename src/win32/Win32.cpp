@@ -16,10 +16,6 @@
 #define Assert(x)
 #endif
 
-// TODO: Move to program state.
-static bool isRunning;
-static bool isInitialized = 0;
-
 #ifdef _DEBUG
 typedef struct {
     uint32 frame_count;
@@ -27,6 +23,10 @@ typedef struct {
     uint64 sleep_time;
 } win32_performance;
 #endif
+
+typedef struct {
+    bool running;
+} win32_state;
 
 void ResizeWindow(uint32 width, uint32 height) {
    glViewport(0, 0, width, height);
@@ -41,9 +41,16 @@ void SwapBackbuffer(HWND hwnd) {
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     switch (uMsg) {
+        case WM_NCCREATE:{
+            // Set game state.
+            void* state_ptr = (((LPCREATESTRUCT)lParam)->lpCreateParams);
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG)state_ptr);
+            result = DefWindowProc(hwnd, uMsg, wParam, lParam);
+        }break;
         case WM_CLOSE:{
-                          isRunning = false;
-                      }break;
+            win32_state *state = (win32_state*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            state->running = false;
+        }break;
         case WM_SIZE:{
             RECT windowRect;
             GetClientRect(hwnd, &windowRect);
@@ -141,6 +148,8 @@ void SetupOpenGL(HDC hdc) {
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    win32_state program_state = {};
+    
     WNDCLASS myclass = {};
     myclass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
     myclass.lpfnWndProc = WindowProc;
@@ -157,7 +166,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     HWND window = CreateWindow(myclass.lpszClassName, "Game Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-            CW_USEDEFAULT, CW_USEDEFAULT, 1366, 768, NULL, NULL, hInstance, NULL);
+            CW_USEDEFAULT, CW_USEDEFAULT, 1366, 768, NULL, NULL, hInstance, &program_state);
 
     if (!window) {
         OutputDebugString("Could not create window.");
@@ -189,8 +198,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     win32_performance perf = {};
 
-    isRunning = true;
-    while(isRunning) {
+    program_state.running = true;
+    while(program_state.running) {
 
         // Main game loop:
         // - Handle input
