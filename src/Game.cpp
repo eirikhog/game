@@ -20,10 +20,12 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
         state->initialized = true;
     }
 
-    color c = { 1.0f, 1.0f, 1.0f, 1.0f };
-    render_rect(&ctx, 0, 0, 100, 100, c);
-
     render_start(&ctx);
+
+    color c = { 1.0f, 1.0f, 1.0f, 1.0f };
+    render_rect(&ctx, 250, 250, 100, 100, c);
+
+    render_end(&ctx);
 }
 
 

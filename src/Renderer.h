@@ -1,9 +1,14 @@
 #pragma once
 
 #include "Platform.h"
+#include "Math.h"
+
+struct render_entry;
 
 typedef struct {
     bool initialized;
+    bool rendering;
+    render_entry *sprites;
 } render_context;
 
 typedef struct {
@@ -14,14 +19,13 @@ typedef struct {
 } color;
 
 typedef struct {
-    real32 *vertices;
-    uint32 verticesCount;
-    real32 *colors;
-    uint32 colorsCount;
-} render_object;
+    v3 vertices[4];
+    v3 colors[4];
+} render_sprite;
 
 render_context initialize_renderer(platform_api *api);
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c);
 
 void render_start(render_context *ctx);
-
+void render_end(render_context *ctx);
+void draw(render_context *ctx);
