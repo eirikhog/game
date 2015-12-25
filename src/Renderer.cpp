@@ -4,21 +4,9 @@
 #include <GL/glew.h>
 #include <malloc.h>
 
-typedef struct render_entry {
-    uint32 vab;
-    uint32 vbo[2];
-} render_entry;
-
-typedef struct render_buffer {
-    render_entry *entries;
-    uint32 count;
-} render_buffer;
-
 typedef struct render_context {
     bool initialized;
     bool rendering;
-    render_entry *sprites;
-    render_buffer buffer;
 
     memory_segment memory;
     memory_segment vertex_buffer;
@@ -81,11 +69,6 @@ void PrepareOpenGL(platform_api *api) {
     // VirtualFree(fs, 0, MEM_RELEASE);
 }
 
-static void add_entry(render_context *ctx, render_entry entry) {
-    *(ctx->buffer.entries + ctx->buffer.count) = entry;
-    ctx->buffer.count++;
-}
-
 // TODO: Initialization
 render_context *render_init(platform_api *api, memory_segment memory) {
     allocate_memory(&memory, sizeof(render_context));
@@ -93,11 +76,6 @@ render_context *render_init(platform_api *api, memory_segment memory) {
     render_context *ctx = (render_context*)memory.base;
     ctx->initialized = false;
     ctx->rendering = false;
-    ctx->sprites = NULL;
-
-    ctx->buffer.count = 0;
-    ctx->buffer.entries = (render_entry *)((uint8*)memory.base + sizeof(render_context) + sizeof(render_buffer));
-
     ctx->memory = memory;
 
     PrepareOpenGL(api);
@@ -147,17 +125,19 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
 
 void render_start(render_context *ctx) {
     Assert(!ctx->rendering);
-    Assert(ctx->sprites == NULL);
+    Assert(ctx->vertex_buffer.base != NULL);
+    Assert(ctx->color_buffer.base != NULL);
+    Assert(ctx->entries_count == 0);
+
     ctx->rendering = true;
 }
 
 void render_end(render_context *ctx) {
     Assert(ctx->rendering);
+
     draw(ctx);
 
-    ctx->buffer.count = 0;
     ctx->entries_count = 0;
-
     ctx->rendering = false;
 }
 
