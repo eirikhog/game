@@ -34,9 +34,6 @@ struct game_buffer;
 struct platform_api;
 
 typedef struct {
-    void *transient;
-    uint32 transientSize;
-    // Permanent game data (save files, etc?)
     void *permanent;
     uint32 permanentSize;
 } game_memory;
@@ -63,6 +60,12 @@ typedef struct {
     uint32 pitch;
     void *data;
 } bitmap;
+
+typedef struct {
+    uint8 *base;
+    uint32 size;
+    uint32 used;
+} memory_segment;
 
 
 

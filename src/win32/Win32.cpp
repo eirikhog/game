@@ -180,9 +180,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Initialize game functions.
     game_functions gameLib = LoadGameLibrary();
     game_memory memory = {};
-    const uint32 transientMemorySize = 1024 * 1024 * 32;
-    memory.transient = VirtualAlloc(0, transientMemorySize, MEM_COMMIT, PAGE_READWRITE);
-    memory.transientSize = transientMemorySize;
     const uint32 permanentMemorySize = 1024 * 1024 * 16;
     memory.permanent = VirtualAlloc(0, permanentMemorySize, MEM_COMMIT, PAGE_READWRITE);
     memory.permanentSize = permanentMemorySize;

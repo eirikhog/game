@@ -3,14 +3,17 @@
 Things left to do:
 
 - Allocate memory for the game
+  - Remove use of malloc/free
 - Hot loading of game code
 - Asset file creation.
   - Load bitmaps
   - Create fonts
 - Asset loading
+  - Read the generated file
 - Render
   - Software renderer?
-  - OpenGL renderer
+  - Render images (textures)
+  - Lighting effects
 - World generation
 - Game input
   - Keyboard

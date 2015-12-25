@@ -3,13 +3,7 @@
 #include "Platform.h"
 #include "Math.h"
 
-struct render_entry;
-
-typedef struct {
-    bool initialized;
-    bool rendering;
-    render_entry *sprites;
-} render_context;
+struct render_context;
 
 typedef struct {
     real32 r;
@@ -23,7 +17,7 @@ typedef struct {
     v3 colors[4];
 } render_sprite;
 
-render_context initialize_renderer(platform_api *api);
+render_context *render_init(platform_api *api, memory_segment memory);
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c);
 
 void render_start(render_context *ctx);
