@@ -3,12 +3,6 @@
 #include "Math.h"
 #include "Renderer.h"
 
-typedef struct {
-    v2 position;
-    v2 size;
-} player;
-
-
 extern "C"
 void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input) {
 

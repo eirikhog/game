@@ -4,6 +4,18 @@
 #include <GL/glew.h>
 #include <malloc.h>
 
+typedef struct {
+    real32 x;
+    real32 y;
+    real32 z;
+} render_vertex;
+
+typedef struct {
+    real32 r;
+    real32 g;
+    real32 b;
+} render_color;
+
 typedef struct render_context {
     bool initialized;
     bool rendering;
@@ -97,28 +109,37 @@ render_context *render_init(platform_api *api, memory_segment memory) {
 
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c) {
     
-    render_sprite obj = {};
-    obj.vertices[0] = { (real32)x, (real32)y, 0.f };
-    obj.vertices[1] = { (real32)x, (real32)(y + height), 0.f };
-    obj.vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f };
-    obj.vertices[3] = { (real32)(x + width), (real32)y, 0.f };
+    render_vertex vertices[4];
+    vertices[0] = { (real32)x, (real32)y, 0.f };
+    vertices[1] = { (real32)x, (real32)(y + height), 0.f };
+    vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f };
+    vertices[3] = { (real32)(x + width), (real32)y, 0.f };
+
+    render_color colors[4];
+    for (int i = 0; i < 4; ++i) {
+        colors[i] = { c.r, c.g, c.b };
+    }
 
     for (int i = 0; i < 4; ++i) {
-        obj.colors[i] = { c.r, c.g, c.b };
+        render_vertex *c_vert = (render_vertex *)PUSH_STRUCT(&ctx->vertex_buffer, render_vertex);
+        *c_vert = vertices[i];
+
+        render_color *c_color = (render_color *)PUSH_STRUCT(&ctx->color_buffer, render_color);
+        *c_color = colors[i];
     }
     
-    real32 *vert_pos = (real32*)ctx->vertex_buffer.base + ctx->entries_count * 4 * 3;
-    real32 *color_pos = (real32*)ctx->color_buffer.base + ctx->entries_count * 4 * 3;
-    for (int i = 0; i < 4; ++i) {
-        vert_pos[0] = obj.vertices[i].x;
-        vert_pos[1] = obj.vertices[i].y;
-        vert_pos[2] = obj.vertices[i].z;
-        color_pos[0] = obj.colors[i].x;
-        color_pos[1] = obj.colors[i].y;
-        color_pos[2] = obj.colors[i].z;
-        vert_pos += 3;
-        color_pos += 3;
-    }
+    //real32 *vert_pos = (real32*)ctx->vertex_buffer.base + ctx->entries_count * 4 * 3;
+    //real32 *color_pos = (real32*)ctx->color_buffer.base + ctx->entries_count * 4 * 3;
+    //for (int i = 0; i < 4; ++i) {
+    //    vert_pos[0] = obj.vertices[i].x;
+    //    vert_pos[1] = obj.vertices[i].y;
+    //    vert_pos[2] = obj.vertices[i].z;
+    //    color_pos[0] = obj.colors[i].x;
+    //    color_pos[1] = obj.colors[i].y;
+    //    color_pos[2] = obj.colors[i].z;
+    //    vert_pos += 3;
+    //    color_pos += 3;
+    //}
 
     ctx->entries_count++;
 }
@@ -136,6 +157,9 @@ void render_end(render_context *ctx) {
     Assert(ctx->rendering);
 
     draw(ctx);
+
+    segment_clear(&ctx->vertex_buffer);
+    segment_clear(&ctx->color_buffer);
 
     ctx->entries_count = 0;
     ctx->rendering = false;
