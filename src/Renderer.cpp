@@ -19,6 +19,13 @@ typedef struct render_context {
     bool rendering;
     render_entry *sprites;
     render_buffer buffer;
+
+    memory_segment memory;
+    memory_segment vertex_buffer;
+    memory_segment color_buffer;
+
+    uint32 entries_count;
+    uint32 entries_max;
 } render_context;
 
 static void draw(render_context *ctx);
@@ -81,6 +88,8 @@ static void add_entry(render_context *ctx, render_entry entry) {
 
 // TODO: Initialization
 render_context *render_init(platform_api *api, memory_segment memory) {
+    allocate_memory(&memory, sizeof(render_context));
+
     render_context *ctx = (render_context*)memory.base;
     ctx->initialized = false;
     ctx->rendering = false;
@@ -89,7 +98,20 @@ render_context *render_init(platform_api *api, memory_segment memory) {
     ctx->buffer.count = 0;
     ctx->buffer.entries = (render_entry *)((uint8*)memory.base + sizeof(render_context) + sizeof(render_buffer));
 
+    ctx->memory = memory;
+
     PrepareOpenGL(api);
+
+    // Allocate memory buffer
+    uint32 size_per_element = sizeof(real32) * 3 * 4; // 3 real32 coords, 4 vertices
+    uint32 available_memory = (memory.size - memory.used) / size_per_element;
+    memory_segment vertex_segment = allocate_memory(&memory, available_memory / 2);
+    memory_segment color_segment = allocate_memory(&memory, available_memory / 2);
+
+    ctx->entries_max = available_memory / 2;
+    ctx->entries_count = 0;
+    ctx->vertex_buffer = vertex_segment;
+    ctx->color_buffer = color_segment;
 
     ctx->initialized = true;
     return ctx;
@@ -98,7 +120,6 @@ render_context *render_init(platform_api *api, memory_segment memory) {
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c) {
     
     render_sprite obj = {};
-    v3 test = { 1.0f, 2.0f, 3.0f };
     obj.vertices[0] = { (real32)x, (real32)y, 0.f };
     obj.vertices[1] = { (real32)x, (real32)(y + height), 0.f };
     obj.vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f };
@@ -107,33 +128,21 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     for (int i = 0; i < 4; ++i) {
         obj.colors[i] = { c.r, c.g, c.b };
     }
+    
+    real32 *vert_pos = (real32*)ctx->vertex_buffer.base + ctx->entries_count * 4 * 3;
+    real32 *color_pos = (real32*)ctx->color_buffer.base + ctx->entries_count * 4 * 3;
+    for (int i = 0; i < 4; ++i) {
+        vert_pos[0] = obj.vertices[i].x;
+        vert_pos[1] = obj.vertices[i].y;
+        vert_pos[2] = obj.vertices[i].z;
+        color_pos[0] = obj.colors[i].x;
+        color_pos[1] = obj.colors[i].y;
+        color_pos[2] = obj.colors[i].z;
+        vert_pos += 3;
+        color_pos += 3;
+    }
 
-    unsigned int vertexArrayObjId;
-    unsigned int vertexBufferObjID[2];
-    glGenVertexArrays(1, &vertexArrayObjId);
-    glBindVertexArray(vertexArrayObjId);
-    glGenBuffers(2, vertexBufferObjID);
-
-    // VBO for vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[0]);
-    glBufferData(GL_ARRAY_BUFFER, 4*3*sizeof(real32), obj.vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    // VBO for color data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[1]);
-    glBufferData(GL_ARRAY_BUFFER, 4*3*sizeof(GLfloat), obj.colors, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    render_entry entry = { };
-    entry.vab = vertexArrayObjId;
-    entry.vbo[0] = vertexBufferObjID[0];
-    entry.vbo[1] = vertexBufferObjID[1];
-    add_entry(ctx, entry);
-
-    glBindVertexArray(0);
-    // TODO: Better memory management!
+    ctx->entries_count++;
 }
 
 void render_start(render_context *ctx) {
@@ -146,18 +155,33 @@ void render_end(render_context *ctx) {
     Assert(ctx->rendering);
     draw(ctx);
 
-    // Delete buffers...
-    for (uint32 i = 0; i < ctx->buffer.count; ++i) {
-        render_entry *current = ctx->buffer.entries + i;
-        glDeleteBuffers(2, current->vbo);
-        glDeleteVertexArrays(1, &current->vab);
-    }
     ctx->buffer.count = 0;
+    ctx->entries_count = 0;
 
     ctx->rendering = false;
 }
 
 void draw(render_context *ctx) {    
+
+    unsigned int vertexArrayObjId;
+    unsigned int vertexBufferObjID[2];
+    glGenVertexArrays(1, &vertexArrayObjId);
+    glBindVertexArray(vertexArrayObjId);
+    glGenBuffers(2, vertexBufferObjID);
+
+    // VBO for vertex data
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[0]);
+    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4*3*sizeof(real32), ctx->vertex_buffer.base, GL_STATIC_DRAW);
+    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    // VBO for color data
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[1]);
+    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4*3*sizeof(GLfloat), ctx->color_buffer.base, GL_STATIC_DRAW);
+    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+
     // Cheating! We probably want this from somewhere else...
     GLint viewport_size[4];
     glGetIntegerv(GL_VIEWPORT, viewport_size);
@@ -181,14 +205,13 @@ void draw(render_context *ctx) {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        // Render all sprites...
-        for (uint32 i = 0; i < ctx->buffer.count; ++i) {
-            render_entry *sprite = ctx->buffer.entries + i;
-            glBindVertexArray(sprite->vab);
-            glDrawArrays(GL_QUADS, 0, 4);
-        }
+        glBindVertexArray(vertexArrayObjId);
+        glDrawArrays(GL_QUADS, 0, 4 * ctx->entries_count);
 
         glBindVertexArray(0);
     }
+
+    glDeleteBuffers(2, vertexBufferObjID);
+    glDeleteVertexArrays(1, &vertexArrayObjId);
     
 }

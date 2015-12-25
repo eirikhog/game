@@ -67,6 +67,20 @@ typedef struct {
     uint32 used;
 } memory_segment;
 
+// TODO: Move to implementation file.
+inline memory_segment
+allocate_memory(memory_segment *memory, uint32 size) {
+    Assert(memory->size - memory->used >= size);
+    memory_segment allocated = {};
+    allocated.base = memory->base + memory->used;
+    allocated.size = size;
+    allocated.used = 0;
+
+    memory->used += size;
+
+    return allocated;
+}
+
 
 
 

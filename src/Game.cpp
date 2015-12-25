@@ -8,18 +8,6 @@ typedef struct {
     v2 size;
 } player;
 
-inline memory_segment
-allocate_memory(memory_segment *memory, uint32 size) {
-    Assert(memory->size - memory->used >= size);
-    memory_segment allocated = {};
-    allocated.base = memory->base + memory->used;
-    allocated.size = size;
-    allocated.used = 0;
-
-    memory->used += size;
-
-    return allocated;
-}
 
 extern "C"
 void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input) {
