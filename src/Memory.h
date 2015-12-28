@@ -22,7 +22,7 @@ allocate_memory(memory_segment *memory, uint32 size) {
     return allocated;
 }
 
-#define PUSH_STRUCT(segment, type) push_struct_(segment, sizeof(type))
+#define PUSH_STRUCT(segment, type) (type *)push_struct_(segment, sizeof(type))
 
 inline void *
 push_struct_(memory_segment *segment, uint32 size) {
