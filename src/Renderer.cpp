@@ -32,6 +32,7 @@ static void draw(render_context *ctx);
 
 void PrepareOpenGL(platform_api *api) {
     GLenum err = glewInit();
+    Assert(err == GLEW_OK);
     if (err != GLEW_OK)
     {
         //Problem: glewInit failed, something is seriously wrong.
@@ -127,19 +128,6 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
         render_color *c_color = (render_color *)PUSH_STRUCT(&ctx->color_buffer, render_color);
         *c_color = colors[i];
     }
-    
-    //real32 *vert_pos = (real32*)ctx->vertex_buffer.base + ctx->entries_count * 4 * 3;
-    //real32 *color_pos = (real32*)ctx->color_buffer.base + ctx->entries_count * 4 * 3;
-    //for (int i = 0; i < 4; ++i) {
-    //    vert_pos[0] = obj.vertices[i].x;
-    //    vert_pos[1] = obj.vertices[i].y;
-    //    vert_pos[2] = obj.vertices[i].z;
-    //    color_pos[0] = obj.colors[i].x;
-    //    color_pos[1] = obj.colors[i].y;
-    //    color_pos[2] = obj.colors[i].z;
-    //    vert_pos += 3;
-    //    color_pos += 3;
-    //}
 
     ctx->entries_count++;
 }
