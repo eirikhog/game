@@ -14,10 +14,12 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
         mem_all.used = 0;
         state->game_memory = mem_all;
 
+        state->assets = assets_initialize(api);
+
         // Allocate 4 mb for renderer
         memory_segment renderer_memory = allocate_memory(&mem_all, 4 * 1024 * 1024);
         state->renderer_memory = renderer_memory;
-        state->renderer = render_init(api, renderer_memory);
+        state->renderer = render_init(&state->assets, renderer_memory);
 
         state->initialized = true;
     }

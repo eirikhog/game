@@ -11,6 +11,10 @@ Things left to do:
   - Create fonts
 - Asset loading
   - Read the generated file
+  - Load images
+  - Load sounds
+  - Fonts
+  - Unload assets
 - Render
   - Software renderer?
   - Render images (textures)

@@ -23,6 +23,8 @@ typedef float real64;
 #define Assert(x)
 #endif
 
+#define InvalidCodePath() Assert(0)
+
 #ifdef _WIN32
 #  define EXPORT __declspec( dllexport )
 #else

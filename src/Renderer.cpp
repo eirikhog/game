@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Math.h"
+#include "Assets.h"
 
 #include <GL/glew.h>
 #include <malloc.h>
@@ -30,7 +31,7 @@ typedef struct render_context {
 
 static void draw(render_context *ctx);
 
-void PrepareOpenGL(platform_api *api) {
+void PrepareOpenGL(game_assets *assets) {
     GLenum err = glewInit();
     Assert(err == GLEW_OK);
     if (err != GLEW_OK)
@@ -47,8 +48,8 @@ void PrepareOpenGL(platform_api *api) {
     // load shaders & get length of each
     uint32 vlen_fs;
     uint32 flen_fs;
-    vs = api->ReadEntireFile("../data/shaders/minimal.vert", &vlen_fs);
-    fs = api->ReadEntireFile("../data/shaders/minimal.frag", &flen_fs);
+    vs = get_shader(assets, ASSET_SHADER_VERTEX, &vlen_fs);
+    fs = get_shader(assets, ASSET_SHADER_FRAGMENT, &flen_fs);
 
     GLint vlen = (GLint)vlen_fs;
     GLint flen = (GLint)flen_fs;
@@ -77,13 +78,9 @@ void PrepareOpenGL(platform_api *api) {
     glUseProgram(p);
 
     GLuint res = glGetAttribLocation(p, "in_Position");
-    // TODO: FREE MEMORY!
-    // VirtualFree(vs, 0, MEM_RELEASE);
-    // VirtualFree(fs, 0, MEM_RELEASE);
 }
 
-// TODO: Initialization
-render_context *render_init(platform_api *api, memory_segment memory) {
+render_context *render_init(game_assets *assets, memory_segment memory) {
     allocate_memory(&memory, sizeof(render_context));
 
     render_context *ctx = (render_context*)memory.base;
@@ -91,7 +88,7 @@ render_context *render_init(platform_api *api, memory_segment memory) {
     ctx->rendering = false;
     ctx->memory = memory;
 
-    PrepareOpenGL(api);
+    PrepareOpenGL(assets);
 
     // Allocate memory buffer
     uint32 size_per_element = sizeof(real32) * 3 * 4; // 3 real32 coords, 4 vertices

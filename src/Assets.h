@@ -11,6 +11,13 @@ enum asset_type {
     ASSET_TYPE_COUNT
 };
 
+enum asset_id {
+    ASSET_SHADER_VERTEX,
+    ASSET_SHADER_FRAGMENT,
+
+    ASSET_COUNT
+};
+
 typedef struct {
     uint32 magic;
     uint32 version;
@@ -32,5 +39,10 @@ typedef struct {
 typedef struct {
     uint32 assets_count;
     game_asset *assets;
+    platform_api *api;
 } game_assets;
+
+game_assets assets_initialize(platform_api *api);
+char *get_shader(game_assets *assets, asset_id id, uint32 *fileSize);
+
 
