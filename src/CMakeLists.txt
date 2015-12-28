@@ -21,4 +21,8 @@ if (WIN32)
     add_dependencies(Windows Game)
 endif()
 
+# Asset generator
+if (WIN32)
+    add_executable(AssetGenerator assets/asset_generator.h assets/asset_generator.cpp)
+endif()
 
