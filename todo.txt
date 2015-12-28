@@ -23,4 +23,6 @@ Things left to do:
 - Game input
   - Keyboard
   - XInput
+  - Mouse control
+
 

@@ -11,5 +11,3 @@ typedef struct {
     float z;
 } v3;
 
-
-

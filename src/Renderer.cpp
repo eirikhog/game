@@ -96,7 +96,7 @@ render_context *render_init(game_assets *assets, memory_segment memory) {
     memory_segment vertex_segment = allocate_memory(&memory, available_memory / 2);
     memory_segment color_segment = allocate_memory(&memory, available_memory / 2);
 
-    ctx->entries_max = available_memory / 2;
+    ctx->entries_max = available_memory / (2 * sizeof(real32) * 3 * 4);
     ctx->entries_count = 0;
     ctx->vertex_buffer = vertex_segment;
     ctx->color_buffer = color_segment;
@@ -106,6 +106,7 @@ render_context *render_init(game_assets *assets, memory_segment memory) {
 }
 
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c) {
+    Assert(ctx->entries_count < ctx->entries_max);
     
     render_vertex vertices[4];
     vertices[0] = { (real32)x, (real32)y, 0.f };
@@ -119,10 +120,10 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     }
 
     for (int i = 0; i < 4; ++i) {
-        render_vertex *c_vert = (render_vertex *)PUSH_STRUCT(&ctx->vertex_buffer, render_vertex);
+        render_vertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, render_vertex);
         *c_vert = vertices[i];
 
-        render_color *c_color = (render_color *)PUSH_STRUCT(&ctx->color_buffer, render_color);
+        render_color *c_color = PUSH_STRUCT(&ctx->color_buffer, render_color);
         *c_color = colors[i];
     }
 

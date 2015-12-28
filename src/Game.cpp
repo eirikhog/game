@@ -20,11 +20,12 @@ initialize(game_state *state, platform_api *api, game_memory *memory) {
     state->assets = assets_initialize(api, mem_transient);
 
     // Allocate 4 mb for renderer
-    memory_segment renderer_memory = allocate_memory(&mem_all, 4 * 1024 * 1024);
+    memory_segment renderer_memory = allocate_memory(&mem_all, 64 * 1024 * 1024);
     state->renderer_memory = renderer_memory;
     state->renderer = render_init(&state->assets, renderer_memory);
 
-    state->world = create_world(&state->game_memory);
+    memory_segment world_memory = allocate_memory(&mem_all, 8 * 1024 * 1024);
+    state->world = create_world(&world_memory);
 
     state->initialized = true;
 }
@@ -38,11 +39,11 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
     }
 
     // Updating
-    world_update(0.0f);
+    world_update(state->world, 0.0f);
 
     // Rendering
     render_start(state->renderer);
-    world_render(state->renderer);
+    world_render(state->world, state->renderer);
     render_end(state->renderer);
 }
 
