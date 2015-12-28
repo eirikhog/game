@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Platform.h"
+#include "Memory.h"
 
 #define ASSET_FILE_MAGIC 0x4747
 #define ASSET_FILE_VERSION 1
@@ -31,18 +32,28 @@ typedef struct {
 } asset_file;
 
 typedef struct {
+    uint32 size;
+    char *content;
+} asset_shader;
+
+typedef struct {
     uint32 id;
     asset_type type;
     uint32 data_offset;
+    union {
+        asset_shader shader;
+    };
 } game_asset;
 
 typedef struct {
     uint32 assets_count;
     game_asset *assets;
     platform_api *api;
+    memory_segment memory;
 } game_assets;
 
-game_assets assets_initialize(platform_api *api);
+game_assets assets_initialize(platform_api *api, memory_segment memory);
 char *get_shader(game_assets *assets, asset_id id, uint32 *fileSize);
+game_asset get_asset(game_assets *assets, asset_id *id);
 
 

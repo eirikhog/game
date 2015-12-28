@@ -14,7 +14,12 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
         mem_all.used = 0;
         state->game_memory = mem_all;
 
-        state->assets = assets_initialize(api);
+
+        memory_segment mem_transient = {};
+        mem_transient.size = memory->transientSize;
+        mem_transient.base = (uint8*)memory->transient;
+        mem_transient.used = 0;
+        state->assets = assets_initialize(api, mem_transient);
 
         // Allocate 4 mb for renderer
         memory_segment renderer_memory = allocate_memory(&mem_all, 4 * 1024 * 1024);

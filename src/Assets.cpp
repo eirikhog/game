@@ -1,8 +1,10 @@
 #include "Assets.h"
+#include "Memory.h"
 
-game_assets assets_initialize(platform_api *api) {
+game_assets assets_initialize(platform_api *api, memory_segment memory) {
     game_assets assets = {};
     assets.api = api;
+    assets.memory = memory;
 
     return assets;
 }
