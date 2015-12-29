@@ -200,6 +200,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     QueryPerformanceCounter(&ftStart);
 
     win32_performance perf = {};
+    v2 mouse_prev_position = {};
+    HCURSOR mouse_cursor = LoadCursor(NULL, IDC_ARROW);
 
     program_state.running = true;
     while(program_state.running) {
@@ -210,15 +212,41 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // - Render
         
         QueryPerformanceCounter(&tStart);
-        gameLib.UpdateGame(&api, &memory, NULL);
-        SwapBackbuffer(window);
+
+        game_input input = {};
 
         MSG msg;
         while (PeekMessage(&msg, window, NULL, NULL, PM_REMOVE)) {
-            // Handle input.
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            switch (msg.message) {
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONUP:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONUP:
+                case WM_MOUSEMOVE:{
+                    SetCursor(mouse_cursor);
+
+                    uint32 xPos = 0xFFFF & msg.lParam;
+                    uint32 yPos = (uint64)(0xFFFF0000 & msg.lParam) >> 16;
+                    input.mouse_position = { (real32)xPos, (real32)yPos };
+                    input.mouse_delta = mouse_prev_position - input.mouse_position;
+                    input.mouse_buttons = 0;
+                    if (msg.wParam & MK_LBUTTON) {
+                        input.mouse_buttons |= MOUSE_LEFT;
+                    }
+                    if (msg.wParam & MK_RBUTTON) {
+                        input.mouse_buttons |= MOUSE_RIGHT;
+                    }
+                    mouse_prev_position = input.mouse_position;
+                }break;
+                default:
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                    break;
+            }
         }
+
+        gameLib.UpdateGame(&api, &memory, &input);
+        SwapBackbuffer(window);
         
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...
         uint64_t tElapsedUs = GetElapsedMicroseconds(tStart, tEnd, cpuFreq);

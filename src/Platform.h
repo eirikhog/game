@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "Math.h"
 
 #ifdef _DEBUG
 #undef Assert
@@ -18,7 +19,6 @@
 #  define EXPORT
 #endif
 
-struct game_input;
 struct game_buffer;
 struct platform_api;
 
@@ -28,6 +28,18 @@ typedef struct {
     void *transient;
     uint32 transientSize;
 } game_memory;
+
+enum MouseButtons {
+    MOUSE_LEFT = 1,
+    MOUSE_RIGHT = 2
+};
+
+struct game_input {
+    uint32 buttons;
+    v2 mouse_position;
+    v2 mouse_delta;
+    uint32 mouse_buttons;
+};
 
 typedef void update_game(platform_api *api, game_memory *memory, game_input *input);
 typedef char *read_entire_file(char *filename, uint32 *size);

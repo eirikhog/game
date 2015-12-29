@@ -39,7 +39,7 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
     }
 
     // Updating
-    world_update(state->world, 0.0f);
+    world_update(state->world, input, 0.0f);
 
     // Rendering
     render_start(state->renderer);

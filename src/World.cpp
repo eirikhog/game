@@ -3,12 +3,13 @@
 // TODO: Remove dependency
 #include <math.h>
 
-int32 coordinateToChunk(real32 value) {
+static int32
+coordinateToChunk(real32 value) {
     return (int32)floor(value / (CHUNK_SIZE * TILE_SIZE));
 }
 
-
-game_world *create_world(memory_segment *memory) {
+game_world *
+create_world(memory_segment *memory) {
     game_world *world = PUSH_STRUCT(memory, game_world);
     uint32 chunks_dim = (uint32)sqrt(WORLD_SIZE);
 
@@ -44,15 +45,16 @@ get_chunk(world_chunk *chunks, int32 x, int32 y) {
     return NULL;
 }
 
-void world_update(game_world *world, real32 dt) {
-    world->screen_position.x += 1.0f;
-    world->screen_position.y += 1.0f;
+void world_update(game_world *world, game_input *input, real32 dt) {
+    if (input->mouse_buttons & MOUSE_LEFT) {
+        world->screen_position += input->mouse_delta;
+    }
 }
 
 void world_render(game_world *world, render_context *renderer) {
 
     const int32 screen_width = 1920;
-    const int32 screen_height = 1020;
+    const int32 screen_height = 1080;
     v2 center = world->screen_position;
     
     // Find which chunks we should display
