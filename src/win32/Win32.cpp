@@ -199,7 +199,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     LARGE_INTEGER ftStart, ftEnd;
     QueryPerformanceCounter(&ftStart);
 
+#ifdef _DEBUG
     win32_performance perf = {};
+#endif
     v2 mouse_prev_position = {};
     HCURSOR mouse_cursor = LoadCursor(NULL, IDC_ARROW);
 
@@ -250,10 +252,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...
         uint64_t tElapsedUs = GetElapsedMicroseconds(tStart, tEnd, cpuFreq);
+#ifdef _DEBUG
         perf.work_time += tElapsedUs;
+#endif
         const int64_t targetTime = 1000000 / 60; // us in 1 frame at 60 fps
         int64_t sleepTime = (targetTime - tElapsedUs);
+#ifdef _DEBUG
         perf.sleep_time += sleepTime;
+#endif
         if (sleepTime > 0) {
             std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
         }
