@@ -20,6 +20,7 @@ typedef struct {
 
 render_context *render_init(game_assets *assets, memory_segment memory);
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c);
+void render_rect(render_context *ctx, v2 pos, v2 size, color c);
 
 void render_start(render_context *ctx);
 void render_end(render_context *ctx);

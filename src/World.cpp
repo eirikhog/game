@@ -68,7 +68,7 @@ void render_player(render_context *ctx, game_world *world) {
     const uint32 player_dim = 32;
     v2 screen_pos = world_to_screen_position(world->screen_position, world->player.position);
 
-    render_rect(ctx, screen_pos.x - player_dim/2, screen_pos.y - player_dim/2, player_dim, player_dim, { 1.0, 0.0f, 0.0f });
+    render_rect(ctx, (int32)screen_pos.x - player_dim/2, (int32)screen_pos.y - player_dim/2, player_dim, player_dim, { 1.0, 0.0f, 0.0f });
 }
 
 void world_render(game_world *world, render_context *renderer) {

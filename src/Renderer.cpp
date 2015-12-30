@@ -130,6 +130,10 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     ctx->entries_count++;
 }
 
+void render_rect(render_context *ctx, v2 pos, v2 size, color c) {
+    render_rect(ctx, (int32)pos.x, (int32)pos.y, (int32)size.x, (int32)size.y, c);
+}
+
 void render_start(render_context *ctx) {
     Assert(!ctx->rendering);
     Assert(ctx->vertex_buffer.base != NULL);
