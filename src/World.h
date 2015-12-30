@@ -23,13 +23,24 @@ struct world_chunk {
     TileType tiles[CHUNK_SIZE*CHUNK_SIZE];
 };
 
+struct world_coordinates {
+    v2 position;
+};
+
+struct unit {
+    v2 position;
+};
+
 struct game_world {
     v2 screen_position;
     real32 time;
     memory_segment memory;
     world_chunk chunks[WORLD_SIZE];
+
+    unit player;
 };
 
 game_world *create_world(memory_segment *memory);
 void world_update(game_world *world, game_input *input, real32 dt);
 void world_render(game_world *world, render_context *renderer);
+

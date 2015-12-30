@@ -8,10 +8,20 @@ coordinateToChunk(real32 value) {
     return (int32)floor(value / (CHUNK_SIZE * TILE_SIZE));
 }
 
+v2 world_to_screen_position(v2 screen_position, v2 world_position) {
+    const v2 screen_dim = { 1920, 1080 };
+
+    v2 result = world_position - screen_position;
+    result.x += screen_dim.x / 2;
+    result.y += screen_dim.y / 2;
+
+    return result;    
+}
+
 game_world *
 create_world(memory_segment *memory) {
     game_world *world = PUSH_STRUCT(memory, game_world);
-    uint32 chunks_dim = (uint32)sqrt(WORLD_SIZE);
+    const uint32 chunks_dim = (uint32)sqrt(WORLD_SIZE);
 
     // Create some dummy chunks
     for (int32 i = 0; i < WORLD_SIZE; i++) {
@@ -30,6 +40,9 @@ create_world(memory_segment *memory) {
         }
     }
 
+    world->player = {};
+    world->player.position = { 0.0f, 0.0f };
+
     return world;
 }
 
@@ -46,9 +59,16 @@ get_chunk(world_chunk *chunks, int32 x, int32 y) {
 }
 
 void world_update(game_world *world, game_input *input, real32 dt) {
-    if (input->mouse_buttons & MOUSE_LEFT) {
+    if (input->mouse_buttons & MOUSE_RIGHT) {
         world->screen_position += input->mouse_delta;
     }
+}
+
+void render_player(render_context *ctx, game_world *world) {
+    const uint32 player_dim = 32;
+    v2 screen_pos = world_to_screen_position(world->screen_position, world->player.position);
+
+    render_rect(ctx, screen_pos.x - player_dim/2, screen_pos.y - player_dim/2, player_dim, player_dim, { 1.0, 0.0f, 0.0f });
 }
 
 void world_render(game_world *world, render_context *renderer) {
@@ -57,10 +77,6 @@ void world_render(game_world *world, render_context *renderer) {
     const int32 screen_height = 1080;
     v2 center = world->screen_position;
     
-    // Find which chunks we should display
-    int32 num_chunks_x = 1 + screen_width / (TILE_SIZE * CHUNK_SIZE);
-    int32 num_chunks_y = 1 + screen_height / (TILE_SIZE * CHUNK_SIZE);
-
     int32 max_x = coordinateToChunk(center.x + screen_width / 2);
     int32 min_x = coordinateToChunk(center.x - screen_width / 2);
     int32 max_y = coordinateToChunk(center.y + screen_height / 2);
@@ -93,6 +109,8 @@ void world_render(game_world *world, render_context *renderer) {
             }
         }
     }
+
+    render_player(renderer, world);
 }
 
 
