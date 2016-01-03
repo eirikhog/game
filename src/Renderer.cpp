@@ -24,14 +24,20 @@ typedef struct render_context {
     memory_segment memory;
     memory_segment vertex_buffer;
     memory_segment color_buffer;
+    memory_segment uv_buffer;
 
     uint32 entries_count;
     uint32 entries_max;
+
+    // TODO: Remove this
+    uint32 texture_width;
+    uint32 texture_height;
+    void *texture_data;
 } render_context;
 
 static void draw(render_context *ctx);
 
-void PrepareOpenGL(game_assets *assets) {
+static void initialize_opengl(game_assets *assets) {
     GLenum err = glewInit();
     Assert(err == GLEW_OK);
     if (err != GLEW_OK)
@@ -68,8 +74,9 @@ void PrepareOpenGL(game_assets *assets) {
     Assert(compiled);
 
     GLuint p = glCreateProgram();
-    glBindAttribLocation(p, 0, "in_Position");
-    glBindAttribLocation(p, 1, "in_Color");
+    glBindAttribLocation(p, 0, "in_position");
+    glBindAttribLocation(p, 1, "in_color");
+    glBindAttribLocation(p, 2, "in_vertexUV");
 
     glAttachShader(p, v);
     glAttachShader(p, f);
@@ -77,7 +84,26 @@ void PrepareOpenGL(game_assets *assets) {
     glLinkProgram(p);
     glUseProgram(p);
 
-    GLuint res = glGetAttribLocation(p, "in_Position");
+    //GLuint res = glGetAttribLocation(p, "in_vertexUV");
+}
+
+
+void load_texture(game_assets *assets, render_context *ctx) {
+    asset_image img = get_image(assets, ASSET_IMAGE_SPRITEMAP);
+    Assert(img.data);
+
+    GLuint id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, img.data);
+
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 render_context *render_init(game_assets *assets, memory_segment memory) {
@@ -88,22 +114,31 @@ render_context *render_init(game_assets *assets, memory_segment memory) {
     ctx->rendering = false;
     ctx->memory = memory;
 
-    PrepareOpenGL(assets);
+    initialize_opengl(assets);
 
     // Allocate memory buffer
     uint32 size_per_element = sizeof(real32) * 3 * 4; // 3 real32 coords, 4 vertices
     uint32 available_memory = (memory.size - memory.used) / size_per_element;
-    memory_segment vertex_segment = allocate_memory(&memory, available_memory / 2);
-    memory_segment color_segment = allocate_memory(&memory, available_memory / 2);
+    memory_segment vertex_segment = allocate_memory(&memory, available_memory / 3);
+    memory_segment color_segment = allocate_memory(&memory, available_memory / 3);
+    memory_segment uv_segment = allocate_memory(&memory, available_memory / 3);
 
-    ctx->entries_max = available_memory / (2 * sizeof(real32) * 3 * 4);
+    ctx->entries_max = available_memory / (3 * sizeof(real32) * 3 * 4);
     ctx->entries_count = 0;
     ctx->vertex_buffer = vertex_segment;
     ctx->color_buffer = color_segment;
+    ctx->uv_buffer = uv_segment;
+
+    load_texture(assets, ctx);
 
     ctx->initialized = true;
     return ctx;
 }
+
+struct uv_coords {
+    real32 u;
+    real32 v;
+};
 
 void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c) {
     Assert(ctx->entries_count < ctx->entries_max);
@@ -113,6 +148,12 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     vertices[1] = { (real32)x, (real32)(y + height), 0.f };
     vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f };
     vertices[3] = { (real32)(x + width), (real32)y, 0.f };
+
+    uv_coords coords[4];
+    coords[0] = { 0.0f, 0.0f };
+    coords[1] = { 0.0f, -1.0f };
+    coords[2] = { 1.0f, -1.0f };
+    coords[3] = { 1.0f, 0.0f };
 
     render_color colors[4];
     for (int i = 0; i < 4; ++i) {
@@ -125,6 +166,9 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
 
         render_color *c_color = PUSH_STRUCT(&ctx->color_buffer, render_color);
         *c_color = colors[i];
+
+        uv_coords *c_coords = PUSH_STRUCT(&ctx->uv_buffer, uv_coords);
+        *c_coords = coords[i];
     }
 
     ctx->entries_count++;
@@ -150,6 +194,7 @@ void render_end(render_context *ctx) {
 
     segment_clear(&ctx->vertex_buffer);
     segment_clear(&ctx->color_buffer);
+    segment_clear(&ctx->uv_buffer);
 
     ctx->entries_count = 0;
     ctx->rendering = false;
@@ -175,6 +220,13 @@ void draw(render_context *ctx) {
     glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
+    // UV buffer
+    GLuint uv_id;
+    glGenBuffers(1, &uv_id);
+    glBindBuffer(GL_ARRAY_BUFFER, uv_id);
+    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4 * 2 * sizeof(GLfloat), ctx->uv_buffer.base, GL_STATIC_DRAW);
+    glVertexAttribPointer((GLuint)2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
 
     // Cheating! We probably want this from somewhere else...
     GLint viewport_size[4];
@@ -207,5 +259,6 @@ void draw(render_context *ctx) {
 
     glDeleteBuffers(2, vertexBufferObjID);
     glDeleteVertexArrays(1, &vertexArrayObjId);
+    glDeleteBuffers(1, &uv_id);
     
 }

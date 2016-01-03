@@ -6,7 +6,7 @@
 #include "Renderer.h"
 
 #define CHUNK_SIZE 24
-#define TILE_SIZE 32
+#define TILE_SIZE 64
 #define WORLD_SIZE 1024
 
 enum TileType {

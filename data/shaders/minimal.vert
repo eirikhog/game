@@ -4,14 +4,15 @@
 
 uniform vec2 size;
 
-in  vec3 in_Position;
-in  vec3 in_Color;
-out vec3 ex_Color;
+in vec3 in_position;
+in vec3 in_color;
+in vec2 in_vertexUV;
+out vec3 ex_color;
+out vec2 UV;
 
 void main(void)
 {
     // Transform to pixel values.
-    // TODO: Transform the Z coordinates?
 	mat4 projectionMatrix = mat4( 2.0/size.x, 0.0, 0.0, -1.0,
                               0.0, -2.0/size.y, 0.0, 1.0,
                               0.0, 0.0, 1, 0,
@@ -22,9 +23,10 @@ void main(void)
                              0.0, 0.0, 1.0, 0.0,
                              0.0, 0.0, 0.0, 1.0);
 
-	gl_Position = vec4(in_Position, 1.0);
+	gl_Position = vec4(in_position, 1.0);
     gl_Position *= scaleMatrix;
     gl_Position *= projectionMatrix;
-    // gl_Position *= scaleMatrix;
-	ex_Color = in_Color;
+    
+	ex_color = in_color;
+    UV = in_vertexUV;
 }

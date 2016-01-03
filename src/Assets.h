@@ -16,6 +16,8 @@ enum asset_id {
     ASSET_SHADER_VERTEX,
     ASSET_SHADER_FRAGMENT,
 
+    ASSET_IMAGE_SPRITEMAP,
+
     ASSET_COUNT
 };
 
@@ -52,8 +54,15 @@ typedef struct {
     memory_segment memory;
 } game_assets;
 
+struct asset_image {
+    uint32 width;
+    uint32 height;
+    void *data;
+};
+
 game_assets assets_initialize(platform_api *api, memory_segment memory);
 char *get_shader(game_assets *assets, asset_id id, uint32 *fileSize);
+asset_image get_image(game_assets *assets, asset_id id);
 game_asset get_asset(game_assets *assets, asset_id *id);
 
 

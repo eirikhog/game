@@ -49,7 +49,7 @@ inline v2& operator-=(v2 &left, const v2 right) {
 
 // Visual Studio intinsics
 
-inline real32 SquareRoot(real32 value) {
+inline real32 square_root(real32 value) {
     return sqrtf(value);
 }
 

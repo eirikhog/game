@@ -19,7 +19,7 @@ v2 world_to_screen_position(v2 screen_position, v2 world_position) {
 game_world *
 create_world(memory_segment *memory) {
     game_world *world = PUSH_STRUCT(memory, game_world);
-    const uint32 chunks_dim = (uint32)SquareRoot(WORLD_SIZE);
+    const uint32 chunks_dim = (uint32)square_root(WORLD_SIZE);
 
     // Create some dummy chunks
     for (int32 i = 0; i < WORLD_SIZE; i++) {
