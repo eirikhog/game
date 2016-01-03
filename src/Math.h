@@ -2,6 +2,11 @@
 
 #include "Common.h"
 
+#ifdef _MSC_VER
+// MSVC: Use the math library, but rely in intrinsics
+#include <math.h>
+#endif
+
 typedef struct {
     real32 x;
     real32 y;
@@ -40,3 +45,12 @@ inline v2& operator-=(v2 &left, const v2 right) {
     return left;
 }
 
+#ifdef _MSC_VER
+
+// Visual Studio intinsics
+
+inline real32 SquareRoot(real32 value) {
+    return sqrtf(value);
+}
+
+#endif

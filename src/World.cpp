@@ -1,7 +1,5 @@
 #include "World.h"
-
-// TODO: Remove dependency
-#include <math.h>
+#include "Math.h"
 
 static int32
 coordinateToChunk(real32 value) {
@@ -15,13 +13,13 @@ v2 world_to_screen_position(v2 screen_position, v2 world_position) {
     result.x += screen_dim.x / 2;
     result.y += screen_dim.y / 2;
 
-    return result;    
+    return result;
 }
 
 game_world *
 create_world(memory_segment *memory) {
     game_world *world = PUSH_STRUCT(memory, game_world);
-    const uint32 chunks_dim = (uint32)sqrt(WORLD_SIZE);
+    const uint32 chunks_dim = (uint32)SquareRoot(WORLD_SIZE);
 
     // Create some dummy chunks
     for (int32 i = 0; i < WORLD_SIZE; i++) {
@@ -68,7 +66,7 @@ void render_player(render_context *ctx, game_world *world) {
     const uint32 player_dim = 32;
     v2 screen_pos = world_to_screen_position(world->screen_position, world->player.position);
 
-    render_rect(ctx, (int32)screen_pos.x - player_dim/2, (int32)screen_pos.y - player_dim/2, player_dim, player_dim, { 1.0, 0.0f, 0.0f });
+    render_rect(ctx, (int32)screen_pos.x - player_dim/2, (int32)screen_pos.y - player_dim/2, player_dim, player_dim, { 0.0f, 0.8f, 0.0f });
 }
 
 void world_render(game_world *world, render_context *renderer) {
