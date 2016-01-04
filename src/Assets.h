@@ -26,12 +26,20 @@ enum asset_tag {
     ASSET_TAG_COUNT
 };
 
+struct asset_file_entry {
+    asset_id id;
+    asset_tag tag;
+    uint32 size;
+    uint32 offset;
+};
+
 typedef struct {
     uint32 magic;
     uint32 version;
     uint32 size;
     asset_type types[ASSET_TYPE_COUNT];
-    uint32 shaders_offset;
+    uint32 assets_count;
+    asset_file_entry* assets;
 } asset_file_header;
 
 typedef struct {
