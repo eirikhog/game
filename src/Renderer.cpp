@@ -97,13 +97,13 @@ void load_texture(game_assets *assets, render_context *ctx) {
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, img.data);
 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    //glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 render_context *render_init(game_assets *assets, memory_segment memory) {
@@ -150,10 +150,10 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     vertices[3] = { (real32)(x + width), (real32)y, 0.f };
 
     uv_coords coords[4];
-    coords[0] = { 0.0f, 0.0f };
-    coords[1] = { 0.0f, -1.0f };
-    coords[2] = { 1.0f, -1.0f };
-    coords[3] = { 1.0f, 0.0f };
+    coords[0] = { 0.5f, -0.0f };
+    coords[1] = { 0.5f, -0.5f };
+    coords[2] = { 1.0f, -0.5f };
+    coords[3] = { 1.0f, -0.0f };
 
     render_color colors[4];
     for (int i = 0; i < 4; ++i) {

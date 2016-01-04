@@ -87,6 +87,8 @@ char *load_file(char *filename, uint32 *filesize) {
     ReadFile(handle, content, size, NULL, NULL);
     *filesize = size;
 
+    CloseHandle(handle);
+
     return (char*)content;
 }
 

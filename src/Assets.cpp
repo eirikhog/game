@@ -41,7 +41,7 @@ char *get_shader(game_assets *assets, asset_id id, uint32 *size) {
 asset_image get_image(game_assets *assets, asset_id id) {
 
     uint32 file_size;
-    void *file_content = assets->api->ReadEntireFile("../data/images/dirt1.bmp", &file_size);
+    void *file_content = assets->api->ReadEntireFile("../data/images/spritemap.bmp", &file_size);
 
     asset_image result = load_bmp(file_content);
 
