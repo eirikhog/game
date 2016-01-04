@@ -21,6 +21,11 @@ enum asset_id {
     ASSET_COUNT
 };
 
+enum asset_tag {
+    ASSET_TAG_TEXTURE_DIRT,
+    ASSET_TAG_COUNT
+};
+
 typedef struct {
     uint32 magic;
     uint32 version;
@@ -58,6 +63,10 @@ struct asset_image {
     uint32 width;
     uint32 height;
     void *data;
+};
+
+struct asset_spritemap {
+    uint32 id;
 };
 
 game_assets assets_initialize(platform_api *api, memory_segment memory);

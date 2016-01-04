@@ -23,6 +23,7 @@ endif()
 
 # Asset generator
 if (WIN32)
-    add_executable(AssetGenerator assets/asset_generator.h assets/asset_generator.cpp)
+    file(GLOB AssetGeneratorFiles assets/*.cpp assets/*.h)
+    add_executable(AssetGenerator ${AssetGeneratorFiles})
 endif()
 
