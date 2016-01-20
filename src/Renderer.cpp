@@ -3,7 +3,6 @@
 #include "Assets.h"
 
 #include <GL/glew.h>
-#include <malloc.h>
 
 typedef struct {
     // Points
