@@ -253,6 +253,8 @@ int main (int argc, char *argv[]) {
     add_image(&generator, spritemap1, "dirt1.bmp", ASSET_TAG_TEXTURE_DIRT);
     add_image(&generator, spritemap1, "dirt2.bmp", ASSET_TAG_TEXTURE_DIRT);
     asset_spritemap spritemap = generate_spritemap(&generator, spritemap1);
+    // TODO: Convert image files to bmp RBGA format.
+    // TODO: Assemble spritemap.
     // TODO: Add spritemap to asset file.
 
     // Shaders
@@ -260,7 +262,6 @@ int main (int argc, char *argv[]) {
     asset_generator_section *shaders = create_section(&generator, ASSET_SECTION_SHADER);
     add_shader(&generator, shaders, "minimal.vert", ASSET_SHADER_VERTEX);
     add_shader(&generator, shaders, "minimal.frag", ASSET_SHADER_FRAGMENT);
-    // TODO: Add shader section to asset file
 
     printf("Writing asset file...\n");
     write_asset_file(&generator, "test_asset_file.pga");
@@ -269,12 +270,10 @@ int main (int argc, char *argv[]) {
     // Free allocated resources.
     cleanup_section(spritemap1);
     cleanup_section(shaders);
+    // TODO: Cleanup generator.
 
     printf("Done!\n");
    
-#ifdef _MSC_VER
-    system("pause");
-#endif
     return 0;
 }
 

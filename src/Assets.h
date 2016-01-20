@@ -78,7 +78,7 @@ struct asset_spritemap {
 };
 
 game_assets assets_initialize(platform_api *api, memory_segment memory);
-char *get_shader(game_assets *assets, asset_id id, uint32 *fileSize);
+char *get_shader(game_assets *assets, asset_id id, uint32 *size);
 asset_image get_image(game_assets *assets, asset_id id);
 game_asset get_asset(game_assets *assets, asset_id *id);
 
