@@ -93,7 +93,7 @@ void world_render(GameWorld *world, RenderContext *renderer) {
                     for (int x = 0; x < CHUNK_SIZE; ++x) {
                         switch (chunk->tiles[y*CHUNK_SIZE + x]) {
                             case TILE_NONE: {
-                                render_rect(renderer, (int32)(base.x + x * TILE_SIZE), (int32)(base.y + y * TILE_SIZE), TILE_SIZE, TILE_SIZE, { 1.0f, 1.0f, 1.0f });
+                                render_image(renderer, (int32)(base.x + x * TILE_SIZE), (int32)(base.y + y * TILE_SIZE), TILE_SIZE, TILE_SIZE, ATLAS_DIRT);
                             }break;
                             case TILE_SOLID: {
                                 render_rect(renderer, (int32)(base.x + x * TILE_SIZE), (int32)(base.y + y * TILE_SIZE), TILE_SIZE, TILE_SIZE, { 0.5f, 0.0f, 0.0f });

@@ -4,21 +4,22 @@
 
 #include <GL/glew.h>
 
-// TODO: Consider using a more generic type (vector4?)
-typedef struct {
-    real32 r;
-    real32 g;
-    real32 b;
-} RenderColor;
 
 typedef struct {
-    // Points
-    real32 x;
-    real32 y;
-    real32 z;
+    uint32_t id;
+    v2 uv_origin;
+    v2 uv_end;
+    void *bitmap;
+} AtlasEntry;
 
-    // Colors
-    RenderColor color;
+typedef struct {
+    AtlasEntry entries[4];
+} Atlas;
+
+typedef struct {
+    v3 position;
+    Color color;
+    v2 uv;
 } RenderVertex;
 
 typedef struct RenderContext {
@@ -27,7 +28,6 @@ typedef struct RenderContext {
 
     MemorySegment memory;
     MemorySegment vertex_buffer;
-    MemorySegment uv_buffer;
 
     uint32 entries_count;
     uint32 entries_max;
@@ -36,9 +36,12 @@ typedef struct RenderContext {
     uint32 texture_width;
     uint32 texture_height;
     void *texture_data;
+
+    Atlas atlas;
 } RenderContext;
 
 static void draw(RenderContext *ctx);
+static void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, uint32 image_id);
 
 static void initialize_opengl(GameAssets *assets) {
     GLenum err = glewInit();
@@ -91,7 +94,7 @@ static void initialize_opengl(GameAssets *assets) {
 }
 
 
-void load_texture(GameAssets *assets, RenderContext *ctx) {
+void load_textures(GameAssets *assets, RenderContext *ctx) {
     asset_image img = get_image(assets, ASSET_IMAGE_SPRITEMAP);
     Assert(img.data);
 
@@ -107,6 +110,22 @@ void load_texture(GameAssets *assets, RenderContext *ctx) {
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     //glGenerateMipmap(GL_TEXTURE_2D);
+    //
+    
+    // Create texture atlas
+    // TODO: This should be generated from asset file.
+    Atlas atlas;
+    atlas.entries[0].id = ATLAS_WHITE;
+    atlas.entries[0].uv_origin = { 0.0f, 0.0f };
+    atlas.entries[0].uv_end = { 0.49f, 0.49f };
+    atlas.entries[1].id = ATLAS_STONE;
+    atlas.entries[1].uv_origin = { 0.0f, 0.5f };
+    atlas.entries[1].uv_end = { 0.5f, 1.0f };;
+    atlas.entries[2].id = ATLAS_DIRT;
+    atlas.entries[2].uv_origin = { 0.5f, 0.5f };
+    atlas.entries[2].uv_end = { 1.0f, 1.0f };
+
+    ctx->atlas = atlas;
 }
 
 RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
@@ -118,52 +137,44 @@ RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     ctx->memory = memory;
 
     initialize_opengl(assets);
+    load_textures(assets, ctx);
 
     // Allocate memory buffer
     // TODO: Make more efficient.
-    uint32 size_per_element = sizeof(real32) * 3 * 4 + sizeof(real32) * 3 * 4;
-    uint32 available_memory = (memory.size - memory.used) / size_per_element;
-    MemorySegment vertex_segment = allocate_memory(&memory, available_memory / 2);
-    MemorySegment uv_segment = allocate_memory(&memory, available_memory / 2);
+    uint32 vertex_size = sizeof(RenderVertex) * 4;
+    uint32 available_memory = (memory.size - memory.used) / vertex_size;
+    MemorySegment vertex_segment = allocate_memory(&memory, available_memory);
 
-    ctx->entries_max = available_memory / (2 * size_per_element);
+    ctx->entries_max = available_memory / vertex_size;
     ctx->entries_count = 0;
     ctx->vertex_buffer = vertex_segment;
-    ctx->uv_buffer = uv_segment;
-
-    load_texture(assets, ctx);
 
     ctx->initialized = true;
     return ctx;
 }
 
-struct uv_coords {
-    real32 u;
-    real32 v;
-};
+void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, uint32 image_id) {
+    render_object(ctx, x, y, width, height, { 1.0f, 1.0f, 1.0f }, image_id);
+}
 
 void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c) {
-    Assert(ctx->entries_count < ctx->entries_max);
-    
-    RenderColor color = { c.r, c.g, c.b };
-    RenderVertex vertices[4];
-    vertices[0] = { (real32)x, (real32)y, 0.f, color };
-    vertices[1] = { (real32)x, (real32)(y + height), 0.f, color };
-    vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f, color };
-    vertices[3] = { (real32)(x + width), (real32)y, 0.f, color };
+    render_object(ctx, x, y, width, height, c, ATLAS_WHITE);
+}
 
-    uv_coords coords[4];
-    coords[0] = { 0.5f, -0.0f };
-    coords[1] = { 0.5f, -0.5f };
-    coords[2] = { 1.0f, -0.5f };
-    coords[3] = { 1.0f, -0.0f };
+void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, uint32 image_id) {
+    Assert(ctx->entries_count < ctx->entries_max);
+
+    AtlasEntry entry = ctx->atlas.entries[image_id];
+    
+    RenderVertex vertices[4];
+    vertices[0] = { { (real32)x, (real32)y, 0.f }, c, { entry.uv_origin.x, entry.uv_origin.y } };
+    vertices[1] = { { (real32)x, (real32)(y + height), 0.f }, c, { entry.uv_origin.x, entry.uv_end.y } };
+    vertices[2] = { { (real32)(x + width), (real32)(y + height), 0.f }, c, { entry.uv_end.x, entry.uv_end.y } };
+    vertices[3] = { { (real32)(x + width), (real32)y, 0.f }, c, { entry.uv_end.x, entry.uv_origin.y } };
 
     for (int i = 0; i < 4; ++i) {
         RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, RenderVertex);
         *c_vert = vertices[i];
-
-        uv_coords *c_coords = PUSH_STRUCT(&ctx->uv_buffer, uv_coords);
-        *c_coords = coords[i];
     }
 
     ctx->entries_count++;
@@ -187,7 +198,6 @@ void render_end(RenderContext *ctx) {
     draw(ctx);
 
     segment_clear(&ctx->vertex_buffer);
-    segment_clear(&ctx->uv_buffer);
 
     ctx->entries_count = 0;
     ctx->rendering = false;
@@ -214,11 +224,7 @@ void draw(RenderContext *ctx) {
     glEnableVertexAttribArray(1);
 
     // UV buffer
-    GLuint uv_id;
-    glGenBuffers(1, &uv_id);
-    glBindBuffer(GL_ARRAY_BUFFER, uv_id);
-    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4 * 2 * sizeof(GLfloat), ctx->uv_buffer.base, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer((GLuint)2, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (GLvoid*)offsetof(RenderVertex, uv));
     glEnableVertexAttribArray(2);
 
     // Cheating! We probably want this from somewhere else...
@@ -252,6 +258,4 @@ void draw(RenderContext *ctx) {
 
     glDeleteBuffers(1, &vertexBufferObjID);
     glDeleteVertexArrays(1, &vertexArrayObjId);
-    glDeleteBuffers(1, &uv_id);
-    
 }

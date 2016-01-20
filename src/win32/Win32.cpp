@@ -183,7 +183,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     game_functions gameLib = LoadGameLibrary();
     game_memory memory = {};
     
-    const uint32 permanentMemorySize = 1024 * 1024 * 128;
+    const uint32 permanentMemorySize = 1024 * 1024 * 256;
     memory.permanent = VirtualAlloc(0, permanentMemorySize, MEM_COMMIT, PAGE_READWRITE);
     memory.permanentSize = permanentMemorySize;
 
