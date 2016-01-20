@@ -4,6 +4,13 @@
 
 #include <GL/glew.h>
 
+// TODO: Consider using a more generic type (vector4?)
+typedef struct {
+    real32 r;
+    real32 g;
+    real32 b;
+} RenderColor;
+
 typedef struct {
     // Points
     real32 x;
@@ -11,18 +18,10 @@ typedef struct {
     real32 z;
 
     // Colors
-    real32 r;
-    real32 g;
-    real32 b;
-} render_vertex;
+    RenderColor color;
+} RenderVertex;
 
-typedef struct {
-    real32 r;
-    real32 g;
-    real32 b;
-} render_color;
-
-typedef struct render_context {
+typedef struct RenderContext {
     bool initialized;
     bool rendering;
 
@@ -37,9 +36,9 @@ typedef struct render_context {
     uint32 texture_width;
     uint32 texture_height;
     void *texture_data;
-} render_context;
+} RenderContext;
 
-static void draw(render_context *ctx);
+static void draw(RenderContext *ctx);
 
 static void initialize_opengl(game_assets *assets) {
     GLenum err = glewInit();
@@ -92,7 +91,7 @@ static void initialize_opengl(game_assets *assets) {
 }
 
 
-void load_texture(game_assets *assets, render_context *ctx) {
+void load_texture(game_assets *assets, RenderContext *ctx) {
     asset_image img = get_image(assets, ASSET_IMAGE_SPRITEMAP);
     Assert(img.data);
 
@@ -110,10 +109,10 @@ void load_texture(game_assets *assets, render_context *ctx) {
     //glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-render_context *render_init(game_assets *assets, memory_segment memory) {
-    allocate_memory(&memory, sizeof(render_context));
+RenderContext *render_init(game_assets *assets, memory_segment memory) {
+    allocate_memory(&memory, sizeof(RenderContext));
 
-    render_context *ctx = (render_context*)memory.base;
+    RenderContext *ctx = (RenderContext*)memory.base;
     ctx->initialized = false;
     ctx->rendering = false;
     ctx->memory = memory;
@@ -143,14 +142,15 @@ struct uv_coords {
     real32 v;
 };
 
-void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c) {
+void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c) {
     Assert(ctx->entries_count < ctx->entries_max);
     
-    render_vertex vertices[4];
-    vertices[0] = { (real32)x, (real32)y, 0.f, c.r, c.g, c.b };
-    vertices[1] = { (real32)x, (real32)(y + height), 0.f, c.r, c.g, c.b };
-    vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f, c.r, c.g, c.b };
-    vertices[3] = { (real32)(x + width), (real32)y, 0.f, c.r, c.g, c.b };
+    RenderColor color = { c.r, c.g, c.b };
+    RenderVertex vertices[4];
+    vertices[0] = { (real32)x, (real32)y, 0.f, color };
+    vertices[1] = { (real32)x, (real32)(y + height), 0.f, color };
+    vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f, color };
+    vertices[3] = { (real32)(x + width), (real32)y, 0.f, color };
 
     uv_coords coords[4];
     coords[0] = { 0.5f, -0.0f };
@@ -159,7 +159,7 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     coords[3] = { 1.0f, -0.0f };
 
     for (int i = 0; i < 4; ++i) {
-        render_vertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, render_vertex);
+        RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, RenderVertex);
         *c_vert = vertices[i];
 
         uv_coords *c_coords = PUSH_STRUCT(&ctx->uv_buffer, uv_coords);
@@ -169,11 +169,11 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     ctx->entries_count++;
 }
 
-void render_rect(render_context *ctx, v2 pos, v2 size, color c) {
+void render_rect(RenderContext *ctx, v2 pos, v2 size, Color c) {
     render_rect(ctx, (int32)pos.x, (int32)pos.y, (int32)size.x, (int32)size.y, c);
 }
 
-void render_start(render_context *ctx) {
+void render_start(RenderContext *ctx) {
     Assert(!ctx->rendering);
     Assert(ctx->vertex_buffer.base != NULL);
     Assert(ctx->entries_count == 0);
@@ -181,7 +181,7 @@ void render_start(render_context *ctx) {
     ctx->rendering = true;
 }
 
-void render_end(render_context *ctx) {
+void render_end(RenderContext *ctx) {
     Assert(ctx->rendering);
 
     draw(ctx);
@@ -195,7 +195,7 @@ void render_end(render_context *ctx) {
 
 #define offsetof(type,member) ((void *) &(((type*)0)->member))
 
-void draw(render_context *ctx) {    
+void draw(RenderContext *ctx) {    
 
     unsigned int vertexArrayObjId;
     unsigned int vertexBufferObjID;
@@ -205,12 +205,12 @@ void draw(render_context *ctx) {
 
     // VBO for vertex data
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID);
-    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4 * sizeof(render_vertex), ctx->vertex_buffer.base, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, sizeof(render_vertex), 0);
+    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4 * sizeof(RenderVertex), ctx->vertex_buffer.base, GL_STATIC_DRAW);
+    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), 0);
     glEnableVertexAttribArray(0);
 
     // VBO for color data
-    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, sizeof(render_vertex), (GLvoid*)offsetof(render_vertex, r));
+    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (GLvoid*)offsetof(RenderVertex, color));
     glEnableVertexAttribArray(1);
 
     // UV buffer

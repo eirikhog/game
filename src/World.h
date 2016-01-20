@@ -42,5 +42,5 @@ struct game_world {
 
 game_world *create_world(memory_segment *memory);
 void world_update(game_world *world, game_input *input, real32 dt);
-void world_render(game_world *world, render_context *renderer);
+void world_render(game_world *world, RenderContext *renderer);
 

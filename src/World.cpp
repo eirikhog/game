@@ -62,14 +62,14 @@ void world_update(game_world *world, game_input *input, real32 dt) {
     }
 }
 
-void render_player(render_context *ctx, game_world *world) {
+void render_player(RenderContext *ctx, game_world *world) {
     const uint32 player_dim = 32;
     v2 screen_pos = world_to_screen_position(world->screen_position, world->player.position);
 
     render_rect(ctx, (int32)screen_pos.x - player_dim/2, (int32)screen_pos.y - player_dim/2, player_dim, player_dim, { 0.0f, 0.8f, 0.0f });
 }
 
-void world_render(game_world *world, render_context *renderer) {
+void world_render(game_world *world, RenderContext *renderer) {
 
     const int32 screen_width = 1920;
     const int32 screen_height = 1080;

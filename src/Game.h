@@ -8,7 +8,7 @@ struct game_world;
 
 typedef struct {
     bool initialized;
-    render_context *renderer;
+    RenderContext *renderer;
 
     memory_segment game_memory;
     memory_segment renderer_memory;

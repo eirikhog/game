@@ -4,23 +4,18 @@
 #include "Math.h"
 #include "Assets.h"
 
-struct render_context;
+struct RenderContext;
 
 typedef struct {
     real32 r;
     real32 g;
     real32 b;
     real32 a;
-} color;
+} Color;
 
-typedef struct {
-    v3 vertices[4];
-    v3 colors[4];
-} render_sprite;
+RenderContext *render_init(game_assets *assets, memory_segment memory);
+void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c);
+void render_rect(RenderContext *ctx, v2 pos, v2 size, Color c);
 
-render_context *render_init(game_assets *assets, memory_segment memory);
-void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 height, color c);
-void render_rect(render_context *ctx, v2 pos, v2 size, color c);
-
-void render_start(render_context *ctx);
-void render_end(render_context *ctx);
+void render_start(RenderContext *ctx);
+void render_end(RenderContext *ctx);
