@@ -1,18 +1,18 @@
 #include "Assets.h"
 #include "Memory.h"
 
-// TODO: Remove, using for malloc debug
+// TODO: Remove
 #include <stdlib.h>
 #include <string.h>
+
+static ImageAsset load_bmp(void *data);
 
 struct loaded_file {
     uint32 size;
     void *data;
 };
 
-static asset_image load_bmp(void *data);
-
-GameAssets assets_initialize(platform_api *api, MemorySegment memory) {
+GameAssets assets_init(platform_api *api, MemorySegment memory) {
     GameAssets assets = {};
     assets.api = api;
     assets.memory = memory;
@@ -20,30 +20,34 @@ GameAssets assets_initialize(platform_api *api, MemorySegment memory) {
     return assets;
 }
 
-char *get_shader(GameAssets *assets, asset_id id, uint32 *size) {
+ShaderAsset asset_get_shader(GameAssets *assets, uint32 id) {
     char *shader;
-    *size = 0;
+    uint32 size = 0;
     switch (id) {
         case ASSET_SHADER_VERTEX:{
-            shader = assets->api->ReadEntireFile("../data/shaders/minimal.vert", size);
+            shader = assets->api->ReadEntireFile("../data/shaders/minimal.vert", &size);
         } break;
         case ASSET_SHADER_FRAGMENT:{
-            shader = assets->api->ReadEntireFile("../data/shaders/minimal.frag", size);
+            shader = assets->api->ReadEntireFile("../data/shaders/minimal.frag", &size);
         } break;
         default:
             InvalidCodePath();
             break;
     }
 
-    return shader;
+    ShaderAsset asset;
+    asset.id = id;
+    asset.content = shader;
+    asset.size = size;
+    return asset;
 }
 
-asset_image get_image(GameAssets *assets, asset_id id) {
-
+// TODO: Keep images within Asset's memory.
+ImageAsset asset_get_image(GameAssets *assets, uint32 id) {
     uint32 file_size;
     void *file_content = assets->api->ReadEntireFile("../data/images/spritemap.bmp", &file_size);
 
-    asset_image result = load_bmp(file_content);
+    ImageAsset result = load_bmp(file_content);
 
     Assert(file_size > 0);
     Assert(file_content);
@@ -98,7 +102,7 @@ union bmp_pixel {
     uint32 value;
 };
 
-static asset_image load_bmp(void *data) {
+static ImageAsset load_bmp(void *data) {
     bmp_header *header = (bmp_header*)data;
     Assert(header->file_type == BMP_FILE_TYPE);
     dbi_header *dbi = (dbi_header*)((uint8*)data + sizeof(bmp_header));
@@ -112,7 +116,7 @@ static asset_image load_bmp(void *data) {
     void *pixel_data = ((uint8*)data + header->data_offset);
     palette_element *colors = (palette_element*)((uint8*)dbi + dbi->dbi_size);
 
-    asset_image img;
+    ImageAsset img;
     img.width = dbi->width;
     img.height = dbi->height;
 

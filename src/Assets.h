@@ -1,85 +1,40 @@
-#pragma once
+#ifndef _ASSETS_H
+#define _ASSETS_H
 
+#include "Common.h"
+#include "Math.h"
 #include "Platform.h"
 #include "Memory.h"
 
-#define ASSET_FILE_MAGIC 0x4747
-#define ASSET_FILE_VERSION 1
-
-enum asset_type {
-    ASSET_TYPE_NONE = 0,
-    ASSET_TYPE_SHADER,
-    ASSET_TYPE_COUNT
-};
-
-enum asset_id {
-    ASSET_SHADER_VERTEX,
-    ASSET_SHADER_FRAGMENT,
-
-    ASSET_IMAGE_SPRITEMAP,
-
-    ASSET_COUNT
-};
-
-enum asset_tag {
-    ASSET_TAG_TEXTURE_DIRT,
-    ASSET_TAG_COUNT
-};
-
-struct asset_file_entry {
-    asset_id id;
-    asset_tag tag;
-    uint32 size;
-    uint32 offset;
-};
+// TODO: Probably should remove these...
+#define ASSET_SHADER_VERTEX 1
+#define ASSET_SHADER_FRAGMENT 2
+#define ASSET_IMAGE_SPRITEMAP 0
 
 typedef struct {
-    uint32 magic;
-    uint32 version;
-    uint32 size;
-    asset_type types[ASSET_TYPE_COUNT];
-    uint32 assets_count;
-    asset_file_entry* assets;
-} asset_file_header;
-
-typedef struct {
-    asset_file_header header;
-} asset_file;
-
-typedef struct {
-    uint32 size;
-    char *content;
-} asset_shader;
-
-typedef struct {
-    uint32 id;
-    asset_type type;
-    uint32 data_offset;
-    union {
-        asset_shader shader;
-    };
-} game_asset;
-
-typedef struct {
-    uint32 assets_count;
-    game_asset *assets;
     platform_api *api;
     MemorySegment memory;
 } GameAssets;
 
-struct asset_image {
+typedef struct {
+    uint32 id;
+} AssetEntry;
+
+typedef struct {
     uint32 width;
     uint32 height;
     void *data;
-};
+} ImageAsset;
 
-struct asset_spritemap {
+typedef struct {
     uint32 id;
-};
+    uint32 size;
+    char *content;
+} ShaderAsset;
 
-GameAssets assets_initialize(platform_api *api, MemorySegment memory);
-char *get_shader(GameAssets *assets, asset_id id, uint32 *size);
-asset_image get_image(GameAssets *assets, asset_id id);
-game_asset get_asset(GameAssets *assets, asset_id *id);
+GameAssets assets_init(platform_api *api, MemorySegment memory);
+ImageAsset asset_get_image(GameAssets *assets, uint32 id);
+ShaderAsset asset_get_shader(GameAssets *assets, uint32 id);
 
+#endif
 

@@ -28,7 +28,7 @@ initialize(game_state *state, platform_api *api, game_memory *memory) {
     mem_transient.size = memory->transientSize;
     mem_transient.base = (uint8*)memory->transient;
     mem_transient.used = 0;
-    state->assets = assets_initialize(api, mem_transient);
+    state->assets = assets_init(api, mem_transient);
 
     // Allocate memory for renderer
     MemorySegment renderer_memory = allocate_memory(&mem_all, 128 * 1024 * 1024);

@@ -6,7 +6,7 @@
 
 
 typedef struct {
-    uint32_t id;
+    uint32 id;
     v2 uv_origin;
     v2 uv_end;
     void *bitmap;
@@ -55,18 +55,14 @@ static void initialize_opengl(GameAssets *assets) {
     GLuint v = glCreateShader(GL_VERTEX_SHADER);
     GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
 
-    char *vs, *fs;
-
     // load shaders & get length of each
-    uint32 vlen_fs;
-    uint32 flen_fs;
-    vs = get_shader(assets, ASSET_SHADER_VERTEX, &vlen_fs);
-    fs = get_shader(assets, ASSET_SHADER_FRAGMENT, &flen_fs);
+    ShaderAsset vs = asset_get_shader(assets, ASSET_SHADER_VERTEX);
+    ShaderAsset fs = asset_get_shader(assets, ASSET_SHADER_FRAGMENT);
 
-    GLint vlen = (GLint)vlen_fs;
-    GLint flen = (GLint)flen_fs;
-    const char * vv = vs;
-    const char * ff = fs;
+    GLint vlen = (GLint)vs.size;
+    GLint flen = (GLint)fs.size;
+    const char * vv = vs.content;
+    const char * ff = fs.content;
     glShaderSource(v, 1, &vv, &vlen);
     glShaderSource(f, 1, &ff, &flen);
     GLint compiled;
@@ -89,13 +85,11 @@ static void initialize_opengl(GameAssets *assets) {
 
     glLinkProgram(p);
     glUseProgram(p);
-
-    //GLuint res = glGetAttribLocation(p, "in_vertexUV");
 }
 
 
 void load_textures(GameAssets *assets, RenderContext *ctx) {
-    asset_image img = get_image(assets, ASSET_IMAGE_SPRITEMAP);
+    ImageAsset img = asset_get_image(assets, ASSET_IMAGE_SPRITEMAP);
     Assert(img.data);
 
     GLuint id;
