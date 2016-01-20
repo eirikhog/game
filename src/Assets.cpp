@@ -12,15 +12,15 @@ struct loaded_file {
 
 static asset_image load_bmp(void *data);
 
-game_assets assets_initialize(platform_api *api, memory_segment memory) {
-    game_assets assets = {};
+GameAssets assets_initialize(platform_api *api, MemorySegment memory) {
+    GameAssets assets = {};
     assets.api = api;
     assets.memory = memory;
 
     return assets;
 }
 
-char *get_shader(game_assets *assets, asset_id id, uint32 *size) {
+char *get_shader(GameAssets *assets, asset_id id, uint32 *size) {
     char *shader;
     *size = 0;
     switch (id) {
@@ -38,7 +38,7 @@ char *get_shader(game_assets *assets, asset_id id, uint32 *size) {
     return shader;
 }
 
-asset_image get_image(game_assets *assets, asset_id id) {
+asset_image get_image(GameAssets *assets, asset_id id) {
 
     uint32 file_size;
     void *file_content = assets->api->ReadEntireFile("../data/images/spritemap.bmp", &file_size);

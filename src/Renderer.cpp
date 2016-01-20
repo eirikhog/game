@@ -25,9 +25,9 @@ typedef struct RenderContext {
     bool initialized;
     bool rendering;
 
-    memory_segment memory;
-    memory_segment vertex_buffer;
-    memory_segment uv_buffer;
+    MemorySegment memory;
+    MemorySegment vertex_buffer;
+    MemorySegment uv_buffer;
 
     uint32 entries_count;
     uint32 entries_max;
@@ -40,7 +40,7 @@ typedef struct RenderContext {
 
 static void draw(RenderContext *ctx);
 
-static void initialize_opengl(game_assets *assets) {
+static void initialize_opengl(GameAssets *assets) {
     GLenum err = glewInit();
     Assert(err == GLEW_OK);
     if (err != GLEW_OK)
@@ -91,7 +91,7 @@ static void initialize_opengl(game_assets *assets) {
 }
 
 
-void load_texture(game_assets *assets, RenderContext *ctx) {
+void load_texture(GameAssets *assets, RenderContext *ctx) {
     asset_image img = get_image(assets, ASSET_IMAGE_SPRITEMAP);
     Assert(img.data);
 
@@ -109,7 +109,7 @@ void load_texture(game_assets *assets, RenderContext *ctx) {
     //glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-RenderContext *render_init(game_assets *assets, memory_segment memory) {
+RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     allocate_memory(&memory, sizeof(RenderContext));
 
     RenderContext *ctx = (RenderContext*)memory.base;
@@ -123,8 +123,8 @@ RenderContext *render_init(game_assets *assets, memory_segment memory) {
     // TODO: Make more efficient.
     uint32 size_per_element = sizeof(real32) * 3 * 4 + sizeof(real32) * 3 * 4;
     uint32 available_memory = (memory.size - memory.used) / size_per_element;
-    memory_segment vertex_segment = allocate_memory(&memory, available_memory / 2);
-    memory_segment uv_segment = allocate_memory(&memory, available_memory / 2);
+    MemorySegment vertex_segment = allocate_memory(&memory, available_memory / 2);
+    MemorySegment uv_segment = allocate_memory(&memory, available_memory / 2);
 
     ctx->entries_max = available_memory / (2 * size_per_element);
     ctx->entries_count = 0;

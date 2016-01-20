@@ -16,9 +16,9 @@ v2 world_to_screen_position(v2 screen_position, v2 world_position) {
     return result;
 }
 
-game_world *
-create_world(memory_segment *memory) {
-    game_world *world = PUSH_STRUCT(memory, game_world);
+GameWorld *
+create_world(MemorySegment *memory) {
+    GameWorld *world = PUSH_STRUCT(memory, GameWorld);
     const uint32 chunks_dim = (uint32)square_root(WORLD_SIZE);
 
     // Create some dummy chunks
@@ -56,20 +56,20 @@ get_chunk(world_chunk *chunks, int32 x, int32 y) {
     return NULL;
 }
 
-void world_update(game_world *world, game_input *input, real32 dt) {
+void world_update(GameWorld *world, game_input *input, real32 dt) {
     if (input->mouse_buttons & MOUSE_RIGHT) {
         world->screen_position += input->mouse_delta;
     }
 }
 
-void render_player(RenderContext *ctx, game_world *world) {
+void render_player(RenderContext *ctx, GameWorld *world) {
     const uint32 player_dim = 32;
     v2 screen_pos = world_to_screen_position(world->screen_position, world->player.position);
 
     render_rect(ctx, (int32)screen_pos.x - player_dim/2, (int32)screen_pos.y - player_dim/2, player_dim, player_dim, { 0.0f, 0.8f, 0.0f });
 }
 
-void world_render(game_world *world, RenderContext *renderer) {
+void world_render(GameWorld *world, RenderContext *renderer) {
 
     const int32 screen_width = 1920;
     const int32 screen_height = 1080;
