@@ -6,9 +6,15 @@
 #include <malloc.h>
 
 typedef struct {
+    // Points
     real32 x;
     real32 y;
     real32 z;
+
+    // Colors
+    real32 r;
+    real32 g;
+    real32 b;
 } render_vertex;
 
 typedef struct {
@@ -23,7 +29,6 @@ typedef struct render_context {
 
     memory_segment memory;
     memory_segment vertex_buffer;
-    memory_segment color_buffer;
     memory_segment uv_buffer;
 
     uint32 entries_count;
@@ -117,16 +122,15 @@ render_context *render_init(game_assets *assets, memory_segment memory) {
     initialize_opengl(assets);
 
     // Allocate memory buffer
-    uint32 size_per_element = sizeof(real32) * 3 * 4; // 3 real32 coords, 4 vertices
+    // TODO: Make more efficient.
+    uint32 size_per_element = sizeof(real32) * 3 * 4 + sizeof(real32) * 3 * 4;
     uint32 available_memory = (memory.size - memory.used) / size_per_element;
-    memory_segment vertex_segment = allocate_memory(&memory, available_memory / 3);
-    memory_segment color_segment = allocate_memory(&memory, available_memory / 3);
-    memory_segment uv_segment = allocate_memory(&memory, available_memory / 3);
+    memory_segment vertex_segment = allocate_memory(&memory, available_memory / 2);
+    memory_segment uv_segment = allocate_memory(&memory, available_memory / 2);
 
-    ctx->entries_max = available_memory / (3 * sizeof(real32) * 3 * 4);
+    ctx->entries_max = available_memory / (2 * size_per_element);
     ctx->entries_count = 0;
     ctx->vertex_buffer = vertex_segment;
-    ctx->color_buffer = color_segment;
     ctx->uv_buffer = uv_segment;
 
     load_texture(assets, ctx);
@@ -144,10 +148,10 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     Assert(ctx->entries_count < ctx->entries_max);
     
     render_vertex vertices[4];
-    vertices[0] = { (real32)x, (real32)y, 0.f };
-    vertices[1] = { (real32)x, (real32)(y + height), 0.f };
-    vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f };
-    vertices[3] = { (real32)(x + width), (real32)y, 0.f };
+    vertices[0] = { (real32)x, (real32)y, 0.f, c.r, c.g, c.b };
+    vertices[1] = { (real32)x, (real32)(y + height), 0.f, c.r, c.g, c.b };
+    vertices[2] = { (real32)(x + width), (real32)(y + height), 0.f, c.r, c.g, c.b };
+    vertices[3] = { (real32)(x + width), (real32)y, 0.f, c.r, c.g, c.b };
 
     uv_coords coords[4];
     coords[0] = { 0.5f, -0.0f };
@@ -155,17 +159,9 @@ void render_rect(render_context *ctx, int32 x, int32 y, int32 width, int32 heigh
     coords[2] = { 1.0f, -0.5f };
     coords[3] = { 1.0f, -0.0f };
 
-    render_color colors[4];
-    for (int i = 0; i < 4; ++i) {
-        colors[i] = { c.r, c.g, c.b };
-    }
-
     for (int i = 0; i < 4; ++i) {
         render_vertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, render_vertex);
         *c_vert = vertices[i];
-
-        render_color *c_color = PUSH_STRUCT(&ctx->color_buffer, render_color);
-        *c_color = colors[i];
 
         uv_coords *c_coords = PUSH_STRUCT(&ctx->uv_buffer, uv_coords);
         *c_coords = coords[i];
@@ -181,7 +177,6 @@ void render_rect(render_context *ctx, v2 pos, v2 size, color c) {
 void render_start(render_context *ctx) {
     Assert(!ctx->rendering);
     Assert(ctx->vertex_buffer.base != NULL);
-    Assert(ctx->color_buffer.base != NULL);
     Assert(ctx->entries_count == 0);
 
     ctx->rendering = true;
@@ -193,31 +188,30 @@ void render_end(render_context *ctx) {
     draw(ctx);
 
     segment_clear(&ctx->vertex_buffer);
-    segment_clear(&ctx->color_buffer);
     segment_clear(&ctx->uv_buffer);
 
     ctx->entries_count = 0;
     ctx->rendering = false;
 }
 
+#define offsetof(type,member) ((void *) &(((type*)0)->member))
+
 void draw(render_context *ctx) {    
 
     unsigned int vertexArrayObjId;
-    unsigned int vertexBufferObjID[2];
+    unsigned int vertexBufferObjID;
     glGenVertexArrays(1, &vertexArrayObjId);
     glBindVertexArray(vertexArrayObjId);
-    glGenBuffers(2, vertexBufferObjID);
+    glGenBuffers(1, &vertexBufferObjID);
 
     // VBO for vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[0]);
-    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4*3*sizeof(real32), ctx->vertex_buffer.base, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID);
+    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4 * sizeof(render_vertex), ctx->vertex_buffer.base, GL_STATIC_DRAW);
+    glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, sizeof(render_vertex), 0);
     glEnableVertexAttribArray(0);
 
     // VBO for color data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID[1]);
-    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4*3*sizeof(GLfloat), ctx->color_buffer.base, GL_STATIC_DRAW);
-    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, sizeof(render_vertex), (GLvoid*)offsetof(render_vertex, r));
     glEnableVertexAttribArray(1);
 
     // UV buffer
@@ -257,7 +251,7 @@ void draw(render_context *ctx) {
         glBindVertexArray(0);
     }
 
-    glDeleteBuffers(2, vertexBufferObjID);
+    glDeleteBuffers(1, &vertexBufferObjID);
     glDeleteVertexArrays(1, &vertexArrayObjId);
     glDeleteBuffers(1, &uv_id);
     

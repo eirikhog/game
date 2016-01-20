@@ -44,6 +44,7 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
     // Rendering
     render_start(state->renderer);
     world_render(state->world, state->renderer);
+    //render_rect(state->renderer, { 0, 0 }, { 20, 20 }, { 1.0f, 1.0f, 1.0f });
     render_end(state->renderer);
 }
 
