@@ -197,8 +197,6 @@ void render_end(RenderContext *ctx) {
     ctx->rendering = false;
 }
 
-#define offsetof(type,member) ((void *) &(((type*)0)->member))
-
 void draw(RenderContext *ctx) {    
 
     unsigned int vertexArrayObjId;

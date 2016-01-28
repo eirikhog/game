@@ -242,6 +242,38 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     }
                     mouse_prev_position = input.mouse_position;
                 }break;
+                case WM_KEYDOWN:{
+                    switch (msg.wParam) {
+                        case VK_UP:
+                            input.buttons |= BUTTON_UP;
+                            break;
+                        case VK_DOWN:
+                            input.buttons |= BUTTON_DOWN;
+                            break;
+                        case VK_LEFT:
+                            input.buttons |= BUTTON_LEFT;
+                            break;
+                        case VK_RIGHT:
+                            input.buttons |= BUTTON_RIGHT;
+                            break;
+                    }
+                }break;
+                case WM_KEYUP:{
+                    switch (msg.wParam) {
+                        case VK_UP:
+                            input.buttons &= ~BUTTON_UP;
+                            break;
+                        case VK_DOWN:
+                            input.buttons &= ~BUTTON_DOWN;
+                            break;
+                        case VK_LEFT:
+                            input.buttons &= ~BUTTON_LEFT;
+                            break;
+                        case VK_RIGHT:
+                            input.buttons &= ~BUTTON_RIGHT;
+                            break;
+                    }                    
+                }break;
                 default:
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
@@ -249,7 +281,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
         }
 
-        gameLib.UpdateGame(&api, &memory, &input);
+        // TODO: Calculate time step
+        const real32 dt = 1.0f / 60.0f;
+        gameLib.UpdateGame(&api, &memory, &input, dt);
         SwapBackbuffer(window);
         
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...

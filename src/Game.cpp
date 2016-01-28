@@ -7,10 +7,8 @@
 typedef struct {
     bool initialized;
     RenderContext *renderer;
-
     MemorySegment game_memory;
     MemorySegment renderer_memory;
-
     GameAssets assets;
     GameWorld *world;
 } game_state;
@@ -22,7 +20,6 @@ initialize(game_state *state, platform_api *api, game_memory *memory) {
     mem_all.base = (uint8*)memory->permanent + sizeof(game_state);
     mem_all.used = 0;
     state->game_memory = mem_all;
-
 
     MemorySegment mem_transient = {};
     mem_transient.size = memory->transientSize;
@@ -42,7 +39,7 @@ initialize(game_state *state, platform_api *api, game_memory *memory) {
 }
 
 extern "C"
-void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input) {
+void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input, real32 dt) {
 
     game_state *state = (game_state *)memory->permanent;    
     if (!state->initialized) {
@@ -50,12 +47,11 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
     }
 
     // Updating
-    world_update(state->world, input, 0.0f);
+    world_update(state->world, input, dt);
 
     // Rendering
     render_start(state->renderer);
     world_render(state->world, state->renderer);
-    //render_rect(state->renderer, { 0, 0 }, { 20, 20 }, { 1.0f, 1.0f, 1.0f });
     render_end(state->renderer);
 }
 

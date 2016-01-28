@@ -1,5 +1,8 @@
 #include "World.h"
 #include "Math.h"
+#include "Platform.h"
+
+static v2 MousePosition = {};
 
 static int32
 coordinateToChunk(real32 value) {
@@ -60,6 +63,25 @@ void world_update(GameWorld *world, game_input *input, real32 dt) {
     if (input->mouse_buttons & MOUSE_RIGHT) {
         world->screen_position += input->mouse_delta;
     }
+
+    const real32 pan_speed = 200.0f;
+    if (input->buttons & BUTTON_UP) {
+        world->screen_position.y -= pan_speed * dt;
+    }
+
+    if (input->buttons & BUTTON_DOWN) {
+        world->screen_position.y += pan_speed * dt;
+    }
+
+    if (input->buttons & BUTTON_LEFT) {
+        world->screen_position.x -= pan_speed * dt;
+    }
+
+    if (input->buttons & BUTTON_RIGHT) {
+        world->screen_position.x += pan_speed * dt;
+    }
+
+
 }
 
 void render_player(RenderContext *ctx, GameWorld *world) {

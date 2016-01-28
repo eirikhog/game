@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _COMMON_H
+#define _COMMON_H
 
 #include <stdint.h>
 
@@ -14,4 +15,10 @@ typedef int64_t int64;
 
 typedef float real32;
 typedef float real64;
+
+#ifndef offsetof
+#define offsetof(type,member) ((void *) &(((type*)0)->member))
+#endif
+
+#endif
 

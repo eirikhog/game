@@ -34,6 +34,13 @@ enum MouseButtons {
     MOUSE_RIGHT = 2
 };
 
+enum InputButtons {
+    BUTTON_UP = 1,
+    BUTTON_DOWN = 2,
+    BUTTON_LEFT = 4,
+    BUTTON_RIGHT = 8
+};
+
 struct game_input {
     uint32 buttons;
     v2 mouse_position;
@@ -41,7 +48,7 @@ struct game_input {
     uint32 mouse_buttons;
 };
 
-typedef void update_game(platform_api *api, game_memory *memory, game_input *input);
+typedef void update_game(platform_api *api, game_memory *memory, game_input *input, real32 dt);
 typedef char *read_entire_file(char *filename, uint32 *size);
 
 typedef struct platform_api {
