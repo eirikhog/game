@@ -202,7 +202,8 @@ void render_end(RenderContext *ctx) {
     ctx->rendering = false;
 }
 
-void draw(RenderContext *ctx) {    
+void draw(RenderContext *ctx) {
+    Assert(ctx->initialized);
 
     unsigned int vertexArrayObjId;
     unsigned int vertexBufferObjID;
@@ -241,15 +242,13 @@ void draw(RenderContext *ctx) {
         glUniform2f(loc, size[0], size[1]);
     }
 
-    if (ctx->initialized) {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
 
-        glBindVertexArray(vertexArrayObjId);
-        glDrawArrays(GL_QUADS, 0, 4 * ctx->entries_count);
+    glBindVertexArray(vertexArrayObjId);
+    glDrawArrays(GL_QUADS, 0, 4 * ctx->entries_count);
 
-        glBindVertexArray(0);
-    }
+    glBindVertexArray(0);
 
     glDeleteBuffers(1, &vertexBufferObjID);
     glDeleteVertexArrays(1, &vertexArrayObjId);

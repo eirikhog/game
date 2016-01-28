@@ -14,7 +14,7 @@ typedef struct {
 } game_state;
 
 static void
-InitGame(game_state *state, platform_api *api, game_memory *memory) {
+game_init(game_state *state, platform_api *api, game_memory *memory) {
     MemorySegment mem_all = {};
     mem_all.size = memory->permanentSize - sizeof(game_state);
     mem_all.base = (uint8*)memory->permanent + sizeof(game_state);
@@ -32,8 +32,7 @@ InitGame(game_state *state, platform_api *api, game_memory *memory) {
     state->renderer_memory = renderer_memory;
     state->renderer = render_init(&state->assets, renderer_memory);
 
-    MemorySegment world_memory = allocate_memory(&mem_all, 8 * 1024 * 1024);
-    state->world = create_world(&world_memory);
+    MemorySegment world_memory = allocate_memory(&mem_all, sizeof(GameWorld));
 
     state->initialized = true;
 }
@@ -43,7 +42,7 @@ void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input
 
     game_state *state = (game_state *)memory->permanent;    
     if (!state->initialized) {
-        InitGame(state, api, memory);
+        game_init(state, api, memory);
     }
 
     // Updating
