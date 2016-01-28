@@ -11,6 +11,12 @@
 #define ASSET_SHADER_FRAGMENT 2
 #define ASSET_IMAGE_SPRITEMAP 0
 
+typedef enum {
+    ASSET_SHADER,
+    ASSET_IMAGE,
+    ASSET_SOUND
+} AssetType;
+
 typedef struct {
     platform_api *api;
     MemorySegment memory;

@@ -19,5 +19,3 @@ void world_render(GameWorld *world, RenderContext *ctx) {
 
     render_image(ctx, 240, 240, 100, 100, 2);
 }
-
-
