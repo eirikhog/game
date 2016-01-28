@@ -4,7 +4,6 @@
 
 #include <GL/glew.h>
 
-
 typedef struct {
     uint32 id;
     v2 uv_origin;
@@ -156,7 +155,13 @@ void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height
 }
 
 void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, uint32 image_id) {
-    Assert(ctx->entries_count < ctx->entries_max);
+
+    // If the buffer is full, push the data to the graphics card and render what we got.
+    if (ctx->entries_count >= ctx->entries_max) {
+        draw(ctx);
+        segment_clear(&ctx->vertex_buffer);
+        ctx->entries_count = 0;
+    }
 
     AtlasEntry entry = ctx->atlas.entries[image_id];
     
@@ -235,8 +240,6 @@ void draw(RenderContext *ctx) {
     {
         glUniform2f(loc, size[0], size[1]);
     }
-
-    glClear(GL_COLOR_BUFFER_BIT);
 
     if (ctx->initialized) {
         glMatrixMode(GL_PROJECTION);

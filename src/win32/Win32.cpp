@@ -200,6 +200,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     LARGE_INTEGER ftStart, ftEnd;
     QueryPerformanceCounter(&ftStart);
+    real32 frameTime = 1.0f / 60.0f;
 
 #ifdef _DEBUG
     win32_performance perf = {};
@@ -281,9 +282,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
         }
 
-        // TODO: Calculate time step
-        const real32 dt = 1.0f / 60.0f;
-        gameLib.UpdateGame(&api, &memory, &input, dt);
+        gameLib.UpdateGame(&api, &memory, &input, frameTime);
         SwapBackbuffer(window);
         
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...
@@ -298,6 +297,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #endif
         if (sleepTime > 0) {
             std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
+            frameTime = 1.0f / 60.0f;
+        } else {
+            // If the process did not sleep, it means that we have too much work for the frame!
+            frameTime = (real32)tElapsedUs / 1000000.0f;
         }
 
 #ifdef _DEBUG
