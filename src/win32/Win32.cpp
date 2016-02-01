@@ -187,9 +187,19 @@ void UpdateJoystick(game_input *input) {
         if (magnitude > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
             v2 normalized = leftStick / magnitude;
             input->joystick = normalized;
+        } else {
+            input->joystick = { 0.0f, 0.0f };
         }
     } else {
         // Did not find controller
+    }
+}
+
+void HandleKeyInput(game_input *input, InputButtons button, bool32 pressed) {
+    if (pressed) {
+        input->buttons |= button;
+    } else {
+        input->buttons &= ~button;
     }
 }
 
@@ -251,18 +261,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #endif
     v2 mouse_prev_position = {};
     HCURSOR mouse_cursor = LoadCursor(NULL, IDC_ARROW);
+    game_input input = {};
 
     program_state.running = true;
     while(program_state.running) {
-
-        // Main game loop:
-        // - Handle input
-        // - Update game state
-        // - Render
         
-        QueryPerformanceCounter(&tStart);
-
-        game_input input = {};
+        QueryPerformanceCounter(&tStart);    
         UpdateJoystick(&input);
 
         MSG msg;
@@ -288,21 +292,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     }
                     mouse_prev_position = input.mouse_position;
                 }break;
+                case WM_KEYUP:
                 case WM_KEYDOWN:{
                     bool32 wasUp = msg.lParam & (1 << 30);
-                    bool32 pressed = msg.lParam & (1 << 31);
+                    bool32 pressed = !(msg.lParam & (1 << 31));
                     switch (msg.wParam) {
                         case VK_UP:
-                            input.buttons |= BUTTON_UP;
+                            HandleKeyInput(&input, BUTTON_UP, pressed);
                             break;
                         case VK_DOWN:
-                            input.buttons |= BUTTON_DOWN;
+                            HandleKeyInput(&input, BUTTON_LEFT, pressed);
                             break;
                         case VK_LEFT:
-                            input.buttons |= BUTTON_LEFT;
+                            HandleKeyInput(&input, BUTTON_LEFT, pressed);
                             break;
                         case VK_RIGHT:
-                            input.buttons |= BUTTON_RIGHT;
+                            HandleKeyInput(&input, BUTTON_RIGHT, pressed);
                             break;
                         case VK_F11:
                             ToggleFullscreen(window, &program_state);
@@ -311,22 +316,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                             program_state.running = false;
                             break;
                     }
-                }break;
-                case WM_KEYUP:{
-                    switch (msg.wParam) {
-                        case VK_UP:
-                            input.buttons &= ~BUTTON_UP;
-                            break;
-                        case VK_DOWN:
-                            input.buttons &= ~BUTTON_DOWN;
-                            break;
-                        case VK_LEFT:
-                            input.buttons &= ~BUTTON_LEFT;
-                            break;
-                        case VK_RIGHT:
-                            input.buttons &= ~BUTTON_RIGHT;
-                            break;
-                    }                    
                 }break;
                 default:
                     TranslateMessage(&msg);
