@@ -26,6 +26,7 @@ typedef struct {
 
 typedef struct {
     bool running;
+    WINDOWPLACEMENT windowPlacement;
 } win32_state;
 
 void ResizeWindow(uint32 width, uint32 height) {
@@ -102,6 +103,29 @@ game_functions LoadGameLibrary() {
     Assert(module);
 
     return library;
+}
+
+
+void ToggleFullscreen(HWND window, win32_state *state) {
+
+    DWORD style = GetWindowLong(window, GWL_STYLE);
+    if (style & WS_OVERLAPPEDWINDOW) {
+        HMONITOR hmon = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi = { sizeof(MONITORINFO) };
+        if (!GetMonitorInfo(hmon, &mi) || !GetWindowPlacement(window, &state->windowPlacement)) {
+            return;
+        }
+
+        SetWindowLong(window, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
+        SetWindowPos(window, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
+                mi.rcMonitor.right - mi.rcMonitor.left,
+                mi.rcMonitor.bottom - mi.rcMonitor.top,
+                SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    } else {
+        SetWindowLong(window, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+        SetWindowPlacement(window, &state->windowPlacement);
+        SetWindowPos(window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    }
 }
 
 void SetupOpenGL(HDC hdc) {
@@ -256,6 +280,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                             break;
                         case VK_RIGHT:
                             input.buttons |= BUTTON_RIGHT;
+                            break;
+                        case VK_F11:
+                            ToggleFullscreen(window, &program_state);
+                            break;
+                        case VK_ESCAPE:
+                            program_state.running = false;
                             break;
                     }
                 }break;
