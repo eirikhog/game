@@ -46,6 +46,7 @@ struct game_input {
     v2 mouse_position;
     v2 mouse_delta;
     uint32 mouse_buttons;
+    v2 joystick;
 };
 
 typedef void update_game(platform_api *api, game_memory *memory, game_input *input, real32 dt);

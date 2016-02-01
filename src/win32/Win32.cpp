@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 
+// TODO: Dynamic loading
+#include <xinput.h>
+
 #include <chrono>
 #include <thread>
 
@@ -173,6 +176,23 @@ void SetupOpenGL(HDC hdc) {
     }
 }
 
+void UpdateJoystick(game_input *input) {
+    // TODO: Handle more than one joystick
+    XINPUT_STATE state;
+    ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+    if (!XInputGetState(0, &state)) {
+        v2 leftStick = { state.Gamepad.sThumbLX, state.Gamepad.sThumbLY };
+        real32 magnitude = sqrt( leftStick.x * leftStick.x + leftStick.y * leftStick.y);
+        if (magnitude > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+            v2 normalized = leftStick / magnitude;
+            input->joystick = normalized;
+        }
+    } else {
+        // Did not find controller
+    }
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     win32_state program_state = {};
     
@@ -243,6 +263,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         QueryPerformanceCounter(&tStart);
 
         game_input input = {};
+        UpdateJoystick(&input);
 
         MSG msg;
         while (PeekMessage(&msg, window, NULL, NULL, PM_REMOVE)) {
@@ -268,6 +289,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     mouse_prev_position = input.mouse_position;
                 }break;
                 case WM_KEYDOWN:{
+                    bool32 wasUp = msg.lParam & (1 << 30);
+                    bool32 pressed = msg.lParam & (1 << 31);
                     switch (msg.wParam) {
                         case VK_UP:
                             input.buttons |= BUTTON_UP;

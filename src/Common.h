@@ -16,6 +16,8 @@ typedef int64_t int64;
 typedef float real32;
 typedef float real64;
 
+typedef uint32 bool32;
+
 #ifndef offsetof
 #define offsetof(type,member) ((void *) &(((type*)0)->member))
 #endif
