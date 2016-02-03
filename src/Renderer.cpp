@@ -111,14 +111,17 @@ void load_textures(GameAssets *assets, RenderContext *ctx) {
     // TODO: This should be generated from asset file.
     Atlas atlas;
     atlas.entries[0].id = ATLAS_WHITE;
-    atlas.entries[0].uv_origin = { 0.0f, 0.0f };
-    atlas.entries[0].uv_end = { 0.48f, 0.48f };
+    atlas.entries[0].uv_origin = { 0.0f, 0.5f };
+    atlas.entries[0].uv_end = { 0.5f, 1.0f };
     atlas.entries[1].id = ATLAS_STONE;
-    atlas.entries[1].uv_origin = { 0.0f, 0.52f };
-    atlas.entries[1].uv_end = { 0.48f, 0.98f };;
+    atlas.entries[1].uv_origin = { 0.5f, 0.0f };
+    atlas.entries[1].uv_end = { 1.0f, 0.5f };;
     atlas.entries[2].id = ATLAS_DIRT;
-    atlas.entries[2].uv_origin = { 0.52f, 0.52f };
-    atlas.entries[2].uv_end = { 0.98f, 0.98f };
+    atlas.entries[2].uv_origin = { 0.5f, 0.5f };
+    atlas.entries[2].uv_end = { 1.0f, 1.0f };
+    atlas.entries[3].id = ATLAS_MARKER;
+    atlas.entries[3].uv_origin = { 0.0f, 0.5f };
+    atlas.entries[3].uv_end = { 0.5f, 1.0f };
 
     ctx->atlas = atlas;
 }

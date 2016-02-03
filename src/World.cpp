@@ -140,6 +140,16 @@ inline v2 chunk_coords_to_screen_coords(v2 camera, v2 screenSize, int x, int y) 
     return result;
 }
 
+inline v2 get_tile_coordinate(v2 camera, v2 screenSize, v2 position) {
+    v2 worldPosition = { position.x - screenSize.x / 2 - camera.x,
+                         position.y - screenSize.y / 2 - camera.y };
+    v2 tile = { (int32)floor(worldPosition.x / TILE_SIZE), (int32)floor(worldPosition.y / TILE_SIZE) };
+
+    v2 result = { camera.x + screenSize.x / 2 + tile.x * TILE_SIZE, camera.y + screenSize.y / 2 + tile.y * TILE_SIZE };
+
+    return result;
+}
+
 void world_render(World *world, RenderContext *ctx, v2 windowSize) {
 
     const v2 screenSize = windowSize;
@@ -180,8 +190,9 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
     render_rect(ctx, screenSize.x / 2, screenSize.y / 2, 1, 16, { 1.0f, 0.0f, 0.0f });
     render_rect(ctx, screenSize.x / 2, screenSize.y / 2, 16, 1, { 0.0f, 0.0f, 1.0f });
 
-    render_rect(ctx, MousePosition.x - TILE_SIZE / 2, MousePosition.y-TILE_SIZE/2, TILE_SIZE, TILE_SIZE, white);
-    
     v2 tilePos = get_tile_from_screen_position(world, MousePosition);
     set_tile(world, tilePos.x, tilePos.y, ATLAS_DIRT);
+
+    v2 target = get_tile_coordinate(world->camera, screenSize, MousePosition);
+    render_rect(ctx, target.x, target.y, TILE_SIZE, TILE_SIZE, white);
 }

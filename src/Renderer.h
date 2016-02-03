@@ -8,6 +8,7 @@
 #define ATLAS_WHITE 0 
 #define ATLAS_STONE 1
 #define ATLAS_DIRT 2 
+#define ATLAS_MARKER 3
 
 struct RenderContext;
 
