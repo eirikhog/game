@@ -5,14 +5,28 @@
 #include "Math.h"
 #include "Renderer.h"
 
-#define CHUNK_SIZE 24
-#define TILE_SIZE 64
-#define WORLD_SIZE 1024
+#define CHUNK_DIM 32
+#define TILE_SIZE 32
 
 typedef struct {
-    v2 player;
-} GameWorld;
+    int32 x;
+    int32 y;
+    uint32 tiles[CHUNK_DIM*CHUNK_DIM];
+} WorldChunk;
 
-void world_update(GameWorld *world, game_input *input, real32 dt);
-void world_render(GameWorld *world, RenderContext *renderer);
+typedef struct {
+    WorldChunk *next;
+    WorldChunk *prev;
+} LoadedWorldChunk;
 
+typedef struct {
+    v2 position;
+} Entity;
+
+typedef struct {
+    v2 camera;
+    v2 screenSize;
+} World;
+
+void world_update(World *world, game_input *input, real32 dt);
+void world_render(World *world, RenderContext *renderer);

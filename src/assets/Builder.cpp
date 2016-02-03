@@ -16,6 +16,10 @@ typedef struct {
     uint32 dataOffset;
 } AssetFileGenerator;
 
+typedef struct {
+    uint16 elementSize;
+} AtlasGenerator;
+
 AssetFileGenerator CreateGenerator(char *filename) {
     AssetFileGenerator generator = {};
     generator.filename = filename;

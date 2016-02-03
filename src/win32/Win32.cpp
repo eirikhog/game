@@ -190,6 +190,12 @@ void UpdateJoystick(game_input *input) {
         } else {
             input->joystick = { 0.0f, 0.0f };
         }
+
+        if (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+            input->buttons |= BUTTON_UP;
+        } else {
+            input->buttons &= ~BUTTON_UP;
+        }
     } else {
         // Did not find controller
     }
@@ -310,7 +316,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                             HandleKeyInput(&input, BUTTON_RIGHT, pressed);
                             break;
                         case VK_F11:
-                            ToggleFullscreen(window, &program_state);
+                            if (pressed) {
+                                ToggleFullscreen(window, &program_state);
+                            }
                             break;
                         case VK_ESCAPE:
                             program_state.running = false;

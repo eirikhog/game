@@ -10,7 +10,7 @@ typedef struct {
     MemorySegment game_memory;
     MemorySegment renderer_memory;
     GameAssets assets;
-    GameWorld *world;
+    World *world;
 } game_state;
 
 static void
@@ -32,7 +32,8 @@ game_init(game_state *state, platform_api *api, game_memory *memory) {
     state->renderer_memory = renderer_memory;
     state->renderer = render_init(&state->assets, renderer_memory);
 
-    MemorySegment world_memory = allocate_memory(&mem_all, sizeof(GameWorld));
+    MemorySegment world_memory = allocate_memory(&mem_all, sizeof(World));
+    state->world = (World*)world_memory.base;
 
     state->initialized = true;
 }

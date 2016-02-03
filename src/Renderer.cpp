@@ -113,10 +113,10 @@ void load_textures(GameAssets *assets, RenderContext *ctx) {
     atlas.entries[0].uv_end = { 0.48f, 0.48f };
     atlas.entries[1].id = ATLAS_STONE;
     atlas.entries[1].uv_origin = { 0.0f, 0.52f };
-    atlas.entries[1].uv_end = { 0.52f, 1.0f };;
+    atlas.entries[1].uv_end = { 0.48f, 0.98f };;
     atlas.entries[2].id = ATLAS_DIRT;
     atlas.entries[2].uv_origin = { 0.52f, 0.52f };
-    atlas.entries[2].uv_end = { 1.0f, 1.0f };
+    atlas.entries[2].uv_end = { 0.98f, 0.98f };
 
     ctx->atlas = atlas;
 }
