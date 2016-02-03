@@ -23,6 +23,11 @@ struct game_buffer;
 struct platform_api;
 
 typedef struct {
+    v2 windowSize;
+    platform_api *api;
+} platform_state;
+
+typedef struct {
     void *permanent;
     uint32 permanentSize;
     void *transient;
@@ -49,7 +54,7 @@ struct game_input {
     v2 joystick;
 };
 
-typedef void update_game(platform_api *api, game_memory *memory, game_input *input, real32 dt);
+typedef void update_game(platform_state *state, game_memory *memory, game_input *input, real32 dt);
 typedef char *read_entire_file(char *filename, uint32 *size);
 
 typedef struct platform_api {

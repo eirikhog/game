@@ -23,5 +23,5 @@ void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height
 void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, uint32 id);
 void render_rect(RenderContext *ctx, v2 pos, v2 size, Color c);
 
-void render_start(RenderContext *ctx);
+void render_start(RenderContext *ctx, v2 windowSize);
 void render_end(RenderContext *ctx);

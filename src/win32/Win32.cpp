@@ -30,10 +30,12 @@ typedef struct {
 typedef struct {
     bool running;
     WINDOWPLACEMENT windowPlacement;
+    platform_state *platformState;
 } win32_state;
 
-void ResizeWindow(uint32 width, uint32 height) {
-   glViewport(0, 0, width, height);
+void ResizeWindow(platform_state *platformState, uint32 width, uint32 height) {
+    platformState->windowSize = { (real32)width, (real32)height };
+    glViewport(0, 0, width, height);
 }
 
 void SwapBackbuffer(HWND hwnd) {
@@ -55,10 +57,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             win32_state *state = (win32_state*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
             state->running = false;
         }break;
-        case WM_SIZE:{
-            RECT windowRect;
-            GetClientRect(hwnd, &windowRect);
-            ResizeWindow(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
+        case WM_SIZE: {
+            win32_state *state = (win32_state*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (state && state->platformState) {
+                RECT windowRect;
+                GetClientRect(hwnd, &windowRect);
+                ResizeWindow(state->platformState, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
+            }
         }break;
         default:
             result = DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -211,6 +216,13 @@ void HandleKeyInput(game_input *input, InputButtons button, bool32 pressed) {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     win32_state program_state = {};
+
+    platform_state platformState = {};
+    platform_api api = {};
+    api.ReadEntireFile = load_file;
+
+    platformState.api = &api;
+    program_state.platformState = &platformState;
     
     WNDCLASS myclass = {};
     myclass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
@@ -254,9 +266,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // TODO: Move this 
     HDC hdc = GetDC(window);
     SetupOpenGL(hdc);
-
-    platform_api api = {};
-    api.ReadEntireFile = load_file;
 
     LARGE_INTEGER ftStart, ftEnd;
     QueryPerformanceCounter(&ftStart);
@@ -332,7 +341,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
         }
 
-        gameLib.UpdateGame(&api, &memory, &input, frameTime);
+        gameLib.UpdateGame(&platformState, &memory, &input, frameTime);
         SwapBackbuffer(window);
         
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...

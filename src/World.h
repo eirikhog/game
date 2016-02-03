@@ -6,7 +6,7 @@
 #include "Renderer.h"
 
 #define CHUNK_DIM 32
-#define TILE_SIZE 32
+#define TILE_SIZE 64
 
 typedef struct {
     int32 x;
@@ -29,4 +29,4 @@ typedef struct {
 } World;
 
 void world_update(World *world, game_input *input, real32 dt);
-void world_render(World *world, RenderContext *renderer);
+void world_render(World *world, RenderContext *renderer, v2 windowSize);

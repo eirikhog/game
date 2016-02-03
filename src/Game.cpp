@@ -39,19 +39,19 @@ game_init(game_state *state, platform_api *api, game_memory *memory) {
 }
 
 extern "C"
-void EXPORT UpdateGame(platform_api *api, game_memory *memory, game_input *input, real32 dt) {
+void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_input *input, real32 dt) {
 
     game_state *state = (game_state *)memory->permanent;    
     if (!state->initialized) {
-        game_init(state, api, memory);
+        game_init(state, platformState->api, memory);
     }
 
     // Updating
     world_update(state->world, input, dt);
 
     // Rendering
-    render_start(state->renderer);
-    world_render(state->world, state->renderer);
+    render_start(state->renderer, platformState->windowSize);
+    world_render(state->world, state->renderer, platformState->windowSize);
     render_end(state->renderer);
 }
 

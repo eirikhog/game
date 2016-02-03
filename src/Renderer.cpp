@@ -25,6 +25,8 @@ typedef struct RenderContext {
     bool initialized;
     bool rendering;
 
+    v2 windowSize;
+
     MemorySegment memory;
     MemorySegment vertex_buffer;
 
@@ -183,12 +185,13 @@ void render_rect(RenderContext *ctx, v2 pos, v2 size, Color c) {
     render_rect(ctx, (int32)pos.x, (int32)pos.y, (int32)size.x, (int32)size.y, c);
 }
 
-void render_start(RenderContext *ctx) {
+void render_start(RenderContext *ctx, v2 windowSize) {
     Assert(!ctx->rendering);
     Assert(ctx->vertex_buffer.base != NULL);
     Assert(ctx->entries_count == 0);
 
     ctx->rendering = true;
+    ctx->windowSize = windowSize;
 }
 
 void render_end(RenderContext *ctx) {
@@ -224,13 +227,9 @@ void draw(RenderContext *ctx) {
     // UV buffer
     glVertexAttribPointer((GLuint)2, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (GLvoid*)offsetof(RenderVertex, uv));
     glEnableVertexAttribArray(2);
-
-    // Cheating! We probably want this from somewhere else...
-    GLint viewport_size[4];
-    glGetIntegerv(GL_VIEWPORT, viewport_size);
-
-    GLfloat width = (GLfloat)viewport_size[2];
-    GLfloat height = (GLfloat)viewport_size[3];
+    
+    GLfloat width = (GLfloat)ctx->windowSize.x;
+    GLfloat height = (GLfloat)ctx->windowSize.y;
     GLfloat size[2] = { width, height };
 
     GLint id;
