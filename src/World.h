@@ -26,7 +26,9 @@ typedef struct {
 typedef struct {
     v2 camera;
     v2 screenSize;
+    WorldChunk chunks[32];
 } World;
 
+void world_create(World *world);
 void world_update(World *world, game_input *input, real32 dt);
 void world_render(World *world, RenderContext *renderer, v2 windowSize);

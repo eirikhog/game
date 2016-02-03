@@ -34,6 +34,7 @@ game_init(game_state *state, platform_api *api, game_memory *memory) {
 
     MemorySegment world_memory = allocate_memory(&mem_all, sizeof(World));
     state->world = (World*)world_memory.base;
+    world_create(state->world);
 
     state->initialized = true;
 }
@@ -45,6 +46,8 @@ void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_
     if (!state->initialized) {
         game_init(state, platformState->api, memory);
     }
+
+    state->world->screenSize = platformState->windowSize;
 
     // Updating
     world_update(state->world, input, dt);
