@@ -65,12 +65,12 @@ inline v2 chunk_coords_to_screen_coords(v2 camera, v2 screenSize, int x, int y) 
 
 void world_render(World *world, RenderContext *ctx, v2 windowSize) {
 
-    const v2 screenSize = { 1920.0f, 1080.0f };
+    const v2 screenSize = windowSize;
 
     // Render visible chunks
     const int32 chunkSideLength = (32 * CHUNK_DIM);
-    int32 chunksX = ceil(screenSize.x / (real32)chunkSideLength);
-    int32 chunksY = ceil(screenSize.y / (real32)chunkSideLength);
+    int32 chunksX = 1 + ceil(screenSize.x / (real32)chunkSideLength);
+    int32 chunksY = 1 + ceil(screenSize.y / (real32)chunkSideLength);
 
     Color white = { 1.0f, 1.0f, 1.0f };
     Color black = { 0.0f, 0.0f, 0.0f };
@@ -104,4 +104,6 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
     MousePosition.x = screenSize.x * MousePosition.x / windowSize.x;
     MousePosition.y = screenSize.y * MousePosition.y / windowSize.y;
     render_rect(ctx, MousePosition.x - 2, MousePosition.y - 2, 5, 5, white);
+
+    render_rect(ctx, 100, 100, 100, 100, white);
 }
