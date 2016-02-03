@@ -13,6 +13,7 @@ typedef struct {
     union {
         ImageAsset image;
         ShaderAsset shader;
+        AtlasAsset atlas;
     };
     uint32_t size;
 } AssetFileEntry;

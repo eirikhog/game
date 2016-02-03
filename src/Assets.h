@@ -14,8 +14,15 @@
 typedef enum {
     ASSET_SHADER,
     ASSET_IMAGE,
-    ASSET_SOUND
+    ASSET_SOUND,
+    ASSET_ATLAS
 } AssetType;
+
+typedef enum {
+    ASSET_TEXTURE_WHITE,
+    ASSET_TEXTURE_DIRT,
+    ASSET_TEXTURE_STONE,
+} AssetId;
 
 typedef struct {
     platform_api *api;
@@ -37,6 +44,20 @@ typedef struct {
     uint32 size;
     char *content;
 } ShaderAsset;
+
+typedef struct {
+    v2 uvOrigin;
+    v2 uvEnd;
+    AssetId id;
+} AtlasAssetEntry;
+
+typedef struct {
+    uint32 id;
+    uint32 width;
+    uint32 height;
+    void *data;
+    AtlasAssetEntry entries[64]; // TODO: Make dynamic
+} AtlasAsset;
 
 GameAssets assets_init(platform_api *api, MemorySegment memory);
 ImageAsset asset_get_image(GameAssets *assets, uint32 id);

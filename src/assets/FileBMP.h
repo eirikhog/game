@@ -44,9 +44,9 @@ typedef struct {
     uint32_t width;
     uint32_t height;
     void *data;
-} LoadedImage;
+} Image;
 
-LoadedImage LoadBMP(char *filename) {
+Image LoadBMP(char *filename) {
     void *data;
     FILE *fp = fopen(filename, "r");
     Assert(fp);
@@ -73,7 +73,7 @@ LoadedImage LoadBMP(char *filename) {
     void *pixel_data = ((uint8_t*)data + header->data_offset);
     palette_element *colors = (palette_element*)((uint8_t*)dbi + dbi->dbi_size);
 
-    LoadedImage img;
+    Image img;
     img.width = dbi->width;
     img.height = dbi->height;
 

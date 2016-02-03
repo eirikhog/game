@@ -133,14 +133,14 @@ static ImageAsset load_bmp(void *data) {
         ((uint32*)img.data)[i] = p.value;
     }
 
-    // Flip the image
-    for (uint32_t j = 0; j < img.height / 2; ++j) {
-        for (uint32_t i = 0; i < img.width; ++i) {
-            uint32 tmp = ((uint32*)img.data)[j*img.width + i];
-            ((uint32*)img.data)[j*img.width + i] = ((uint32*)img.data)[(img.height - 1 - j)*img.width + i];
-            ((uint32*)img.data)[(img.height - 1 - j)*img.width + i] = tmp;
-        }
-    }
+    //// Flip the image
+    //for (uint32_t j = 0; j < img.height / 2; ++j) {
+    //    for (uint32_t i = 0; i < img.width; ++i) {
+    //        uint32 tmp = ((uint32*)img.data)[j*img.width + i];
+    //        ((uint32*)img.data)[j*img.width + i] = ((uint32*)img.data)[(img.height - 1 - j)*img.width + i];
+    //        ((uint32*)img.data)[(img.height - 1 - j)*img.width + i] = tmp;
+    //    }
+    //}
 
     return img;
 }
