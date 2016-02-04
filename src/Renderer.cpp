@@ -38,11 +38,11 @@ typedef struct RenderContext {
     uint32 texture_height;
     void *texture_data;
 
-    Atlas atlas;
+    AtlasAsset atlas;
 } RenderContext;
 
 static void draw(RenderContext *ctx);
-static void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, uint32 image_id);
+static void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, AssetId image_id);
 
 static void initialize_opengl(GameAssets *assets) {
     GLenum err = glewInit();
@@ -88,15 +88,22 @@ static void initialize_opengl(GameAssets *assets) {
     glUseProgram(p);
 }
 
+#include <stdio.h>
 
 void load_textures(GameAssets *assets, RenderContext *ctx) {
-    ImageAsset img = asset_get_image(assets, ASSET_IMAGE_SPRITEMAP);
-    Assert(img.data);
+    //ImageAsset img = asset_get_image(assets, ASSET_IMAGE_SPRITEMAP);
+    //Assert(img.data);
+
+    AtlasAsset a = asset_get_atlas(assets, ASSET_ATLAS1);
+    ctx->atlas = a;
+
+    FILE *fp = fopen("image.rgba", "w");
+    fwrite(a.data, 32 * a.width * a.height, 1, fp);
 
     GLuint id;
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, img.data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, a.width, a.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, a.data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -109,21 +116,6 @@ void load_textures(GameAssets *assets, RenderContext *ctx) {
     
     // Create texture atlas
     // TODO: This should be generated from asset file.
-    Atlas atlas;
-    atlas.entries[0].id = ATLAS_WHITE;
-    atlas.entries[0].uv_origin = { 0.0f, 0.0f };
-    atlas.entries[0].uv_end = { 0.5f, 0.5f };
-    atlas.entries[1].id = ATLAS_STONE;
-    atlas.entries[1].uv_origin = { 0.5f, 0.0f };
-    atlas.entries[1].uv_end = { 1.0f, 0.5f };;
-    atlas.entries[2].id = ATLAS_DIRT;
-    atlas.entries[2].uv_origin = { 0.5f, 0.5f };
-    atlas.entries[2].uv_end = { 1.0f, 1.0f };
-    atlas.entries[3].id = ATLAS_MARKER;
-    atlas.entries[3].uv_origin = { 0.0f, 0.5f };
-    atlas.entries[3].uv_end = { 0.5f, 1.0f };
-
-    ctx->atlas = atlas;
 }
 
 RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
@@ -151,15 +143,25 @@ RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     return ctx;
 }
 
-void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, uint32 image_id) {
+void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId image_id) {
     render_object(ctx, x, y, width, height, { 1.0f, 1.0f, 1.0f }, image_id);
 }
 
 void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c) {
-    render_object(ctx, x, y, width, height, c, ATLAS_WHITE);
+    render_object(ctx, x, y, width, height, c, ASSET_TEXTURE_WHITE);
 }
 
-void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, uint32 image_id) {
+AtlasAssetEntry get_atlas_entry(AtlasAsset *atlas, AssetId id) {
+    // TODO: Dynamic size
+    for (int i = 0; i < 8; ++i) {
+        if (atlas->entries[i].id == id) {
+            return atlas->entries[i];
+        }
+    }
+    Assert(0);
+}
+
+void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, AssetId image_id) {
 
     // If the buffer is full, push the data to the graphics card and render what we got.
     if (ctx->entries_count >= ctx->entries_max) {
@@ -168,13 +170,17 @@ void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 heig
         ctx->entries_count = 0;
     }
 
-    AtlasEntry entry = ctx->atlas.entries[image_id];
+    AtlasAssetEntry entry = get_atlas_entry(&ctx->atlas, image_id);
     
     RenderVertex vertices[4];
-    vertices[0] = { { (real32)x, (real32)y, 0.f }, c, { entry.uv_origin.x, entry.uv_origin.y } };
-    vertices[1] = { { (real32)x, (real32)(y + height), 0.f }, c, { entry.uv_origin.x, entry.uv_end.y } };
-    vertices[2] = { { (real32)(x + width), (real32)(y + height), 0.f }, c, { entry.uv_end.x, entry.uv_end.y } };
-    vertices[3] = { { (real32)(x + width), (real32)y, 0.f }, c, { entry.uv_end.x, entry.uv_origin.y } };
+    vertices[0] = { { (real32)x, (real32)y, 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvOrigin.y } };
+    vertices[1] = { { (real32)x, (real32)(y + height), 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvEnd.y } };
+    vertices[2] = { { (real32)(x + width), (real32)(y + height), 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvEnd.y } };
+    vertices[3] = { { (real32)(x + width), (real32)y, 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvOrigin.y } };
+    //vertices[0] = { { (real32)x, (real32)y, 0.f }, c,{ entry.uvOrigin.x, entry.uvEnd.y } };
+    //vertices[1] = { { (real32)x, (real32)(y + height), 0.f }, c,{ entry.uvOrigin.x, entry.uvOrigin.y } };
+    //vertices[2] = { { (real32)(x + width), (real32)(y + height), 0.f }, c,{ entry.uvEnd.x, entry.uvOrigin.y } };
+    //vertices[3] = { { (real32)(x + width), (real32)y, 0.f }, c,{ entry.uvEnd.x, entry.uvEnd.y } };
 
     for (int i = 0; i < 4; ++i) {
         RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, RenderVertex);

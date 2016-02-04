@@ -65,15 +65,18 @@ void WriteShaderAsset(FILE *fp, AssetFileGenerator *gen, AssetGeneratorFileEntry
 void WriteAtlasAsset(FILE *fp, AssetFileGenerator *gen, AssetGeneratorFileEntry *genEntry) {
     genEntry->entry.offset = gen->dataOffset;
     gen->dataOffset += genEntry->entry.size;
+    uint32 position = ftell(fp);
+    std::cout << "Writing AtlasAsset at offset " << position << std::endl;
     fwrite(&genEntry->entry, sizeof(AssetFileEntry), 1, fp);
 }
 
 void WriteAssetFile(AssetFileGenerator *generator) {
+    TIMED_FUNCTION();
     generator->header = {};
     generator->header.magic = ASSETS_MAGIC;
     generator->header.assetCount = generator->entries.size();
     
-    generator->dataOffset = sizeof(AssetFileGenerator) + sizeof(AssetFileEntry) * generator->header.assetCount;
+    generator->dataOffset = sizeof(AssetFileHeader) + sizeof(AssetFileEntry) * generator->header.assetCount;
 
     FILE *fp = fopen(generator->filename, "w");
     if (fp) {
@@ -101,7 +104,7 @@ void WriteAssetFile(AssetFileGenerator *generator) {
         }
         // Now write the data.
         for (auto it : generator->entries) {
-            std::cout << "Writing data for asset (ID: " << it.entry.id << ", Size: " << it.size << ")" << std::endl;
+            std::cout << "Writing data for asset (ID: " << it.entry.id << ", Size: " << it.size << ", Offset : " << ftell(fp) << ")" << std::endl;
             fwrite(it.data, it.size, 1, fp);
         }
         fclose(fp);
@@ -175,11 +178,29 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
         uint32_t *dest = (uint32_t*)atlas.data;
         uint32_t *src = (uint32_t*)atlasGen->images[i].data;
         for (int32 y = 0; y < TEXTURE_SIZE; ++y) {
-            for (int x = 0; x < TEXTURE_SIZE; ++x) {
-                dest[(offsetX + x) + (offsetY + y) * TEXTURE_SIZE] = src[x + y * TEXTURE_SIZE];
+            for (int32 x = 0; x < TEXTURE_SIZE; ++x) {
+                dest[(offsetX + x) + (offsetY + y) * dim] = src[x + y * TEXTURE_SIZE];
             }
         }
     }
+
+    // Testing
+    //uint32_t *dest = (uint32_t*)atlas.data;
+    //for (int y = 0; y < dim; ++y) {
+    //    for (int x = 0; x < dim; ++x) {
+    //        if (x < 16 && y < 16) {
+    //            dest[x + dim*y] = 0x11111111;
+    //        } else if (x >= 16 && y < 16) {
+    //            dest[x + dim*y] = 0x22222222;
+    //        }
+    //        else if (x < 16 && y >= 16) {
+    //            dest[x + dim*y] = 0x33333333;
+    //        }
+    //        else {
+    //            dest[x + dim*y] = 0x44444444;
+    //        }
+    //    }
+    //}
 
     return atlas;
 }
@@ -200,6 +221,7 @@ void AddAtlasToAssetFile(AssetFileGenerator *gen, AtlasAsset atlas) {
 }
 
 int main(int argc, char* argvp[]) {
+    TIMED_FUNCTION();
 
     AssetFileGenerator gen = CreateGenerator("assets.gap");
     //AddImage(&gen, "../data/images/spritemap.bmp");
@@ -208,6 +230,7 @@ int main(int argc, char* argvp[]) {
     AddImageToAtlas(&atlasGen, "../data/images/dirt1.bmp", ASSET_TEXTURE_DIRT);
     AddImageToAtlas(&atlasGen, "../data/images/stone1.bmp", ASSET_TEXTURE_STONE);
     AddImageToAtlas(&atlasGen, "../data/images/white.bmp", ASSET_TEXTURE_WHITE);
+    AddImageToAtlas(&atlasGen, "../data/images/marker.bmp", ASSET_TEXTURE_MARKER);
     AtlasAsset atlas = CreateAtlas(&atlasGen);
 
     AddAtlasToAssetFile(&gen, atlas);

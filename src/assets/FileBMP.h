@@ -93,17 +93,6 @@ Image LoadBMP(char *filename) {
         dest[i] = alpha << 24 | colors[ci].blue << 16 | colors[ci].green << 8 | colors[ci].red;
     }
 
-#if 0
-    // Flip the image
-    for (uint32_t j = 0; j < img.height / 2; ++j) {
-        for (uint32_t i = 0; i < img.width; ++i) {
-            pixel tmp = img.bitmap[j*img.width + i];
-            img.bitmap[j*img.width + i] = img.bitmap[(img.height-1 - j)*img.width + i];
-            img.bitmap[(img.height-1 - j)*img.width + i] = tmp;
-        }
-    }
-#endif
-
     return img;
 }
 

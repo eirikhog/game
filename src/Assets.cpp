@@ -44,6 +44,7 @@ ShaderAsset asset_get_shader(GameAssets *assets, uint32 id) {
 
 // TODO: Keep images within Asset's memory.
 ImageAsset asset_get_image(GameAssets *assets, uint32 id) {
+    Assert(0);
     uint32 file_size;
     void *file_content = assets->api->ReadEntireFile("../data/images/spritemap.bmp", &file_size);
 
@@ -53,6 +54,28 @@ ImageAsset asset_get_image(GameAssets *assets, uint32 id) {
     Assert(file_content);
 
     return result;
+}
+
+AtlasAsset asset_get_atlas(GameAssets *assets, AssetId id) {
+    uint32 size;
+    void *data = assets->api->ReadEntireFile("assets.gap", &size);
+    Assert(size > sizeof(AssetFileHeader));
+
+    AssetFileHeader *header = (AssetFileHeader*)data;
+    Assert(header->magic == ASSETS_MAGIC);
+
+    for (int i = 0; i < header->assetCount; ++i) {
+        AssetFileEntry *asset = (AssetFileEntry*)((uint8*)data + sizeof(AssetFileHeader) + sizeof(AssetFileEntry) * i);
+        if (asset->id == id) {
+            AtlasAsset result = asset->atlas;
+            result.data = (uint8*)data + asset->offset;
+            return result;
+        }
+    }
+
+    // TODO: Invalid code path
+    Assert(0);
+    return {};
 }
 
 

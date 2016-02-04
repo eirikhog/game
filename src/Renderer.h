@@ -4,12 +4,6 @@
 #include "Math.h"
 #include "Assets.h"
 
-// TODO: Remove global defines.
-#define ATLAS_WHITE 0 
-#define ATLAS_STONE 1
-#define ATLAS_DIRT 2 
-#define ATLAS_MARKER 3
-
 struct RenderContext;
 
 typedef struct {
@@ -21,7 +15,7 @@ typedef struct {
 
 RenderContext *render_init(GameAssets *assets, MemorySegment memory);
 void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c);
-void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, uint32 id);
+void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId id);
 void render_rect(RenderContext *ctx, v2 pos, v2 size, Color c);
 
 void render_start(RenderContext *ctx, v2 windowSize);

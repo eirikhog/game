@@ -73,7 +73,7 @@ void world_create(World *world) {
         world->chunks[i].x = (i % 4)-2;
         world->chunks[i].y = (i / 4)-2;
         for (int j = 0; j < CHUNK_DIM * CHUNK_DIM; ++j) {
-            world->chunks[i].tiles[j] = ATLAS_STONE;
+            world->chunks[i].tiles[j] = ASSET_TEXTURE_STONE;
         }
     }
 
@@ -88,10 +88,10 @@ void world_create(World *world) {
     }
 #endif
 
-    set_tile(world, 0, -1, ATLAS_DIRT);
-    set_tile(world, -1, 0, ATLAS_DIRT);
-    set_tile(world, 0, 0, ATLAS_DIRT);
-    set_tile(world, 0, 1, ATLAS_DIRT);
+    set_tile(world, 0, -1, ASSET_TEXTURE_DIRT);
+    set_tile(world, -1, 0, ASSET_TEXTURE_DIRT);
+    set_tile(world, 0, 0, ASSET_TEXTURE_DIRT);
+    set_tile(world, 0, 1, ASSET_TEXTURE_DIRT);
 }
 
 void world_update(World *world, game_input *input, real32 dt) {
@@ -164,7 +164,7 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
 
     render_rect(ctx, 0, 0, (int32)screenSize.x, (int32)screenSize.y, { 0.486f, 0.678f, 0.965f });
 
-    uint32 texture = ATLAS_STONE;
+    AssetId texture = ASSET_TEXTURE_DIRT;
 
     v2 center = world->camera;
     for (int32 y = floor((center.y / chunkSideLength) - chunksY / 2); y <= (center.y / chunkSideLength) + chunksY / 2; ++y) {
@@ -176,7 +176,7 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
             for (int32 tileY = screenPos.y; tileY < screenPos.y + chunkSideLength; tileY += TILE_SIZE, ++tileIndexY) {
                 tileIndexX = 0;
                 for (int tileX = screenPos.x; tileX < screenPos.x + chunkSideLength; tileX +=  TILE_SIZE, ++tileIndexX) {
-                    texture = chunk->tiles[tileIndexX + tileIndexY * CHUNK_DIM];
+                    //texture = chunk->tiles[tileIndexX + tileIndexY * CHUNK_DIM];
                     render_image(ctx, tileX, tileY, TILE_SIZE, TILE_SIZE, texture);
                 }
             }
@@ -191,8 +191,9 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
     render_rect(ctx, screenSize.x / 2, screenSize.y / 2, 16, 1, { 0.0f, 0.0f, 1.0f });
 
     v2 tilePos = get_tile_from_screen_position(world, MousePosition);
-    set_tile(world, tilePos.x, tilePos.y, ATLAS_DIRT);
+    set_tile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
 
     v2 target = get_tile_coordinate(world->camera, screenSize, MousePosition);
-    render_rect(ctx, target.x, target.y, TILE_SIZE, TILE_SIZE, white);
+    //render_rect(ctx, target.x, target.y, TILE_SIZE, TILE_SIZE, white);
+    render_image(ctx, target.x, target.y, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_STONE);
 }
