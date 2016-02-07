@@ -152,12 +152,12 @@ void AddImageToAtlas(AtlasGenerator *gen, char *filePath, AssetId id) {
 
 AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
     TIMED_FUNCTION();
-    uint32 minimumDim = sqrt(atlasGen->count * TEXTURE_SIZE * TEXTURE_SIZE);
+    uint32 minimumDim = (uint32)square_root((real32)atlasGen->count * TEXTURE_SIZE * TEXTURE_SIZE);
     
     uint32 i = 0;
     uint32 dim = 0;
     do {
-        dim = pow(2, i++);
+        dim = (uint32)pow(2, i++);
     } while (dim < minimumDim);
 
     AtlasAsset atlas = {};

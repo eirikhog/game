@@ -27,8 +27,7 @@ uint32 get_tile(World *world, real32 x, real32 y) {
         return chunk->tiles[localX + localY * CHUNK_DIM];
     }
 
-    // TODO: This should never happen!
-    Assert(0);
+    InvalidCodePath();
     return 0;
 }
 
@@ -55,10 +54,8 @@ void set_tile(World *world, real32 x, real32 y, uint32 tileValue) {
         }
 
         chunk->tiles[localX + localY * CHUNK_DIM] = tileValue;
-    }
-    else {
-        // TODO: This should never happen!
-        Assert(0);
+    } else {
+        InvalidCodePath();
     }
 }
 

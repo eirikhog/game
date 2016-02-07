@@ -187,7 +187,7 @@ void UpdateJoystick(game_input *input) {
     ZeroMemory(&state, sizeof(XINPUT_STATE));
 
     if (!XInputGetState(0, &state)) {
-        v2 leftStick = { state.Gamepad.sThumbLX, state.Gamepad.sThumbLY };
+        v2 leftStick = { (real32)state.Gamepad.sThumbLX, (real32)state.Gamepad.sThumbLY };
         real32 magnitude = sqrt( leftStick.x * leftStick.x + leftStick.y * leftStick.y);
         if (magnitude > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
             v2 normalized = leftStick / magnitude;

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _PLATFORM_H
+#define _PLATFORM_H
 
 #include "Common.h"
 #include "Math.h"
@@ -70,3 +71,4 @@ typedef struct {
     void *GameMemory;
 } program_state;
 
+#endif

@@ -4,6 +4,10 @@
 
 #include <GL/glew.h>
 
+#ifndef offsetof
+#define offsetof(type,member) ((void *) &(((type*)0)->member))
+#endif
+
 typedef struct {
     uint32 id;
     v2 uv_origin;
@@ -158,7 +162,9 @@ AtlasAssetEntry get_atlas_entry(AtlasAsset *atlas, AssetId id) {
             return atlas->entries[i];
         }
     }
-    Assert(0);
+
+    InvalidCodePath();
+    return{};
 }
 
 void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, AssetId image_id) {
