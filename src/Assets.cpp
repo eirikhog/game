@@ -64,7 +64,7 @@ AtlasAsset asset_get_atlas(GameAssets *assets, AssetId id) {
     AssetFileHeader *header = (AssetFileHeader*)data;
     Assert(header->magic == ASSETS_MAGIC);
 
-    for (int i = 0; i < header->assetCount; ++i) {
+    for (uint32 i = 0; i < header->assetCount; ++i) {
         AssetFileEntry *asset = (AssetFileEntry*)((uint8*)data + sizeof(AssetFileHeader) + sizeof(AssetFileEntry) * i);
         if (asset->id == id) {
             AtlasAsset result = asset->atlas;

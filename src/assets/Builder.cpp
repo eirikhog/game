@@ -165,7 +165,7 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
     atlas.height = dim;
     atlas.data = malloc(dim*dim * 32);
 
-    for (int32 i = 0; i < atlasGen->count; ++i) {
+    for (int32 i = 0; i < (int32)atlasGen->count; ++i) {
         int32 offsetX = (i * TEXTURE_SIZE) % dim;
         int32 offsetY = TEXTURE_SIZE * ((i * TEXTURE_SIZE) / dim);
 

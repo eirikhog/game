@@ -11,6 +11,8 @@ file(GLOB GameSources *.cpp *.h)
 add_library(Game SHARED ${GameSources} ../dep/glew-1.13.0/src/glew.c)
 target_link_libraries(Game ${OPENGL_gl_LIBRARY})
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+
 # Windows executable
 if (WIN32)
     file(GLOB WindowsSources win32/*.cpp win32/*.h)
