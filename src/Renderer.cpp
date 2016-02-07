@@ -92,17 +92,9 @@ static void initialize_opengl(GameAssets *assets) {
     glUseProgram(p);
 }
 
-#include <stdio.h>
-
 void load_textures(GameAssets *assets, RenderContext *ctx) {
-    //ImageAsset img = asset_get_image(assets, ASSET_IMAGE_SPRITEMAP);
-    //Assert(img.data);
-
     AtlasAsset a = asset_get_atlas(assets, ASSET_ATLAS1);
     ctx->atlas = a;
-
-    FILE *fp = fopen("image.rgba", "w");
-    fwrite(a.data, 32 * a.width * a.height, 1, fp);
 
     GLuint id;
     glGenTextures(1, &id);
@@ -116,10 +108,6 @@ void load_textures(GameAssets *assets, RenderContext *ctx) {
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     //glGenerateMipmap(GL_TEXTURE_2D);
-    //
-    
-    // Create texture atlas
-    // TODO: This should be generated from asset file.
 }
 
 RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
