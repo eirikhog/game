@@ -103,7 +103,7 @@ void load_textures(GameAssets *assets, RenderContext *ctx) {
     GLuint id;
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, a.width, a.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, a.data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, a.width, a.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, a.data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -177,10 +177,6 @@ void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 heig
     vertices[1] = { { (real32)x, (real32)(y + height), 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvEnd.y } };
     vertices[2] = { { (real32)(x + width), (real32)(y + height), 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvEnd.y } };
     vertices[3] = { { (real32)(x + width), (real32)y, 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvOrigin.y } };
-    //vertices[0] = { { (real32)x, (real32)y, 0.f }, c,{ entry.uvOrigin.x, entry.uvEnd.y } };
-    //vertices[1] = { { (real32)x, (real32)(y + height), 0.f }, c,{ entry.uvOrigin.x, entry.uvOrigin.y } };
-    //vertices[2] = { { (real32)(x + width), (real32)(y + height), 0.f }, c,{ entry.uvEnd.x, entry.uvOrigin.y } };
-    //vertices[3] = { { (real32)(x + width), (real32)y, 0.f }, c,{ entry.uvEnd.x, entry.uvEnd.y } };
 
     for (int i = 0; i < 4; ++i) {
         RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, RenderVertex);

@@ -184,24 +184,6 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
         }
     }
 
-    // Testing
-    //uint32_t *dest = (uint32_t*)atlas.data;
-    //for (int y = 0; y < dim; ++y) {
-    //    for (int x = 0; x < dim; ++x) {
-    //        if (x < 16 && y < 16) {
-    //            dest[x + dim*y] = 0x11111111;
-    //        } else if (x >= 16 && y < 16) {
-    //            dest[x + dim*y] = 0x22222222;
-    //        }
-    //        else if (x < 16 && y >= 16) {
-    //            dest[x + dim*y] = 0x33333333;
-    //        }
-    //        else {
-    //            dest[x + dim*y] = 0x44444444;
-    //        }
-    //    }
-    //}
-
     return atlas;
 }
 

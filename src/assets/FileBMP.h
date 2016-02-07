@@ -48,7 +48,7 @@ typedef struct {
 
 Image LoadBMP(char *filename) {
     void *data;
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(filename, "rb");
     Assert(fp);
     if (fp) {
         uint32_t size;
@@ -89,7 +89,7 @@ Image LoadBMP(char *filename) {
     uint8_t* bitmap_data = (uint8_t*)data + header->data_offset;
     for (uint32_t i = 0; i < dbi->width * dbi->height; ++i) {
         uint32_t ci = bitmap_data[i + padding*(i / dbi->width)];
-        uint8_t alpha = 255;
+        uint8_t alpha = 0xFF;
         dest[i] = alpha << 24 | colors[ci].blue << 16 | colors[ci].green << 8 | colors[ci].red;
     }
 

@@ -162,7 +162,7 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
     Color white = { 1.0f, 1.0f, 1.0f };
     Color black = { 0.0f, 0.0f, 0.0f };
 
-    render_rect(ctx, 0, 0, (int32)screenSize.x, (int32)screenSize.y, { 0.486f, 0.678f, 0.965f });
+    //render_rect(ctx, 0, 0, (int32)screenSize.x, (int32)screenSize.y, { 0.486f, 0.678f, 0.965f });
 
     AssetId texture = ASSET_TEXTURE_DIRT;
 
@@ -177,16 +177,12 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
                 tileIndexX = 0;
                 for (int tileX = screenPos.x; tileX < screenPos.x + chunkSideLength; tileX +=  TILE_SIZE, ++tileIndexX) {
                     //texture = chunk->tiles[tileIndexX + tileIndexY * CHUNK_DIM];
-                    render_image(ctx, tileX, tileY, TILE_SIZE, TILE_SIZE, texture);
+                    render_image(ctx, tileX, tileY, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_STONE);
                 }
             }
         }
     }
 
-    //render_rect(ctx, 0, 0, width, height - 180, { 0.486f, 0.678f, 0.965f });
-    //render_rect(ctx, 0, height - 180, width, 180, { 0.447f, 0.694f, 0.369f });
-
-    //render_image(ctx, PlayerPosition.x, PlayerPosition.y, 100, 100, 2);
     render_rect(ctx, screenSize.x / 2, screenSize.y / 2, 1, 16, { 1.0f, 0.0f, 0.0f });
     render_rect(ctx, screenSize.x / 2, screenSize.y / 2, 16, 1, { 0.0f, 0.0f, 1.0f });
 
@@ -194,6 +190,6 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
     set_tile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
 
     v2 target = get_tile_coordinate(world->camera, screenSize, MousePosition);
-    //render_rect(ctx, target.x, target.y, TILE_SIZE, TILE_SIZE, white);
-    render_image(ctx, target.x, target.y, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_STONE);
+    
+    render_image(ctx, target.x, target.y, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_MARKER);
 }
