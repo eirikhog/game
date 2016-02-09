@@ -57,9 +57,11 @@ struct game_input {
 
 typedef void update_game(platform_state *state, game_memory *memory, game_input *input, real32 dt);
 typedef char *read_entire_file(char *filename, uint32 *size);
+typedef void write_entire_file(char *filename, void *data, uint32 size);
 
 typedef struct platform_api {
     read_entire_file* ReadEntireFile;
+    write_entire_file* WriteEntireFile;
 } platform_api;
 
 typedef struct {

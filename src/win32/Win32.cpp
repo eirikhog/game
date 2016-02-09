@@ -80,9 +80,7 @@ extern "C" void OutputDebug(char *text) {
     OutputDebugString(text);
 }
 
-// TODO: We do not want to use this function later... The asset
-// system should handle all resources.
-char *load_file(char *filename, uint32 *filesize) {
+char *Win32ReadFile(char *filename, uint32 *filesize) {
     HANDLE handle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     Assert(handle != INVALID_HANDLE_VALUE);
     if (handle == INVALID_HANDLE_VALUE) {
@@ -99,6 +97,19 @@ char *load_file(char *filename, uint32 *filesize) {
     CloseHandle(handle);
 
     return (char*)content;
+}
+
+void Win32WriteFile(char *filename, void *data, uint32 size) {
+    HANDLE handle = CreateFile(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    Assert(handle != INVALID_HANDLE_VALUE);
+    if (handle == INVALID_HANDLE_VALUE) {
+        return;
+    }
+
+    DWORD written;
+    WriteFile(handle, data, size, &written, NULL);
+    Assert(written == size);
+    CloseHandle(handle);
 }
 
 game_functions LoadGameLibrary() {
@@ -219,7 +230,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     platform_state platformState = {};
     platform_api api = {};
-    api.ReadEntireFile = load_file;
+    api.ReadEntireFile = Win32ReadFile;
+    api.WriteEntireFile = Win32WriteFile;
 
     platformState.api = &api;
     program_state.platformState = &platformState;
