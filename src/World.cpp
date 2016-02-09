@@ -93,40 +93,14 @@ void world_create(World *world) {
 
 void world_update(World *world, game_input *input, real32 dt) {
     MousePosition = input->mouse_position;
-    const real32 gravity = 20.0f;
-    const real32 height = 1080.0f;
 
-    v2 cameraMove = { input->joystick.x, -input->joystick.y };
-    world->camera += cameraMove * 5.0f;
-
-    bool32 isMoving = 0;
-    PlayerAcceleration.x = 50 * input->joystick.x;
-    if (input->buttons & BUTTON_RIGHT) {
-        PlayerAcceleration.x = 50;
-    } else if (input->buttons & BUTTON_LEFT) {
-        PlayerAcceleration.x = -50;
-    } else if (PlayerPosition.y == height - 180 - 100 && input->joystick.x < 0.1f && input->joystick.x > -0.1f) {
-        PlayerAcceleration.x += PlayerSpeed.x * -15.f;
+    if (input->mouse_buttons & MOUSE_RIGHT) {
+        world->camera += input->mouse_delta;
     }
 
-    if (PlayerPosition.y == height - 180 - 100 && input->buttons & BUTTON_UP) {
-        PlayerAcceleration.y = 0;
-        PlayerSpeed.y -= 20;
-    }
-
-    PlayerSpeed += PlayerAcceleration * dt;
-    if (PlayerSpeed.x > 20) {
-        PlayerSpeed.x = 20;
-    } else if (PlayerSpeed.x < -20) {
-        PlayerSpeed.x = -20;
-    }
-
-    PlayerSpeed.y += dt * gravity;
-    PlayerPosition += PlayerSpeed;
-    if (PlayerPosition.y >= height - 180 - 100) {
-        PlayerPosition.y = height - 180 - 100;
-        PlayerSpeed.y = 0;
-        PlayerAcceleration.y = 0;
+    if (input->mouse_buttons & MOUSE_LEFT) {
+        v2 tilePos = get_tile_from_screen_position(world, MousePosition);
+        set_tile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
     }
 
 }
@@ -164,17 +138,16 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
     AssetId texture = ASSET_TEXTURE_DIRT;
 
     v2 center = world->camera;
-    for (int32 y = (int32)floor((center.y / chunkSideLength) - chunksY / 2); y <= (center.y / chunkSideLength) + chunksY / 2; ++y) {
-        for (int32 x = (int32)floor((center.x / chunkSideLength) - chunksX / 2); x <= (center.x / chunkSideLength) + chunksX / 2; ++x) {
+    for (int32 y = (int32)floor((center.y / chunkSideLength) - chunksY / 2); y < (center.y / chunkSideLength) + chunksY / 2; ++y) {
+        for (int32 x = (int32)floor((center.x / chunkSideLength) - chunksX / 2); x < (center.x / chunkSideLength) + chunksX / 2; ++x) {
             WorldChunk *chunk = get_chunk(world, x, y);
             v2 screenPos = chunk_coords_to_screen_coords(center, screenSize, x, y);
-            // Render all tiles
-            int tileIndexX = 0, tileIndexY = 0;
-            for (int32 tileY = (int32)screenPos.y; tileY < screenPos.y + chunkSideLength; tileY += TILE_SIZE, ++tileIndexY) {
-                tileIndexX = 0;
-                for (int tileX = (int32)screenPos.x; tileX < screenPos.x + chunkSideLength; tileX +=  TILE_SIZE, ++tileIndexX) {
-                    texture = (AssetId)chunk->tiles[tileIndexX + tileIndexY * CHUNK_DIM];
-                    render_image(ctx, tileX, tileY, TILE_SIZE, TILE_SIZE, texture);
+            for (int32 tileY = 0; tileY < CHUNK_DIM; ++tileY) {
+                for (int32 tileX = 0; tileX < CHUNK_DIM; ++tileX) {
+                    v2 offset = { (real32)tileX * TILE_SIZE, (real32)tileY * TILE_SIZE };
+                    v2 pos = screenPos + offset;
+                    texture = (AssetId)chunk->tiles[tileX + tileY * CHUNK_DIM];
+                    render_image(ctx, (int32)pos.x, (int32)pos.y, TILE_SIZE, TILE_SIZE, texture);
                 }
             }
         }
@@ -183,10 +156,6 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
     render_rect(ctx, (int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16, { 1.0f, 0.0f, 0.0f });
     render_rect(ctx, (int32)screenSize.x / 2, (int32)screenSize.y / 2, 16, 1, { 0.0f, 0.0f, 1.0f });
 
-    v2 tilePos = get_tile_from_screen_position(world, MousePosition);
-    set_tile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
-
-    v2 target = get_tile_coordinate(world->camera, screenSize, MousePosition);
-    
-    render_image(ctx, (int32)target.x, (int32)target.y, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_MARKER);
+    //v2 target = get_tile_coordinate(world->camera, screenSize, MousePosition);
+    //render_image(ctx, (int32)target.x, (int32)target.y, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_MARKER);
 }

@@ -297,7 +297,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     uint32 xPos = 0xFFFF & msg.lParam;
                     uint32 yPos = (uint64)(0xFFFF0000 & msg.lParam) >> 16;
                     input.mouse_position = { (real32)xPos, (real32)yPos };
-                    input.mouse_delta = mouse_prev_position - input.mouse_position;
                     input.mouse_buttons = 0;
                     if (msg.wParam & MK_LBUTTON) {
                         input.mouse_buttons |= MOUSE_LEFT;
@@ -305,7 +304,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     if (msg.wParam & MK_RBUTTON) {
                         input.mouse_buttons |= MOUSE_RIGHT;
                     }
-                    mouse_prev_position = input.mouse_position;
                 }break;
                 case WM_KEYUP:
                 case WM_KEYDOWN:{
@@ -341,6 +339,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
         }
 
+        input.mouse_delta = mouse_prev_position - input.mouse_position;
+        mouse_prev_position = input.mouse_position;
         gameLib.UpdateGame(&platformState, &memory, &input, frameTime);
         SwapBackbuffer(window);
         
