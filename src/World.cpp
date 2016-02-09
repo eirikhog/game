@@ -69,21 +69,11 @@ void world_create(World *world) {
         }
     }
 
-#if 0
-    // Create the first chunks
-    int loadChunks[4][2] = { { -1, -1 }, { -1, 0 }, { 0, -1 }, { 0, 0 } };
-    for (int i = 0; i < 2; ++i) {
-        WorldChunk *chunk = get_chunk(world, loadChunks[i][0], loadChunks[i][1]);
-        for (int tile = 0; tile < CHUNK_DIM * CHUNK_DIM; ++tile) {
-            chunk->tiles[tile] = ASSET_TEXTURE_DIRT;
-        }
-    }
-#endif
-
     set_tile(world, 0, -1, ASSET_TEXTURE_DIRT);
     set_tile(world, -1, 0, ASSET_TEXTURE_DIRT);
     set_tile(world, 0, 0, ASSET_TEXTURE_DIRT);
     set_tile(world, 0, 1, ASSET_TEXTURE_DIRT);
+    set_tile(world, 1, 0, ASSET_TEXTURE_DIRT);
 }
 
 void world_update(World *world, game_input *input, real32 dt) {

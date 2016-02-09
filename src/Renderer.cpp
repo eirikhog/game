@@ -26,8 +26,8 @@ typedef struct {
 } RenderVertex;
 
 typedef struct RenderContext {
-    bool initialized;
-    bool rendering;
+    bool32 initialized;
+    bool32 rendering;
 
     v2 windowSize;
 
@@ -114,8 +114,8 @@ RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     allocate_memory(&memory, sizeof(RenderContext));
 
     RenderContext *ctx = (RenderContext*)memory.base;
-    ctx->initialized = false;
-    ctx->rendering = false;
+    ctx->initialized = 0;
+    ctx->rendering = 0;
     ctx->memory = memory;
 
     initialize_opengl(assets);
@@ -131,7 +131,7 @@ RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     ctx->entries_count = 0;
     ctx->vertex_buffer = vertex_segment;
 
-    ctx->initialized = true;
+    ctx->initialized = 1;
     return ctx;
 }
 
@@ -144,8 +144,8 @@ void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height
 }
 
 AtlasAssetEntry get_atlas_entry(AtlasAsset *atlas, AssetId id) {
-    // TODO: Dynamic size
-    for (int i = 0; i < 8; ++i) {
+    
+    for (uint32 i = 0; i < atlas->count; ++i) {
         if (atlas->entries[i].id == id) {
             return atlas->entries[i];
         }
