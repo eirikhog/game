@@ -2,11 +2,6 @@
 #include "Math.h"
 #include "Platform.h"
 
-static v2 MousePosition = {};
-static v2 PlayerPosition = { 5, 5 };
-static v2 PlayerSpeed = {};
-static v2 PlayerAcceleration = {};
-
 WorldChunk* get_chunk(World *world, int x, int y) {
     for (int i = 0; i < 16; ++i) {
         if (world->chunks[i].x == x && world->chunks[i].y == y) {
@@ -92,14 +87,13 @@ void world_create(World *world) {
 }
 
 void world_update(World *world, game_input *input, real32 dt) {
-    MousePosition = input->mouse_position;
 
     if (input->mouse_buttons & MOUSE_RIGHT) {
         world->camera += input->mouse_delta;
     }
 
     if (input->mouse_buttons & MOUSE_LEFT) {
-        v2 tilePos = get_tile_from_screen_position(world, MousePosition);
+        v2 tilePos = get_tile_from_screen_position(world, input->mouse_position);
         set_tile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
     }
 
