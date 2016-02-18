@@ -14,7 +14,7 @@ typedef struct {
 } game_state;
 
 static void
-game_init(game_state *state, platform_api *api, game_memory *memory) {
+GameInit(game_state *state, platform_api *api, game_memory *memory) {
     MemorySegment mem_all = {};
     mem_all.size = memory->permanentSize - sizeof(game_state);
     mem_all.base = (uint8*)memory->permanent + sizeof(game_state);
@@ -28,11 +28,11 @@ game_init(game_state *state, platform_api *api, game_memory *memory) {
     state->assets = assets_init(api, mem_transient);
 
     // Allocate memory for renderer
-    MemorySegment renderer_memory = allocate_memory(&mem_all, 16 * 1024 * 1024);
+    MemorySegment renderer_memory = AllocMemory(&mem_all, 16 * 1024 * 1024);
     state->renderer_memory = renderer_memory;
     state->renderer = RenderInit(&state->assets, renderer_memory);
 
-    MemorySegment world_memory = allocate_memory(&mem_all, sizeof(World));
+    MemorySegment world_memory = AllocMemory(&mem_all, sizeof(World));
     state->world = (World*)world_memory.base;
     WorldCreate(state->world);
 
@@ -44,7 +44,7 @@ void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_
 
     game_state *state = (game_state *)memory->permanent;    
     if (!state->initialized) {
-        game_init(state, platformState->api, memory);
+        GameInit(state, platformState->api, memory);
     }
 
     state->world->screenSize = platformState->windowSize;

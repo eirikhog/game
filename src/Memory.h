@@ -10,7 +10,7 @@ typedef struct {
 
 // TODO: Move to implementation file.
 inline MemorySegment
-allocate_memory(MemorySegment *memory, uint32 size) {
+AllocMemory(MemorySegment *memory, uint32 size) {
     Assert(memory->size - memory->used >= size);
     MemorySegment allocated = {};
     allocated.base = memory->base + memory->used;
@@ -22,10 +22,10 @@ allocate_memory(MemorySegment *memory, uint32 size) {
     return allocated;
 }
 
-#define PUSH_STRUCT(segment, type) (type *)push_struct_(segment, sizeof(type))
+#define PUSH_STRUCT(segment, type) (type *)PushStruct_(segment, sizeof(type))
 
 inline void *
-push_struct_(MemorySegment *segment, uint32 size) {
+PushStruct_(MemorySegment *segment, uint32 size) {
     Assert(segment->size - segment->used >= size);
 
     uint8 *result = (uint8*)(segment->base + segment->used);
@@ -35,7 +35,7 @@ push_struct_(MemorySegment *segment, uint32 size) {
 }
 
 inline void
-segment_clear(MemorySegment *segment) {
+SegmentClear(MemorySegment *segment) {
     segment->used = 0;
 }
 

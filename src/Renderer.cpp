@@ -37,11 +37,6 @@ typedef struct RenderContext {
     uint32 entries_count;
     uint32 entries_max;
 
-    // TODO: Remove this
-    uint32 texture_width;
-    uint32 texture_height;
-    void *texture_data;
-
     AtlasAsset atlas;
 } RenderContext;
 
@@ -54,8 +49,8 @@ static void InitializeOpenGL(GameAssets *assets) {
     if (err != GLEW_OK)
     {
         //Problem: glewInit failed, something is seriously wrong.
+        InvalidCodePath();
     }
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     
     GLuint v = glCreateShader(GL_VERTEX_SHADER);
     GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
@@ -92,7 +87,7 @@ static void InitializeOpenGL(GameAssets *assets) {
     glUseProgram(p);
 }
 
-void load_textures(GameAssets *assets, RenderContext *ctx) {
+static void LoadTextures(GameAssets *assets, RenderContext *ctx) {
     AtlasAsset a = asset_get_atlas(assets, ASSET_ATLAS1);
     ctx->atlas = a;
 
@@ -103,15 +98,10 @@ void load_textures(GameAssets *assets, RenderContext *ctx) {
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
-    allocate_memory(&memory, sizeof(RenderContext));
+    AllocMemory(&memory, sizeof(RenderContext));
 
     RenderContext *ctx = (RenderContext*)memory.base;
     ctx->initialized = 0;
@@ -119,13 +109,12 @@ RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
     ctx->memory = memory;
 
     InitializeOpenGL(assets);
-    load_textures(assets, ctx);
+    LoadTextures(assets, ctx);
 
     // Allocate memory buffer
-    // TODO: Make more efficient.
     uint32 vertex_size = sizeof(RenderVertex) * 4;
     uint32 available_memory = (memory.size - memory.used) / vertex_size;
-    MemorySegment vertex_segment = allocate_memory(&memory, available_memory);
+    MemorySegment vertex_segment = AllocMemory(&memory, available_memory);
 
     ctx->entries_max = available_memory / vertex_size;
     ctx->entries_count = 0;
@@ -150,7 +139,7 @@ void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
     DrawSolidRect(ctx, Rect2Di(r.x + r.width - 1, r.y, 1, r.height), c);
 }
 
-AtlasAssetEntry get_atlas_entry(AtlasAsset *atlas, AssetId id) {
+AtlasAssetEntry GetAtlasEntry(AtlasAsset *atlas, AssetId id) {
     
     for (uint32 i = 0; i < atlas->count; ++i) {
         if (atlas->entries[i].id == id) {
@@ -167,11 +156,11 @@ void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id) {
     // If the buffer is full, push the data to the graphics card and render what we got.
     if (ctx->entries_count >= ctx->entries_max) {
         Draw(ctx);
-        segment_clear(&ctx->vertex_buffer);
+        SegmentClear(&ctx->vertex_buffer);
         ctx->entries_count = 0;
     }
 
-    AtlasAssetEntry entry = get_atlas_entry(&ctx->atlas, image_id);
+    AtlasAssetEntry entry = GetAtlasEntry(&ctx->atlas, image_id);
     
     RenderVertex vertices[4];
     vertices[0] = { { (real32)r.x, (real32)r.y, 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvOrigin.y } };
@@ -201,9 +190,9 @@ void RenderEnd(RenderContext *ctx) {
 
     Draw(ctx);
 
-    segment_clear(&ctx->vertex_buffer);
-
+    SegmentClear(&ctx->vertex_buffer);
     ctx->entries_count = 0;
+
     ctx->rendering = false;
 }
 

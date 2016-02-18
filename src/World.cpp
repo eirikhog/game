@@ -3,7 +3,7 @@
 #include "Platform.h"
 
 static
-WorldChunk* get_chunk(World *world, int x, int y) {
+WorldChunk* GetChunk(World *world, int x, int y) {
     for (int i = 0; i < 16; ++i) {
         if (world->chunks[i].x == x && world->chunks[i].y == y) {
             return &(world->chunks[i]);
@@ -14,10 +14,10 @@ WorldChunk* get_chunk(World *world, int x, int y) {
 }
 
 static
-uint32 get_tile(World *world, real32 x, real32 y) {
+uint32 GetTile(World *world, real32 x, real32 y) {
     int32 chunkX = (int32)floor(x / CHUNK_DIM);
     int32 chunkY = (int32)floor(y / CHUNK_DIM);
-    WorldChunk *chunk = get_chunk(world, chunkX, chunkY);
+    WorldChunk *chunk = GetChunk(world, chunkX, chunkY);
     if (chunk) {
         int32 localX = (int32)x % CHUNK_DIM;
         int32 localY = (int32)y % CHUNK_DIM;
@@ -29,7 +29,7 @@ uint32 get_tile(World *world, real32 x, real32 y) {
 }
 
 static
-v2 get_tile_from_screen_position(World *world, v2 screenPos) {
+v2 GetTileFromScreenPosition(World *world, v2 screenPos) {
     v2 camera = world->camera;
     v2 worldPosition = { screenPos.x - world->screenSize.x / 2 - world->camera.x,
                          screenPos.y - world->screenSize.y / 2 - world->camera.y };
@@ -37,10 +37,10 @@ v2 get_tile_from_screen_position(World *world, v2 screenPos) {
     return result;
 }
 
-void set_tile(World *world, real32 x, real32 y, uint32 tileValue) {
+void SetTile(World *world, real32 x, real32 y, uint32 tileValue) {
     int32 chunkX = (int32)floor(x / CHUNK_DIM);
     int32 chunkY = (int32)floor(y / CHUNK_DIM);
-    WorldChunk *chunk = get_chunk(world, chunkX, chunkY);
+    WorldChunk *chunk = GetChunk(world, chunkX, chunkY);
     if (chunk) {
         int32 localX = (int32)x % CHUNK_DIM;
         if (localX < 0) {
@@ -72,11 +72,11 @@ void WorldCreate(World *world) {
         }
     }
 
-    set_tile(world, 0, -1, ASSET_TEXTURE_DIRT);
-    set_tile(world, -1, 0, ASSET_TEXTURE_DIRT);
-    set_tile(world, 0, 0, ASSET_TEXTURE_DIRT);
-    set_tile(world, 0, 1, ASSET_TEXTURE_DIRT);
-    set_tile(world, 1, 0, ASSET_TEXTURE_DIRT);
+    SetTile(world, 0, -1, ASSET_TEXTURE_DIRT);
+    SetTile(world, -1, 0, ASSET_TEXTURE_DIRT);
+    SetTile(world, 0, 0, ASSET_TEXTURE_DIRT);
+    SetTile(world, 0, 1, ASSET_TEXTURE_DIRT);
+    SetTile(world, 1, 0, ASSET_TEXTURE_DIRT);
 }
 
 void WorldUpdate(World *world, game_input *input, real32 dt) {
@@ -86,21 +86,21 @@ void WorldUpdate(World *world, game_input *input, real32 dt) {
     }
 
     if (input->mouse_buttons & MOUSE_LEFT) {
-        v2 tilePos = get_tile_from_screen_position(world, input->mouse_position);
-        set_tile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
+        v2 tilePos = GetTileFromScreenPosition(world, input->mouse_position);
+        SetTile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
     }
 
 }
 
 static
-inline v2 chunk_coords_to_screen_coords(v2 camera, v2 screenSize, int x, int y) {
+inline v2 ChunkCoordsToScreenCorrds(v2 camera, v2 screenSize, int x, int y) {
     const int32 chunkSideLength = (TILE_SIZE * CHUNK_DIM);
     v2 result = { camera.x + screenSize.x / 2.0f + x * chunkSideLength, camera.y + screenSize.y / 2.0f + y * chunkSideLength };
     return result;
 }
 
 static
-inline v2 get_tile_coordinate(v2 camera, v2 screenSize, v2 position) {
+inline v2 GetTileCoordinate(v2 camera, v2 screenSize, v2 position) {
     v2 worldPosition = { position.x - screenSize.x / 2 - camera.x,
                          position.y - screenSize.y / 2 - camera.y };
     v2 tile = { (real32)floor(worldPosition.x / TILE_SIZE), (real32)floor(worldPosition.y / TILE_SIZE) };
@@ -129,12 +129,12 @@ void WorldRender(World *world, RenderContext *ctx, v2 windowSize) {
     v2 center = world->camera;
     for (int32 y = (int32)floor((center.y / chunkSideLength) - chunksY / 2); y < (center.y / chunkSideLength) + chunksY / 2; ++y) {
         for (int32 x = (int32)floor((center.x / chunkSideLength) - chunksX / 2); x < (center.x / chunkSideLength) + chunksX / 2; ++x) {
-            WorldChunk *chunk = get_chunk(world, x, y);
+            WorldChunk *chunk = GetChunk(world, x, y);
             if (!chunk) {
                 continue;
             }
 
-            v2 screenPos = chunk_coords_to_screen_coords(center, screenSize, x, y);
+            v2 screenPos = ChunkCoordsToScreenCorrds(center, screenSize, x, y);
 
             // Don't draw stuff outside the window.
             int32 startX = screenPos.x < 0 ? (int32)abs((int32)screenPos.x / TILE_SIZE) : 0;
@@ -165,7 +165,4 @@ void WorldRender(World *world, RenderContext *ctx, v2 windowSize) {
 
     DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
     DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });
-
-    //v2 target = get_tile_coordinate(world->camera, screenSize, MousePosition);
-    //render_image(ctx, (int32)target.x, (int32)target.y, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_MARKER);
 }
