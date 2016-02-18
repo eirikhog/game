@@ -13,10 +13,11 @@ typedef struct {
     real32 a;
 } Color;
 
-RenderContext *render_init(GameAssets *assets, MemorySegment memory);
-void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c);
-void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId id);
-void render_rect(RenderContext *ctx, v2 pos, v2 size, Color c);
 
-void render_start(RenderContext *ctx, v2 windowSize);
-void render_end(RenderContext *ctx);
+RenderContext *render_init(GameAssets *assets, MemorySegment memory);
+void DrawImage(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId id);
+void DrawRect(RenderContext *ctx, Rect2Di r, Color c);
+void DrawRectFill(RenderContext *ctx, Rect2Di r, Color c);
+
+void RenderStart(RenderContext *ctx, v2 windowSize);
+void RenderEnd(RenderContext *ctx);

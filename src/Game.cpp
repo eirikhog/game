@@ -34,7 +34,7 @@ game_init(game_state *state, platform_api *api, game_memory *memory) {
 
     MemorySegment world_memory = allocate_memory(&mem_all, sizeof(World));
     state->world = (World*)world_memory.base;
-    world_create(state->world);
+    WorldCreate(state->world);
 
     state->initialized = true;
 }
@@ -50,12 +50,12 @@ void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_
     state->world->screenSize = platformState->windowSize;
 
     // Updating
-    world_update(state->world, input, dt);
+    WorldUpdate(state->world, input, dt);
 
     // Rendering
-    render_start(state->renderer, platformState->windowSize);
-    world_render(state->world, state->renderer, platformState->windowSize);
-    render_end(state->renderer);
+    RenderStart(state->renderer, platformState->windowSize);
+    WorldRender(state->world, state->renderer, platformState->windowSize);
+    RenderEnd(state->renderer);
 }
 
 

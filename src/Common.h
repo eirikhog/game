@@ -18,5 +18,17 @@ typedef float real64;
 
 typedef uint32 bool32;
 
+template<typename T>
+struct Rect2D {
+    T x;
+    T y;
+    T width;
+    T height;
+
+    Rect2D(T _x, T _y, T _width, T _height) : x(_x), y(_y), width(_width), height(_height) { }
+};
+
+typedef Rect2D<int32> Rect2Di;
+
 #endif
 

@@ -135,12 +135,19 @@ RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     return ctx;
 }
 
-void render_image(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId image_id) {
+void DrawImage(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId image_id) {
     render_object(ctx, x, y, width, height, { 1.0f, 1.0f, 1.0f }, image_id);
 }
 
-void render_rect(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c) {
-    render_object(ctx, x, y, width, height, c, ASSET_TEXTURE_WHITE);
+void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
+    render_object(ctx, r.x, r.y, r.width, r.height, c, ASSET_TEXTURE_WHITE);
+}
+
+void DrawRectFill(RenderContext *ctx, Rect2Di r, Color c) {
+    DrawRect(ctx, Rect2Di(r.x, r.y, r.width, 1), c);
+    DrawRect(ctx, Rect2Di(r.x, r.y, 1, r.height), c);
+    DrawRect(ctx, Rect2Di(r.x, r.y + r.height - 1, r.width, 1), c);
+    DrawRect(ctx, Rect2Di(r.x + r.width - 1, r.y, 1, r.height), c);
 }
 
 AtlasAssetEntry get_atlas_entry(AtlasAsset *atlas, AssetId id) {
@@ -180,11 +187,7 @@ void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 heig
     ctx->entries_count++;
 }
 
-void render_rect(RenderContext *ctx, v2 pos, v2 size, Color c) {
-    render_rect(ctx, (int32)pos.x, (int32)pos.y, (int32)size.x, (int32)size.y, c);
-}
-
-void render_start(RenderContext *ctx, v2 windowSize) {
+void RenderStart(RenderContext *ctx, v2 windowSize) {
     Assert(!ctx->rendering);
     Assert(ctx->vertex_buffer.base != NULL);
     Assert(ctx->entries_count == 0);
@@ -193,7 +196,7 @@ void render_start(RenderContext *ctx, v2 windowSize) {
     ctx->windowSize = windowSize;
 }
 
-void render_end(RenderContext *ctx) {
+void RenderEnd(RenderContext *ctx) {
     Assert(ctx->rendering);
 
     draw(ctx);
