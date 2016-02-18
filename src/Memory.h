@@ -31,11 +31,6 @@ push_struct_(MemorySegment *segment, uint32 size) {
     uint8 *result = (uint8*)(segment->base + segment->used);
     segment->used += size;
 
-    // Zero the memory
-    for (uint32 i = 0; i < size; ++i) {
-        result[i] = 0;
-    }
-
     return (void*)result;
 }
 
