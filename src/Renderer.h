@@ -6,18 +6,10 @@
 
 struct RenderContext;
 
-typedef struct {
-    real32 r;
-    real32 g;
-    real32 b;
-    real32 a;
-} Color;
-
-
-RenderContext *render_init(GameAssets *assets, MemorySegment memory);
-void DrawImage(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId id);
-void DrawRect(RenderContext *ctx, Rect2Di r, Color c);
-void DrawRectFill(RenderContext *ctx, Rect2Di r, Color c);
-
+RenderContext *RenderInit(GameAssets *assets, MemorySegment memory);
 void RenderStart(RenderContext *ctx, v2 windowSize);
 void RenderEnd(RenderContext *ctx);
+
+void DrawImage(RenderContext *ctx, Rect2Di r, AssetId id);
+void DrawSolidRect(RenderContext *ctx, Rect2Di r, Color c);
+void DrawRect(RenderContext *ctx, Rect2Di r, Color c);

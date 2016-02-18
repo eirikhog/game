@@ -45,10 +45,10 @@ typedef struct RenderContext {
     AtlasAsset atlas;
 } RenderContext;
 
-static void draw(RenderContext *ctx);
-static void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, AssetId image_id);
+static void Draw(RenderContext *ctx);
+static void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id);
 
-static void initialize_opengl(GameAssets *assets) {
+static void InitializeOpenGL(GameAssets *assets) {
     GLenum err = glewInit();
     Assert(err == GLEW_OK);
     if (err != GLEW_OK)
@@ -110,7 +110,7 @@ void load_textures(GameAssets *assets, RenderContext *ctx) {
     //glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
+RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
     allocate_memory(&memory, sizeof(RenderContext));
 
     RenderContext *ctx = (RenderContext*)memory.base;
@@ -118,7 +118,7 @@ RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     ctx->rendering = 0;
     ctx->memory = memory;
 
-    initialize_opengl(assets);
+    InitializeOpenGL(assets);
     load_textures(assets, ctx);
 
     // Allocate memory buffer
@@ -135,19 +135,19 @@ RenderContext *render_init(GameAssets *assets, MemorySegment memory) {
     return ctx;
 }
 
-void DrawImage(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, AssetId image_id) {
-    render_object(ctx, x, y, width, height, { 1.0f, 1.0f, 1.0f }, image_id);
+void DrawImage(RenderContext *ctx, Rect2Di target, AssetId image_id) {
+    RenderObject(ctx, target, { 1.0f, 1.0f, 1.0f }, image_id);
+}
+
+void DrawSolidRect(RenderContext *ctx, Rect2Di r, Color c) {
+    RenderObject(ctx, r, c, ASSET_TEXTURE_WHITE);
 }
 
 void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
-    render_object(ctx, r.x, r.y, r.width, r.height, c, ASSET_TEXTURE_WHITE);
-}
-
-void DrawRectFill(RenderContext *ctx, Rect2Di r, Color c) {
-    DrawRect(ctx, Rect2Di(r.x, r.y, r.width, 1), c);
-    DrawRect(ctx, Rect2Di(r.x, r.y, 1, r.height), c);
-    DrawRect(ctx, Rect2Di(r.x, r.y + r.height - 1, r.width, 1), c);
-    DrawRect(ctx, Rect2Di(r.x + r.width - 1, r.y, 1, r.height), c);
+    DrawSolidRect(ctx, Rect2Di(r.x, r.y, r.width, 1), c);
+    DrawSolidRect(ctx, Rect2Di(r.x, r.y, 1, r.height), c);
+    DrawSolidRect(ctx, Rect2Di(r.x, r.y + r.height - 1, r.width, 1), c);
+    DrawSolidRect(ctx, Rect2Di(r.x + r.width - 1, r.y, 1, r.height), c);
 }
 
 AtlasAssetEntry get_atlas_entry(AtlasAsset *atlas, AssetId id) {
@@ -162,11 +162,11 @@ AtlasAssetEntry get_atlas_entry(AtlasAsset *atlas, AssetId id) {
     return{};
 }
 
-void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 height, Color c, AssetId image_id) {
+void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id) {
 
     // If the buffer is full, push the data to the graphics card and render what we got.
     if (ctx->entries_count >= ctx->entries_max) {
-        draw(ctx);
+        Draw(ctx);
         segment_clear(&ctx->vertex_buffer);
         ctx->entries_count = 0;
     }
@@ -174,10 +174,10 @@ void render_object(RenderContext *ctx, int32 x, int32 y, int32 width, int32 heig
     AtlasAssetEntry entry = get_atlas_entry(&ctx->atlas, image_id);
     
     RenderVertex vertices[4];
-    vertices[0] = { { (real32)x, (real32)y, 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvOrigin.y } };
-    vertices[1] = { { (real32)x, (real32)(y + height), 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvEnd.y } };
-    vertices[2] = { { (real32)(x + width), (real32)(y + height), 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvEnd.y } };
-    vertices[3] = { { (real32)(x + width), (real32)y, 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvOrigin.y } };
+    vertices[0] = { { (real32)r.x, (real32)r.y, 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvOrigin.y } };
+    vertices[1] = { { (real32)r.x, (real32)(r.y + r.height), 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvEnd.y } };
+    vertices[2] = { { (real32)(r.x + r.width), (real32)(r.y + r.height), 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvEnd.y } };
+    vertices[3] = { { (real32)(r.x + r.width), (real32)r.y, 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvOrigin.y } };
 
     for (int i = 0; i < 4; ++i) {
         RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, RenderVertex);
@@ -199,7 +199,7 @@ void RenderStart(RenderContext *ctx, v2 windowSize) {
 void RenderEnd(RenderContext *ctx) {
     Assert(ctx->rendering);
 
-    draw(ctx);
+    Draw(ctx);
 
     segment_clear(&ctx->vertex_buffer);
 
@@ -207,7 +207,7 @@ void RenderEnd(RenderContext *ctx) {
     ctx->rendering = false;
 }
 
-void draw(RenderContext *ctx) {
+void Draw(RenderContext *ctx) {
     Assert(ctx->initialized);
 
     unsigned int vertexArrayObjId;

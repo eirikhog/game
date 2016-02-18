@@ -122,7 +122,7 @@ void WorldRender(World *world, RenderContext *ctx, v2 windowSize) {
     Color white = { 1.0f, 1.0f, 1.0f };
     Color black = { 0.0f, 0.0f, 0.0f };
 
-    DrawRect(ctx, Rect2Di(0, 0, (int32)screenSize.x, (int32)screenSize.y), { 0.486f, 0.678f, 0.965f });
+    DrawSolidRect(ctx, Rect2Di(0, 0, (int32)screenSize.x, (int32)screenSize.y), { 0.486f, 0.678f, 0.965f });
 
     AssetId texture = ASSET_TEXTURE_DIRT;
 
@@ -155,16 +155,16 @@ void WorldRender(World *world, RenderContext *ctx, v2 windowSize) {
                     v2 offset = { (real32)tileX * TILE_SIZE, (real32)tileY * TILE_SIZE };
                     v2 pos = screenPos + offset;
                     texture = (AssetId)chunk->tiles[tileX + tileY * CHUNK_DIM];
-                    DrawImage(ctx, (int32)pos.x, (int32)pos.y, TILE_SIZE, TILE_SIZE, texture);
+                    DrawImage(ctx, Rect2Di((int32)pos.x, (int32)pos.y, TILE_SIZE, TILE_SIZE), texture);
                 }
             }
 
-            DrawRectFill(ctx, { (int32)screenPos.x, (int32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
+            DrawRect(ctx, { (int32)screenPos.x, (int32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
         }
     }
 
-    DrawRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
-    DrawRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });
+    DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
+    DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });
 
     //v2 target = get_tile_coordinate(world->camera, screenSize, MousePosition);
     //render_image(ctx, (int32)target.x, (int32)target.y, TILE_SIZE, TILE_SIZE, ASSET_TEXTURE_MARKER);
