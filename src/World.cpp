@@ -79,7 +79,7 @@ void world_create(World *world) {
 void world_update(World *world, game_input *input, real32 dt) {
 
     if (input->mouse_buttons & MOUSE_RIGHT) {
-        world->camera += input->mouse_delta;
+        world->camera -= input->mouse_delta;
     }
 
     if (input->mouse_buttons & MOUSE_LEFT) {
@@ -126,8 +126,23 @@ void world_render(World *world, RenderContext *ctx, v2 windowSize) {
         for (int32 x = (int32)floor((center.x / chunkSideLength) - chunksX / 2); x < (center.x / chunkSideLength) + chunksX / 2; ++x) {
             WorldChunk *chunk = get_chunk(world, x, y);
             v2 screenPos = chunk_coords_to_screen_coords(center, screenSize, x, y);
-            for (int32 tileY = 0; tileY < CHUNK_DIM; ++tileY) {
-                for (int32 tileX = 0; tileX < CHUNK_DIM; ++tileX) {
+
+            // Don't draw stuff outside the window.
+            int32 startX = screenPos.x < 0 ? (int32)abs((int32)screenPos.x / TILE_SIZE) : 0;
+            int32 startY = screenPos.y < 0 ? (int32)abs((int32)screenPos.y / TILE_SIZE) : 0;
+            int32 endX = CHUNK_DIM;
+            if ((int32)screenPos.x + CHUNK_DIM * TILE_SIZE > world->screenSize.x) {
+                int32 overflow = endX * TILE_SIZE - (int32)world->screenSize.x;
+                endX = CHUNK_DIM - overflow / TILE_SIZE;
+            }
+            int32 endY = CHUNK_DIM;
+            if ((int32)screenPos.y + CHUNK_DIM * TILE_SIZE > world->screenSize.y) {
+                int32 overflow = endY * TILE_SIZE - (int32)world->screenSize.y;
+                endY = CHUNK_DIM - overflow / TILE_SIZE;
+            }
+
+            for (int32 tileY = startY; tileY < endY; ++tileY) {
+                for (int32 tileX = startX; tileX < endX; ++tileX) {
                     v2 offset = { (real32)tileX * TILE_SIZE, (real32)tileY * TILE_SIZE };
                     v2 pos = screenPos + offset;
                     texture = (AssetId)chunk->tiles[tileX + tileY * CHUNK_DIM];
