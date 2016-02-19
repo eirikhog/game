@@ -24,7 +24,7 @@ struct game_buffer;
 struct platform_api;
 
 typedef struct {
-    v2 windowSize;
+    v2i windowSize;
     platform_api *api;
 } platform_state;
 
@@ -49,10 +49,10 @@ enum InputButtons {
 
 struct game_input {
     uint32 buttons;
-    v2 mouse_position;
-    v2 mouse_delta;
+    v2i mouse_position;
+    v2i mouse_delta;
     uint32 mouse_buttons;
-    v2 joystick;
+    v2f joystick;
 };
 
 typedef void update_game(platform_state *state, game_memory *memory, game_input *input, real32 dt);

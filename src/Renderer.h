@@ -7,7 +7,7 @@
 struct RenderContext;
 
 RenderContext *RenderInit(GameAssets *assets, MemorySegment memory);
-void RenderStart(RenderContext *ctx, v2 windowSize);
+void RenderStart(RenderContext *ctx, v2i windowSize);
 void RenderEnd(RenderContext *ctx);
 
 void DrawImage(RenderContext *ctx, Rect2Di r, AssetId id);

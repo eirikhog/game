@@ -7,10 +7,14 @@
 #include <math.h>
 #endif
 
-typedef struct {
-    real32 x;
-    real32 y;
-} v2;
+template<typename T>
+struct v2 {
+    T x;
+    T y;
+};
+
+typedef v2<int32> v2i;
+typedef v2<real32> v2f;
 
 typedef struct {
     real32 x;
@@ -18,49 +22,50 @@ typedef struct {
     real32 z;
 } v3;
 
-typedef struct {
-    real32 x;
-    real32 y;
-    real32 width;
-    real32 height;
-} rect;
-
-inline v2 operator+(const v2 left, const v2 right) {
-    v2 result = { left.x + right.x, left.y + right.y };
+template<typename T>
+inline v2<T> operator+(const v2<T> left, const v2<T> right) {
+    v2<T> result = { left.x + right.x, left.y + right.y };
     return result;
 }
 
-inline v2 operator-(const v2 left, const v2 right) {
-    v2 result = { left.x - right.x, left.y - right.y };
+template<typename T>
+inline v2<T> operator-(const v2<T> left, const v2<T> right) {
+    v2<T> result = { left.x - right.x, left.y - right.y };
     return result;
 }
 
-inline v2& operator+=(v2 &left, const v2 right) {
+template<typename T>
+inline v2<T>& operator+=(v2<T> &left, const v2<T> right) {
     left = left + right;
     return left;
 }
 
-inline v2& operator-=(v2 &left, const v2 right) {
+template<typename T>
+inline v2<T>& operator-=(v2<T> &left, const v2<T> right) {
     left = left - right;
     return left;
 }
 
-inline v2 operator*(const v2 left, const float scalar) {
-    v2 result = { left.x * scalar, left.y * scalar };
+template<typename T>
+inline v2<T> operator*(const v2<T> left, const float scalar) {
+    v2<T> result = { left.x * scalar, left.y * scalar };
     return result;
 }
 
-inline v2& operator*=(v2 &left, const float scalar) {
+template<typename T>
+inline v2<T>& operator*=(v2<T> &left, const float scalar) {
     left = left * scalar;
     return left;
 }
 
-inline v2 operator/(const v2 left, const float scalar) {
-    v2 result = { left.x / scalar, left.y / scalar };
+template<typename T>
+inline v2<T> operator/(const v2<T> left, const float scalar) {
+    v2<T> result = { left.x / scalar, left.y / scalar };
     return result;
 }
 
-inline v2& operator/=(v2 &left, const float scalar) {
+template<typename T>
+inline v2<T>& operator/=(v2<T> &left, const float scalar) {
     left = left / scalar;
     return left;
 }

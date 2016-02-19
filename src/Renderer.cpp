@@ -10,8 +10,8 @@
 
 typedef struct {
     uint32 id;
-    v2 uv_origin;
-    v2 uv_end;
+    v2f uv_origin;
+    v2f uv_end;
     void *bitmap;
 } AtlasEntry;
 
@@ -22,14 +22,14 @@ typedef struct {
 typedef struct {
     v3 position;
     Color color;
-    v2 uv;
+    v2f uv;
 } RenderVertex;
 
 typedef struct RenderContext {
     bool32 initialized;
     bool32 rendering;
 
-    v2 windowSize;
+    v2i windowSize;
 
     MemorySegment memory;
     MemorySegment vertex_buffer;
@@ -176,7 +176,7 @@ void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id) {
     ctx->entries_count++;
 }
 
-void RenderStart(RenderContext *ctx, v2 windowSize) {
+void RenderStart(RenderContext *ctx, v2i windowSize) {
     Assert(!ctx->rendering);
     Assert(ctx->vertex_buffer.base != NULL);
     Assert(ctx->entries_count == 0);

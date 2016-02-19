@@ -50,8 +50,8 @@ typedef struct {
 } ShaderAsset;
 
 typedef struct {
-    v2 uvOrigin;
-    v2 uvEnd;
+    v2f uvOrigin;
+    v2f uvEnd;
     AssetId id;
 } AtlasAssetEntry;
 

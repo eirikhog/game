@@ -34,7 +34,7 @@ typedef struct {
 } win32_state;
 
 void ResizeWindow(platform_state *platformState, uint32 width, uint32 height) {
-    platformState->windowSize = { (real32)width, (real32)height };
+    platformState->windowSize = { (int32)width, (int32)height };
     glViewport(0, 0, width, height);
 }
 
@@ -198,10 +198,10 @@ void UpdateJoystick(game_input *input) {
     ZeroMemory(&state, sizeof(XINPUT_STATE));
 
     if (!XInputGetState(0, &state)) {
-        v2 leftStick = { (real32)state.Gamepad.sThumbLX, (real32)state.Gamepad.sThumbLY };
+        v2f leftStick = { (real32)state.Gamepad.sThumbLX, (real32)state.Gamepad.sThumbLY };
         real32 magnitude = sqrt( leftStick.x * leftStick.x + leftStick.y * leftStick.y);
         if (magnitude > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
-            v2 normalized = leftStick / magnitude;
+            v2f normalized = leftStick / magnitude;
             input->joystick = normalized;
         } else {
             input->joystick = { 0.0f, 0.0f };
@@ -286,7 +286,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #ifdef _DEBUG
     win32_performance perf = {};
 #endif
-    v2 mouse_prev_position = {};
+    v2i mouse_prev_position = {};
     HCURSOR mouse_cursor = LoadCursor(NULL, IDC_ARROW);
     game_input input = {};
 
@@ -308,7 +308,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
                     uint32 xPos = 0xFFFF & msg.lParam;
                     uint32 yPos = (uint64)(0xFFFF0000 & msg.lParam) >> 16;
-                    input.mouse_position = { (real32)xPos, (real32)yPos };
+                    input.mouse_position = { (int32)xPos, (int32)yPos };
                     input.mouse_buttons = 0;
                     if (msg.wParam & MK_LBUTTON) {
                         input.mouse_buttons |= MOUSE_LEFT;

@@ -20,15 +20,15 @@ typedef struct {
 } LoadedWorldChunk;
 
 typedef struct {
-    v2 position;
+    v2i position;
 } Entity;
 
 typedef struct {
-    v2 camera;
-    v2 screenSize;
+    v2i camera;
+    v2i screenSize;
     WorldChunk chunks[32];
 } World;
 
 void WorldCreate(World *world);
 void WorldUpdate(World *world, game_input *input, real32 dt);
-void WorldRender(World *world, RenderContext *renderer, v2 windowSize);
+void WorldRender(World *world, RenderContext *renderer, v2i windowSize);
