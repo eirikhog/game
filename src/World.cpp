@@ -114,10 +114,13 @@ void WorldRender(World *world, RenderContext *ctx, v2 windowSize) {
 
     const v2 screenSize = windowSize;
 
-    // Render visible chunks
+    Rect2Di drawWindow((int32)(-world->camera.x - windowSize.x / 2), (int32)(-world->camera.y - windowSize.y / 2), (int32)windowSize.x, (int32)windowSize.y);
+
     const int32 chunkSideLength = (TILE_SIZE * CHUNK_DIM);
-    int32 chunksX = (int32)(1 + ceil(screenSize.x / (real32)chunkSideLength));
-    int32 chunksY = (int32)(1 + ceil(screenSize.y / (real32)chunkSideLength));
+    int32 chunkStartX = (int32)floorf((real32)drawWindow.x / chunkSideLength);
+    int32 chunkStartY = (int32)floorf((real32)drawWindow.y / chunkSideLength);
+    int32 chunkEndX = (int32)ceil((real32)(drawWindow.x + drawWindow.width) / chunkSideLength);
+    int32 chunkEndY = (int32)ceil((real32)(drawWindow.y + drawWindow.height) / chunkSideLength);
 
     Color white = { 1.0f, 1.0f, 1.0f };
     Color black = { 0.0f, 0.0f, 0.0f };
@@ -127,8 +130,8 @@ void WorldRender(World *world, RenderContext *ctx, v2 windowSize) {
     AssetId texture = ASSET_TEXTURE_DIRT;
 
     v2 center = world->camera;
-    for (int32 y = (int32)floor((center.y / chunkSideLength) - chunksY / 2); y < (center.y / chunkSideLength) + chunksY / 2; ++y) {
-        for (int32 x = (int32)floor((center.x / chunkSideLength) - chunksX / 2); x < (center.x / chunkSideLength) + chunksX / 2; ++x) {
+    for (int32 y = chunkStartY; y <= chunkEndY; ++y) {
+        for (int32 x = chunkStartX; x <= chunkEndX; ++x) {
             WorldChunk *chunk = GetChunk(world, x, y);
             if (!chunk) {
                 continue;
