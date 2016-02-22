@@ -2,8 +2,8 @@
 #include "Math.h"
 #include "Platform.h"
 
-static
-WorldChunk* GetChunk(World *world, int x, int y) {
+static WorldChunk*
+GetChunk(World *world, int x, int y) {
     for (int i = 0; i < 16; ++i) {
         if (world->chunks[i].x == x && world->chunks[i].y == y) {
             return &(world->chunks[i]);
@@ -13,8 +13,8 @@ WorldChunk* GetChunk(World *world, int x, int y) {
     return 0;
 }
 
-static
-uint32 GetTile(World *world, real32 x, real32 y) {
+static uint32
+GetTile(World *world, real32 x, real32 y) {
     int32 chunkX = (int32)floor(x / CHUNK_DIM);
     int32 chunkY = (int32)floor(y / CHUNK_DIM);
     WorldChunk *chunk = GetChunk(world, chunkX, chunkY);
@@ -28,8 +28,8 @@ uint32 GetTile(World *world, real32 x, real32 y) {
     return 0;
 }
 
-static
-v2i GetTileFromScreenPosition(World *world, v2i screenPos) {
+static v2i
+GetTileFromScreenPosition(World *world, v2i screenPos) {
     v2i camera = world->camera;
     v2i worldPosition = { screenPos.x - world->screenSize.x / 2 - world->camera.x,
                          screenPos.y - world->screenSize.y / 2 - world->camera.y };
@@ -92,16 +92,16 @@ void WorldUpdate(World *world, game_input *input, real32 dt) {
 
 }
 
-static
-inline v2i ChunkCoordsToScreenCorrds(v2i camera, v2i screenSize, int x, int y) {
+static inline v2i
+ChunkCoordsToScreenCorrds(v2i camera, v2i screenSize, int x, int y) {
     const int32 chunkSideLength = (TILE_SIZE * CHUNK_DIM);
     v2i result = { (int32)(camera.x + screenSize.x / 2.0f + x * chunkSideLength),
                    (int32)(camera.y + screenSize.y / 2.0f + y * chunkSideLength) };
     return result;
 }
 
-static
-inline v2i GetTileCoordinate(v2i camera, v2i screenSize, v2i position) {
+static inline v2i
+GetTileCoordinate(v2i camera, v2i screenSize, v2i position) {
     v2i worldPosition = { position.x - screenSize.x / 2 - camera.x,
                           position.y - screenSize.y / 2 - camera.y };
     v2i tile = { (int32)floor(worldPosition.x / TILE_SIZE), (int32)floor(worldPosition.y / TILE_SIZE) };
