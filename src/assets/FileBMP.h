@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "../Common.h"
 
@@ -94,6 +95,81 @@ Image LoadBMP(char *filename) {
     }
 
     return img;
+}
+
+// Very rudamentary code for dumping a bmp (for debug purposes)
+void DumpBMP(uint8* data, uint32 width, uint32 height, char *filename) {
+
+    bmp_header bmp;
+    bmp.file_type = BMP_FILE_TYPE;
+    bmp.data_offset = sizeof(bmp_header) + sizeof(dbi_header) + 255*sizeof(uint32);
+    bmp.file_size = bmp.data_offset + width*height;
+
+    dbi_header dbi;
+    dbi.dbi_size = sizeof(dbi_header);
+    dbi.bits_per_pixel = 8;
+    dbi.width = width;
+    dbi.height = height;
+    dbi.compression = 0;
+    dbi.colors_used = 256;
+    dbi.colors_important = 256;
+    dbi.horizontal_resolution = 3780;
+    dbi.vertical_resolution = 3780;
+    dbi.planes = 1;
+    dbi.size_of_bitmap = width * height * 32;
+
+    FILE *fp = fopen(filename, "wb");
+    if (fp) {
+
+        // TODO: Write pallette
+        uint32 palletteSize = 0;
+        uint32 *source = (uint32*)data;
+        palette_element pallette[255];
+        uint8_t *bitmap = (uint8_t*)malloc(width*height);
+        for (uint32 i = 0; i < width * height; ++i) {
+            palette_element colorValue;
+            colorValue.blue = source[i] >> 16;
+            colorValue.red = source[i] >> 0;
+            colorValue.green = source[i] >> 8;
+            colorValue.reserved = 0;
+            uint32 pallettePos = 0;
+            bool32 foundPallette = 0;
+            uint32 searchPos = 0;
+            while (!foundPallette && searchPos < palletteSize) {
+                if (!memcmp(&pallette[searchPos], &colorValue, sizeof(uint32))) {
+                    foundPallette = 1;
+                    pallettePos = searchPos;
+                } else {
+                    ++searchPos;
+                }
+            }
+
+            if (!foundPallette) {
+                ++palletteSize;
+            }
+
+            if (searchPos > 255) {
+                InvalidCodePath();
+            }
+            pallette[searchPos] = colorValue;
+            bitmap[i] = (uint8)searchPos;
+        }
+
+        dbi.colors_important = palletteSize;
+        dbi.colors_used = palletteSize;
+
+        fwrite(&bmp, sizeof(bmp_header), 1, fp);
+        fwrite(&dbi, sizeof(dbi_header), 1, fp);
+
+        // Write pallette
+        fwrite(pallette, sizeof(uint32), 255, fp);
+
+        // Write bitmap
+        fwrite(bitmap, width*height, 1, fp);
+        free(bitmap);
+
+        fclose(fp);
+    }
 }
 
 #endif
