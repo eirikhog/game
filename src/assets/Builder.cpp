@@ -209,14 +209,6 @@ int main(int argc, char* argvp[]) {
     TIMED_FUNCTION();
 
     AssetFileGenerator gen = CreateGenerator("assets.gap");
-    //AddImage(&gen, "../data/images/spritemap.bmp");
-
-    Image purple = LoadBMP("../data/images/purple.bmp");
-    DumpBMP((uint8*)purple.data, purple.width, purple.height, "purp.bmp");
-
-    Image q = LoadBMP("../data/images/q.bmp");
-    DumpBMP((uint8*)q.data, q.width, q.height, "q_out.bmp");
-
 
     AtlasGenerator atlasGen = CreateAtlasGenerator(&gen);
     AddImageToAtlas(&atlasGen, "../data/images/dirt1.bmp", ASSET_TEXTURE_DIRT);
