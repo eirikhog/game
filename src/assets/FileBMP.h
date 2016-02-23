@@ -68,30 +68,48 @@ Image LoadBMP(char *filename) {
     // Note: Some versions of the header might be different.
     Assert(sizeof(dbi_header) == dbi->dbi_size);
    
-    // TODO: Support 4-bit, and 24-bit bitmaps as well. 
-    Assert(dbi->bits_per_pixel == 8);
-
-    void *pixel_data = ((uint8_t*)data + header->data_offset);
-    palette_element *colors = (palette_element*)((uint8_t*)dbi + dbi->dbi_size);
-
     Image img;
     img.width = dbi->width;
     img.height = dbi->height;
 
-    img.data = malloc(sizeof(uint8_t)*4*img.height*img.width);
+    img.data = malloc(sizeof(uint8_t) * 4 * img.height*img.width);
 
-    // TODO: Determine if the image axis.
-    // Some images can have a negative height, in which case they should not be flipped.
-    // Implement if needed...
-    Assert(dbi->height > 0);
+    if (dbi->bits_per_pixel == 8) {
+        void *pixel_data = ((uint8_t*)data + header->data_offset);
+        palette_element *colors = (palette_element*)((uint8_t*)dbi + dbi->dbi_size);
+        // TODO: Determine if the image axis.
+        // Some images can have a negative height, in which case they should not be flipped.
+        // Implement if needed...
+        Assert(dbi->height > 0);
 
-    uint32_t *dest = (uint32_t*)img.data;
-    uint32_t padding = img.width % 4;
-    uint8_t* bitmap_data = (uint8_t*)data + header->data_offset;
-    for (uint32_t i = 0; i < dbi->width * dbi->height; ++i) {
-        uint32_t ci = bitmap_data[i + padding*(i / dbi->width)];
-        uint8_t alpha = 0xFF;
-        dest[i] = alpha << 24 | colors[ci].blue << 16 | colors[ci].green << 8 | colors[ci].red;
+        uint32_t *dest = (uint32_t*)img.data;
+        uint32_t padding = img.width % 4;
+        uint8_t* bitmap_data = (uint8_t*)data + header->data_offset;
+        for (uint32_t i = 0; i < dbi->width * dbi->height; ++i) {
+            uint32_t ci = bitmap_data[i + padding*(i / dbi->width)];
+            uint8_t alpha = 0xFF;
+            dest[i] = alpha << 24 | colors[ci].blue << 16 | colors[ci].green << 8 | colors[ci].red;
+        }
+    } else {
+        // We don't care about 4-bits or other formats
+        Assert(dbi->bits_per_pixel == 24);
+
+        uint32 pitch = (uint32)floor(dbi->bits_per_pixel * dbi->width / 32) * 4;
+        uint32 pixelDataSize = pitch * dbi->height;
+        uint8 *source = ((uint8*)data + header->data_offset);
+        uint32 *dest = (uint32*)img.data;
+        for (uint32 i = 0; i < dbi->width * dbi->height; ++i) {
+            if (i % pitch <= 3 * dbi->width) {
+                uint8 r = *source++;
+                uint8 g = *source++;
+                uint8 b = *source++;
+                dest[i] = (0xFF << 24) | (b << 16) | (g << 8) | (r << 0);
+            } else {
+                // TODO: For images which are not a power of 2, we probably
+                // need to advande the source to next row (ie. finish the pitch).
+                InvalidCodePath();
+            }
+        }
     }
 
     return img;
@@ -102,70 +120,50 @@ void DumpBMP(uint8* data, uint32 width, uint32 height, char *filename) {
 
     bmp_header bmp;
     bmp.file_type = BMP_FILE_TYPE;
-    bmp.data_offset = sizeof(bmp_header) + sizeof(dbi_header) + 255*sizeof(uint32);
-    bmp.file_size = bmp.data_offset + width*height;
+    bmp.data_offset = sizeof(bmp_header) + sizeof(dbi_header);
+    bmp.file_size = bmp.data_offset + width*height*3;
 
     dbi_header dbi;
     dbi.dbi_size = sizeof(dbi_header);
-    dbi.bits_per_pixel = 8;
+    dbi.bits_per_pixel = 24;
     dbi.width = width;
     dbi.height = height;
     dbi.compression = 0;
-    dbi.colors_used = 256;
-    dbi.colors_important = 256;
+    dbi.colors_used = 0;
+    dbi.colors_important = 0;
     dbi.horizontal_resolution = 3780;
     dbi.vertical_resolution = 3780;
     dbi.planes = 1;
-    dbi.size_of_bitmap = width * height * 32;
+    dbi.size_of_bitmap = width * height * 3;
 
     FILE *fp = fopen(filename, "wb");
     if (fp) {
 
-        // TODO: Write pallette
-        uint32 palletteSize = 0;
+        uint32 pitch = (uint32)floor(dbi.bits_per_pixel * width / 32) * 4;
+        uint32 pixelDataSize = pitch * height;
+        
+        uint8 *bitmap = (uint8*)malloc(pixelDataSize);
         uint32 *source = (uint32*)data;
-        palette_element pallette[255];
-        uint8_t *bitmap = (uint8_t*)malloc(width*height);
-        for (uint32 i = 0; i < width * height; ++i) {
-            palette_element colorValue;
-            colorValue.blue = source[i] >> 16;
-            colorValue.red = source[i] >> 0;
-            colorValue.green = source[i] >> 8;
-            colorValue.reserved = 0;
-            uint32 pallettePos = 0;
-            bool32 foundPallette = 0;
-            uint32 searchPos = 0;
-            while (!foundPallette && searchPos < palletteSize) {
-                if (!memcmp(&pallette[searchPos], &colorValue, sizeof(uint32))) {
-                    foundPallette = 1;
-                    pallettePos = searchPos;
-                } else {
-                    ++searchPos;
-                }
+        memset(bitmap, 0, pixelDataSize);
+        for (uint32 y = 0; y < height; ++y) {
+            for (uint32 x = 0; x < width; ++x) {
+                uint32 color = source[x + y * width];
+                uint8 r = color >> 0;
+                uint8 g = color >> 8;
+                uint8 b = color >> 16;
+                //uint8 a = color >> 24; /* Discard alpha */
+                bitmap[(x * 3) + y*pitch] = b;
+                bitmap[(x * 3) + y*pitch + 1] = g;
+                bitmap[(x * 3) + y*pitch + 2] = r;
             }
-
-            if (!foundPallette) {
-                ++palletteSize;
-            }
-
-            if (searchPos > 255) {
-                InvalidCodePath();
-            }
-            pallette[searchPos] = colorValue;
-            bitmap[i] = (uint8)searchPos;
         }
 
-        dbi.colors_important = palletteSize;
-        dbi.colors_used = palletteSize;
 
         fwrite(&bmp, sizeof(bmp_header), 1, fp);
         fwrite(&dbi, sizeof(dbi_header), 1, fp);
 
-        // Write pallette
-        fwrite(pallette, sizeof(uint32), 255, fp);
-
         // Write bitmap
-        fwrite(bitmap, width*height, 1, fp);
+        fwrite(bitmap, pixelDataSize, 1, fp);
         free(bitmap);
 
         fclose(fp);

@@ -60,7 +60,7 @@ typedef struct {
     uint32 width;
     uint32 height;
     uint32 count;
-    void *data;
+    uint8 *data;
     AtlasAssetEntry entries[64]; // TODO: Make dynamic
 } AtlasAsset;
 

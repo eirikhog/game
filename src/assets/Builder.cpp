@@ -148,7 +148,7 @@ void AddImageToAtlas(AtlasGenerator *gen, char *filePath, AssetId id) {
     gen->count++;
 }
 
-#define TEXTURE_SIZE 16
+#define TEXTURE_SIZE 32
 
 AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
     TIMED_FUNCTION();
@@ -164,7 +164,7 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
     atlas.width = dim;
     atlas.height = dim;
     atlas.count = atlasGen->count;
-    atlas.data = malloc(dim*dim * 32);
+    atlas.data = (uint8*)malloc(dim*dim * 32);
 
     for (int32 i = 0; i < (int32)atlasGen->count; ++i) {
         int32 offsetX = (i * TEXTURE_SIZE) % dim;
@@ -184,6 +184,8 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
             }
         }
     }
+
+    DumpBMP(atlas.data, atlas.width, atlas.height, "atlas_dump.bmp");
 
     return atlas;
 }
@@ -209,11 +211,20 @@ int main(int argc, char* argvp[]) {
     AssetFileGenerator gen = CreateGenerator("assets.gap");
     //AddImage(&gen, "../data/images/spritemap.bmp");
 
+    Image purple = LoadBMP("../data/images/purple.bmp");
+    DumpBMP((uint8*)purple.data, purple.width, purple.height, "purp.bmp");
+
+    Image q = LoadBMP("../data/images/q.bmp");
+    DumpBMP((uint8*)q.data, q.width, q.height, "q_out.bmp");
+
+
     AtlasGenerator atlasGen = CreateAtlasGenerator(&gen);
     AddImageToAtlas(&atlasGen, "../data/images/dirt1.bmp", ASSET_TEXTURE_DIRT);
     AddImageToAtlas(&atlasGen, "../data/images/stone1.bmp", ASSET_TEXTURE_STONE);
     AddImageToAtlas(&atlasGen, "../data/images/white.bmp", ASSET_TEXTURE_WHITE);
     AddImageToAtlas(&atlasGen, "../data/images/marker.bmp", ASSET_TEXTURE_MARKER);
+    AddImageToAtlas(&atlasGen, "../data/images/shroud1.bmp", ASSET_TEXTURE_MARKER);
+    AddImageToAtlas(&atlasGen, "../data/images/q.bmp", ASSET_TEXTURE_MARKER);
     AtlasAsset atlas = CreateAtlas(&atlasGen);
 
     AddAtlasToAssetFile(&gen, atlas);
