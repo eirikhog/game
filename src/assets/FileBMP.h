@@ -44,7 +44,7 @@ typedef struct {
 typedef struct {
     uint32_t width;
     uint32_t height;
-    void *data;
+    uint8_t *data;
 } Image;
 
 Image LoadBMP(char *filename) {
@@ -72,7 +72,7 @@ Image LoadBMP(char *filename) {
     img.width = dbi->width;
     img.height = dbi->height;
 
-    img.data = malloc(sizeof(uint8_t) * 4 * img.height*img.width);
+    img.data = (uint8_t*)malloc(sizeof(uint8_t) * 4 * img.height*img.width);
 
     if (dbi->bits_per_pixel == 8) {
         void *pixel_data = ((uint8_t*)data + header->data_offset);

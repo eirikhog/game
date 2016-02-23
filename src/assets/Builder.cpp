@@ -9,6 +9,8 @@
 #include <iostream>
 #include <chrono>
 
+#include <Windows.h>
+
 // Rudamentary performance monitor
 class Timer {
 public:
@@ -203,6 +205,92 @@ void AddAtlasToAssetFile(AssetFileGenerator *gen, AtlasAsset atlas) {
     gen->entries.push_back(fileEntry);
 }
 
+void BuildFontSpritemap(AssetFileGenerator *gen) {
+
+    const int BitmapSize = 256;
+
+    HDC dc = CreateCompatibleDC(GetDC(0));
+    BITMAPINFO bmi = {};
+    bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
+    bmi.bmiHeader.biWidth = BitmapSize;
+    bmi.bmiHeader.biHeight = BitmapSize;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    void *bitmapData = 0;
+    HBITMAP bitmap = CreateDIBSection(dc, &bmi, DIB_RGB_COLORS, &bitmapData, 0, 0);
+
+    SelectObject(dc, bitmap);
+    SetBkColor(dc, RGB(0, 0, 0));
+
+    wchar_t cp = (wchar_t)'g';
+
+    SIZE fontSize;
+    GetTextExtentPoint32W(dc, &cp, 1, &fontSize);
+
+    char *fontName = "Lucida Console";
+    char *fontFile = "c:/windows/fonts/lucon.ttf";
+    AddFontResourceExA(fontFile, FR_PRIVATE, 0);
+    HFONT fontHandle = CreateFontA(18, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+        ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, fontName);
+
+    SelectObject(dc, fontHandle);
+
+    TEXTMETRIC metric;
+    GetTextMetrics(dc, &metric);
+
+    int32 bounds = 1;
+    int32 offsetX = bounds;
+    int32 offsetY = bounds;
+    int32 highest = 0;
+
+    uint32 codepointCount = 0;
+    wchar_t codepoints[512];
+
+    // Add all english characters to spritemap
+    for (wchar_t c = 'A'; c <= 'z'; ++c) {
+        if (c == 'Z' + 1) {
+            c = 'a';
+        }
+        codepoints[codepointCount++] = c;
+    }
+
+    for (int32 i = 0; i < 10; ++i) {
+        codepoints[codepointCount++] = (wchar_t)('0' + i);
+    }
+
+    const char extra[] = { ' ', '_', '-', '+', '=', '!' };
+    for (int32 i = 0; i < sizeof(extra); ++i) {
+        codepoints[codepointCount++] = extra[i];
+    }
+
+    // Create font spritemap
+    for (uint32 i = 0; i < codepointCount; ++i) {
+        wchar_t c = codepoints[i];
+
+        SIZE size;
+        GetTextExtentPoint32W(dc, &c, 1, &size);
+        if (offsetX + size.cx + bounds > BitmapSize) {
+            offsetX = bounds;
+            offsetY += highest + bounds;
+            highest = 0;
+        }
+
+        SetTextColor(dc, RGB(255, 255, 255));
+        TextOutW(dc, offsetX, offsetY, &c, 1);
+        offsetX += size.cx + bounds;
+        if (size.cy > highest) {
+            highest = size.cy;
+        }
+    }
+
+    DumpBMP((uint8*)bitmapData, BitmapSize, BitmapSize, "fontmap.bmp");
+
+    DeleteObject(fontHandle);
+    ReleaseDC(0, dc);
+}
+
 int main(int argc, char* argvp[]) {
     TIMED_FUNCTION();
 
@@ -218,6 +306,8 @@ int main(int argc, char* argvp[]) {
     AtlasAsset atlas = CreateAtlas(&atlasGen);
 
     AddAtlasToAssetFile(&gen, atlas);
+
+    BuildFontSpritemap(&gen);
 
     WriteAssetFile(&gen);
 
