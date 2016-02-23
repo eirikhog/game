@@ -54,8 +54,8 @@ static void InitializeOpenGL(GameAssets *assets) {
     GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
 
     // load shaders & get length of each
-    ShaderAsset vs = asset_get_shader(assets, ASSET_SHADER_VERTEX);
-    ShaderAsset fs = asset_get_shader(assets, ASSET_SHADER_FRAGMENT);
+    ShaderAsset vs = AssetGetShader(assets, ASSET_SHADER_VERTEX);
+    ShaderAsset fs = AssetGetShader(assets, ASSET_SHADER_FRAGMENT);
 
     GLint vlen = (GLint)vs.size;
     GLint flen = (GLint)fs.size;
@@ -86,7 +86,7 @@ static void InitializeOpenGL(GameAssets *assets) {
 }
 
 static void LoadTextures(GameAssets *assets, RenderContext *ctx) {
-    AtlasAsset a = asset_get_atlas(assets, ASSET_ATLAS1);
+    AtlasAsset a = AssetGetAtlas(assets, ASSET_ATLAS1);
     ctx->atlas = a;
 
     GLuint id;

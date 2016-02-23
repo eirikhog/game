@@ -61,9 +61,9 @@ typedef struct {
     uint32 id;
     uint32 width;
     uint32 height;
-    uint32 count;
     uint8 *data;
-    AtlasAssetEntry entries[64]; // TODO: Make dynamic
+    uint32 count;
+    AtlasAssetEntry *entries;
 } AtlasAsset;
 
 typedef struct {
@@ -84,10 +84,9 @@ typedef struct {
     uint32 assetOffset;
 } AssetFileHeader;
 
-GameAssets assets_init(platform_api *api, MemorySegment memory);
-ImageAsset asset_get_image(GameAssets *assets, uint32 id);
-ShaderAsset asset_get_shader(GameAssets *assets, uint32 id);
-AtlasAsset asset_get_atlas(GameAssets *assets, AssetId id);
+GameAssets AssetsInit(platform_api *api, MemorySegment memory);
+ShaderAsset AssetGetShader(GameAssets *assets, uint32 id);
+AtlasAsset AssetGetAtlas(GameAssets *assets, AssetId id);
 
 #endif
 

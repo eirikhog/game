@@ -10,7 +10,7 @@ struct loaded_file {
     void *data;
 };
 
-GameAssets assets_init(platform_api *api, MemorySegment memory) {
+GameAssets AssetsInit(platform_api *api, MemorySegment memory) {
     GameAssets assets = {};
     assets.api = api;
     assets.memory = memory;
@@ -18,7 +18,7 @@ GameAssets assets_init(platform_api *api, MemorySegment memory) {
     return assets;
 }
 
-ShaderAsset asset_get_shader(GameAssets *assets, uint32 id) {
+ShaderAsset AssetGetShader(GameAssets *assets, uint32 id) {
     char *shader;
     uint32 size = 0;
     switch (id) {
@@ -40,7 +40,7 @@ ShaderAsset asset_get_shader(GameAssets *assets, uint32 id) {
     return asset;
 }
 
-AtlasAsset asset_get_atlas(GameAssets *assets, AssetId id) {
+AtlasAsset AssetGetAtlas(GameAssets *assets, AssetId id) {
     uint32 size;
     void *data = assets->api->ReadEntireFile("assets.gap", &size);
     Assert(size > sizeof(AssetFileHeader));
