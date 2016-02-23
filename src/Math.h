@@ -47,25 +47,25 @@ inline v2<T>& operator-=(v2<T> &left, const v2<T> right) {
 }
 
 template<typename T>
-inline v2<T> operator*(const v2<T> left, const float scalar) {
+inline v2<T> operator*(const v2<T> left, const T scalar) {
     v2<T> result = { left.x * scalar, left.y * scalar };
     return result;
 }
 
 template<typename T>
-inline v2<T>& operator*=(v2<T> &left, const float scalar) {
+inline v2<T>& operator*=(v2<T> &left, const T scalar) {
     left = left * scalar;
     return left;
 }
 
 template<typename T>
-inline v2<T> operator/(const v2<T> left, const float scalar) {
+inline v2<T> operator/(const v2<T> left, const T scalar) {
     v2<T> result = { left.x / scalar, left.y / scalar };
     return result;
 }
 
 template<typename T>
-inline v2<T>& operator/=(v2<T> &left, const float scalar) {
+inline v2<T>& operator/=(v2<T> &left, const T scalar) {
     left = left / scalar;
     return left;
 }

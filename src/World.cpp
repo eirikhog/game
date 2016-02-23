@@ -57,12 +57,26 @@ void SetTile(World *world, int32 x, int32 y, uint32 tileValue) {
     }
 }
 
+void CenterOnTile(World *world, v2i tile) {
+    v2i newCamera = tile * -TILE_SIZE;
+    newCamera += { -TILE_SIZE / 2, -TILE_SIZE / 2 };
+    world->camera = newCamera;
+}
+
+void CenterOnChunk(World *world, v2i chunk) {
+    int32 chunkWidth = (TILE_SIZE * CHUNK_DIM);
+    v2i newCamera = chunk * chunkWidth;
+    newCamera += { -chunkWidth / 2, -chunkWidth / 2 };
+    newCamera += { -TILE_SIZE / 2, -TILE_SIZE / 2};
+    world->camera = newCamera;
+}
+
 // Create world from scratch
 void WorldCreate(World *world) {
     *world = {};
 
     // Start at center
-    world->camera = { 0, 0 };
+    CenterOnChunk(world, { 0, 0 });
 
     for (int i = 0; i < 32; ++i) {
         world->chunks[i].x = (i % 4)-2;
@@ -72,11 +86,11 @@ void WorldCreate(World *world) {
         }
     }
 
-    SetTile(world, 0, -1, ASSET_TEXTURE_DIRT);
-    SetTile(world, -1, 0, ASSET_TEXTURE_DIRT);
-    SetTile(world, 0, 0, ASSET_TEXTURE_DIRT);
-    SetTile(world, 0, 1, ASSET_TEXTURE_DIRT);
-    SetTile(world, 1, 0, ASSET_TEXTURE_DIRT);
+    SetTile(world, 8, 7, ASSET_TEXTURE_DIRT);
+    SetTile(world, 7, 8, ASSET_TEXTURE_DIRT);
+    SetTile(world, 8, 8, ASSET_TEXTURE_DIRT);
+    SetTile(world, 8, 9, ASSET_TEXTURE_DIRT);
+    SetTile(world, 9, 8, ASSET_TEXTURE_DIRT);
 }
 
 void WorldUpdate(World *world, game_input *input, real32 dt) {
