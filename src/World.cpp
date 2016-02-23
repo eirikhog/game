@@ -87,7 +87,7 @@ void WorldUpdate(World *world, game_input *input, real32 dt) {
 
     if (input->mouse_buttons & MOUSE_LEFT) {
         v2i tilePos = GetTileFromScreenPosition(world, input->mouse_position);
-        SetTile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_DIRT);
+        SetTile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_SHROUD);
     }
 
 }

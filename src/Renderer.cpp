@@ -3,10 +3,8 @@
 #include "Assets.h"
 
 #include <GL/glew.h>
+#include <stdlib.h>
 
-#ifndef offsetof
-#define offsetof(type,member) ((void *) &(((type*)0)->member))
-#endif
 
 typedef struct {
     uint32 id;
@@ -138,6 +136,7 @@ void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
     DrawSolidRect(ctx, Rect2Di(r.x, r.y + r.height - 1, r.width, 1), c);
     DrawSolidRect(ctx, Rect2Di(r.x + r.width - 1, r.y, 1, r.height), c);
 }
+
 
 AtlasAssetEntry GetAtlasEntry(AtlasAsset *atlas, AssetId id) {
     

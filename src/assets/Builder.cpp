@@ -78,7 +78,7 @@ void WriteAssetFile(AssetFileGenerator *generator) {
     
     generator->dataOffset = sizeof(AssetFileHeader) + sizeof(AssetFileEntry) * generator->header.assetCount;
 
-    FILE *fp = fopen(generator->filename, "w");
+    FILE *fp = fopen(generator->filename, "wb");
     if (fp) {
         fwrite(&generator->header, sizeof(AssetFileHeader), 1, fp);
         for (auto it : generator->entries) {
@@ -185,8 +185,6 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
         }
     }
 
-    DumpBMP(atlas.data, atlas.width, atlas.height, "atlas_dump.bmp");
-
     return atlas;
 }
 
@@ -215,8 +213,8 @@ int main(int argc, char* argvp[]) {
     AddImageToAtlas(&atlasGen, "../data/images/stone1.bmp", ASSET_TEXTURE_STONE);
     AddImageToAtlas(&atlasGen, "../data/images/white.bmp", ASSET_TEXTURE_WHITE);
     AddImageToAtlas(&atlasGen, "../data/images/marker.bmp", ASSET_TEXTURE_MARKER);
-    AddImageToAtlas(&atlasGen, "../data/images/shroud1.bmp", ASSET_TEXTURE_MARKER);
-    AddImageToAtlas(&atlasGen, "../data/images/q.bmp", ASSET_TEXTURE_MARKER);
+    AddImageToAtlas(&atlasGen, "../data/images/shroud1.bmp", ASSET_TEXTURE_SHROUD);
+    AddImageToAtlas(&atlasGen, "../data/images/q.bmp", ASSET_TEXTURE_Q);
     AtlasAsset atlas = CreateAtlas(&atlasGen);
 
     AddAtlasToAssetFile(&gen, atlas);

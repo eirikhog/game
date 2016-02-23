@@ -26,6 +26,8 @@ typedef enum {
     ASSET_TEXTURE_DIRT,
     ASSET_TEXTURE_STONE,
     ASSET_TEXTURE_MARKER,
+    ASSET_TEXTURE_SHROUD,
+    ASSET_TEXTURE_Q,
 } AssetId;
 
 typedef struct {
