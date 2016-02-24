@@ -100,9 +100,9 @@ Image LoadBMP(char *filename) {
         uint32 *dest = (uint32*)img.data;
         for (uint32 i = 0; i < dbi->width * dbi->height; ++i) {
             if (i % pitch <= 3 * dbi->width) {
-                uint8 r = *source++;
-                uint8 g = *source++;
                 uint8 b = *source++;
+                uint8 g = *source++;
+                uint8 r = *source++;
                 dest[i] = (0xFF << 24) | (b << 16) | (g << 8) | (r << 0);
             } else {
                 // TODO: For images which are not a power of 2, we probably

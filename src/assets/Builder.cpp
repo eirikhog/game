@@ -157,6 +157,8 @@ AtlasAsset *CreateAtlas(AtlasGenerator *atlasGen) {
         }
     }
 
+    DumpBMP(atlas->data, atlas->width, atlas->height, "atlas.bmp");
+
     return atlas;
 }
 
@@ -303,6 +305,8 @@ int main(int argc, char* argvp[]) {
     AddImageToAtlas(&atlasGen, "../data/images/marker.bmp", ASSET_TEXTURE_MARKER);
     AddImageToAtlas(&atlasGen, "../data/images/shroud1.bmp", ASSET_TEXTURE_SHROUD);
     AddImageToAtlas(&atlasGen, "../data/images/q.bmp", ASSET_TEXTURE_Q);
+    AddImageToAtlas(&atlasGen, "../data/images/grass1.bmp", ASSET_TEXTURE_GRASS);
+    AddImageToAtlas(&atlasGen, "../data/images/colortest.bmp", ASSET_TEXTURE_COLORS);
     AtlasAsset *atlas = CreateAtlas(&atlasGen);
 
     AddAtlasToAssetFile(&gen, atlas);

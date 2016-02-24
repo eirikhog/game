@@ -82,7 +82,7 @@ void WorldCreate(World *world) {
         world->chunks[i].x = (i % 4)-2;
         world->chunks[i].y = (i / 4)-2;
         for (int j = 0; j < CHUNK_DIM * CHUNK_DIM; ++j) {
-            world->chunks[i].tiles[j] = ASSET_TEXTURE_STONE;
+            world->chunks[i].tiles[j] = ASSET_TEXTURE_GRASS;
         }
     }
 
