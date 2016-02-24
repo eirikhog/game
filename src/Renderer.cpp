@@ -177,14 +177,20 @@ AtlasAssetEntry *GetAtlasEntry(AtlasAsset *atlas, uint32 id) {
 void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint32 spritemapId) {
     bool32 flush = 0;
 
-    if (ctx->selectedTexture != spritemapId) {
-        uint32 id = spritemapId == ASSET_SPRITEMAP ? ctx->atlasId : ctx->fontAtlasId;
+    uint32 id = spritemapId == ASSET_SPRITEMAP ? ctx->atlasId : ctx->fontAtlasId;
+    if (ctx->selectedTexture != id) {
+        // Draw whatever is in the buffer, and switch texture.
+        Draw(ctx);
+        SegmentClear(&ctx->vertexBuffer);
+        ctx->entriesCount = 0;
+
         glBindTexture(GL_TEXTURE_2D, id);
+        ctx->selectedTexture = id;
         flush = 1;
     }
 
     // If the buffer is full, push the data to the graphics card and render what we got.
-    if (ctx->entriesCount >= ctx->entriesMax || flush) {
+    if (ctx->entriesCount >= ctx->entriesMax) {
         Draw(ctx);
         SegmentClear(&ctx->vertexBuffer);
         ctx->entriesCount = 0;
