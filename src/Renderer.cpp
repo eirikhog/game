@@ -5,18 +5,6 @@
 #include <GL/glew.h>
 #include <stdlib.h>
 
-
-typedef struct {
-    uint32 id;
-    v2f uv_origin;
-    v2f uv_end;
-    void *bitmap;
-} AtlasEntry;
-
-typedef struct {
-    AtlasEntry entries[4];
-} Atlas;
-
 typedef struct {
     v3 position;
     Color color;
@@ -30,10 +18,10 @@ typedef struct RenderContext {
     v2i windowSize;
 
     MemorySegment memory;
-    MemorySegment vertex_buffer;
+    MemorySegment vertexBuffer;
 
-    uint32 entries_count;
-    uint32 entries_max;
+    uint32 entriesCount;
+    uint32 entriesMax;
 
     AtlasAsset *atlas;
 } RenderContext;
@@ -114,9 +102,9 @@ RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
     uint32 available_memory = (memory.size - memory.used) / vertex_size;
     MemorySegment vertex_segment = AllocMemory(&memory, available_memory);
 
-    ctx->entries_max = available_memory / vertex_size;
-    ctx->entries_count = 0;
-    ctx->vertex_buffer = vertex_segment;
+    ctx->entriesMax = available_memory / vertex_size;
+    ctx->entriesCount = 0;
+    ctx->vertexBuffer = vertex_segment;
 
     ctx->initialized = 1;
     return ctx;
@@ -153,10 +141,10 @@ AtlasAssetEntry GetAtlasEntry(AtlasAsset *atlas, AssetId id) {
 void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id) {
 
     // If the buffer is full, push the data to the graphics card and render what we got.
-    if (ctx->entries_count >= ctx->entries_max) {
+    if (ctx->entriesCount >= ctx->entriesMax) {
         Draw(ctx);
-        SegmentClear(&ctx->vertex_buffer);
-        ctx->entries_count = 0;
+        SegmentClear(&ctx->vertexBuffer);
+        ctx->entriesCount = 0;
     }
 
     AtlasAssetEntry entry = GetAtlasEntry(ctx->atlas, image_id);
@@ -168,17 +156,17 @@ void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id) {
     vertices[3] = { { (real32)(r.x + r.width), (real32)r.y, 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvOrigin.y } };
 
     for (int i = 0; i < 4; ++i) {
-        RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertex_buffer, RenderVertex);
+        RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertexBuffer, RenderVertex);
         *c_vert = vertices[i];
     }
 
-    ctx->entries_count++;
+    ctx->entriesCount++;
 }
 
 void RenderStart(RenderContext *ctx, v2i windowSize) {
     Assert(!ctx->rendering);
-    Assert(ctx->vertex_buffer.base != NULL);
-    Assert(ctx->entries_count == 0);
+    Assert(ctx->vertexBuffer.base != NULL);
+    Assert(ctx->entriesCount == 0);
 
     ctx->rendering = true;
     ctx->windowSize = windowSize;
@@ -189,8 +177,8 @@ void RenderEnd(RenderContext *ctx) {
 
     Draw(ctx);
 
-    SegmentClear(&ctx->vertex_buffer);
-    ctx->entries_count = 0;
+    SegmentClear(&ctx->vertexBuffer);
+    ctx->entriesCount = 0;
 
     ctx->rendering = false;
 }
@@ -206,7 +194,7 @@ void Draw(RenderContext *ctx) {
 
     // VBO for vertex data
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID);
-    glBufferData(GL_ARRAY_BUFFER, ctx->entries_count * 4 * sizeof(RenderVertex), ctx->vertex_buffer.base, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, ctx->entriesCount * 4 * sizeof(RenderVertex), ctx->vertexBuffer.base, GL_STATIC_DRAW);
     glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), 0);
     glEnableVertexAttribArray(0);
 
@@ -235,7 +223,7 @@ void Draw(RenderContext *ctx) {
     glLoadIdentity();
 
     glBindVertexArray(vertexArrayObjId);
-    glDrawArrays(GL_QUADS, 0, 4 * ctx->entries_count);
+    glDrawArrays(GL_QUADS, 0, 4 * ctx->entriesCount);
 
     glBindVertexArray(0);
 
