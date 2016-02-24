@@ -293,11 +293,42 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
     return atlas;
 }
 
+void AddShader(AssetFileGenerator *gen, char *file, uint32 id) {
+
+    FILE *fp = fopen(file, "rb");
+    if (fp) {
+        fseek(fp, 0, SEEK_END);
+        uint32 size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        void *data = malloc(sizeof(ShaderAsset) + size);
+        fread(data, size + sizeof(ShaderAsset), 1, fp);
+
+        ShaderAsset *asset = (ShaderAsset*)data;
+        asset->id = id;
+        asset->size = size;
+        asset->content = 0;
+
+        AssetFileEntry entry = {};
+        entry.type = ASSET_SHADER;
+        entry.size = sizeof(ShaderAsset) + size;
+        entry.id = gen->idCounter++;
+
+        AssetGeneratorFileEntry fileEntry = {};
+        fileEntry.entry = entry;
+        fileEntry.data = data;
+        fileEntry.size = sizeof(ShaderAsset) + size;
+
+        gen->entries.push_back(fileEntry);
+    }
+}
+
 int main(int argc, char* argvp[]) {
     TIMED_FUNCTION();
 
     AssetFileGenerator gen = CreateGenerator("assets.gap");
 
+    // Textures:
     AtlasGenerator atlasGen = CreateAtlasGenerator(&gen);
     AddImageToAtlas(&atlasGen, "../data/images/dirt1.bmp", ASSET_TEXTURE_DIRT);
     AddImageToAtlas(&atlasGen, "../data/images/stone1.bmp", ASSET_TEXTURE_STONE);
@@ -308,16 +339,21 @@ int main(int argc, char* argvp[]) {
     AddImageToAtlas(&atlasGen, "../data/images/grass1.bmp", ASSET_TEXTURE_GRASS);
     AddImageToAtlas(&atlasGen, "../data/images/colortest.bmp", ASSET_TEXTURE_COLORS);
     AtlasAsset *atlas = CreateAtlas(&atlasGen);
-
     AddAtlasToAssetFile(&gen, atlas);
 
+    // Fonts:
     AtlasAsset *fontAtlas = BuildFontSpritemap(&gen);
     AddAtlasToAssetFile(&gen, fontAtlas);
+
+    // Shaders:
+    AddShader(&gen, "../data/shaders/minimal.frag", ASSET_SHADER_FRAGMENT);
+    AddShader(&gen, "../data/shaders/minimal.vert", ASSET_SHADER_VERTEX);
 
     WriteAssetFile(&gen);
 
     // TODO: Probably want to free resources in a better way.
     free(atlas);
+    free(fontAtlas);
 
     return 0;
 }

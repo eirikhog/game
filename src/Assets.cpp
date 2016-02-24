@@ -21,6 +21,9 @@ GameAssets AssetsInit(platform_api *api, MemorySegment memory) {
 ShaderAsset AssetGetShader(GameAssets *assets, uint32 id) {
     char *shader;
     uint32 size = 0;
+
+    
+
     switch (id) {
         case ASSET_SHADER_VERTEX:{
             shader = assets->api->ReadEntireFile("../data/shaders/minimal.vert", &size);
