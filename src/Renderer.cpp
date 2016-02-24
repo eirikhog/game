@@ -104,6 +104,9 @@ static void LoadTextures(GameAssets *assets, RenderContext *ctx) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     ctx->fontAtlasId = id;
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     ctx->selectedTexture = id;
 }
 

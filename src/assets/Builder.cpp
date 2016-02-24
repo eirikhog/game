@@ -281,7 +281,7 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
         for (int32 x = 0; x < BitmapSize; ++x) {
             // 0x00bbggrr
             uint32 color = GetPixel(dc, x, y);
-            dest[x + y * BitmapSize] = (0xFF << 24) | color;
+            dest[x + y * BitmapSize] = ((color & 0xFF) << 24) | color;
         }
     }
 

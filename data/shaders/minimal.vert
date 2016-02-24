@@ -5,9 +5,9 @@
 uniform vec2 size;
 
 in vec3 in_position;
-in vec3 in_color;
+in vec4 in_color;
 in vec2 in_vertexUV;
-out vec3 ex_color;
+out vec4 ex_color;
 out vec2 UV;
 
 void main(void)
