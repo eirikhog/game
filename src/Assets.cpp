@@ -40,24 +40,24 @@ ShaderAsset AssetGetShader(GameAssets *assets, uint32 id) {
     return asset;
 }
 
-AtlasAsset AssetGetAtlas(GameAssets *assets, AssetId id) {
+AtlasAsset *AssetGetAtlas(GameAssets *assets, AssetId id) {
     uint32 size;
-    void *data = assets->api->ReadEntireFile("assets.gap", &size);
+    uint8 *data = (uint8*)assets->api->ReadEntireFile("assets.gap", &size);
     Assert(size > sizeof(AssetFileHeader));
 
     AssetFileHeader *header = (AssetFileHeader*)data;
     Assert(header->magic == ASSETS_MAGIC);
 
+    AssetFileEntry *entries = (AssetFileEntry*)(data + sizeof(AssetFileHeader));
     for (uint32 i = 0; i < header->assetCount; ++i) {
-        AssetFileEntry *asset = (AssetFileEntry*)((uint8*)data + sizeof(AssetFileHeader) + sizeof(AssetFileEntry) * i);
-        if (asset->id == id) {
-            AtlasAsset result = asset->atlas;
-            result.data = (uint8*)data + asset->offset;
-            return result;
+        if (entries[i].id == id) {
+            AtlasAsset *atlas = (AtlasAsset*)(data + entries[i].offset);
+            atlas->entries = (AtlasAssetEntry *)(data + entries[i].offset + sizeof(AtlasAsset));
+            atlas->data = (uint8*)(data + entries[i].offset + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlas->count);
+            return atlas;
         }
     }
 
-    // TODO: Invalid code path
-    Assert(0);
-    return {};
+    InvalidCodePath();
+    return 0;
 }

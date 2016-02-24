@@ -4,9 +4,11 @@
 #include "../Common.h"
 #include "../Assets.h"
 
+
 typedef struct {
     AssetFileEntry entry;
-    uint32_t size;
+    uint32 size;
+    uint32 type;
     void *data;
 } AssetGeneratorFileEntry;
 

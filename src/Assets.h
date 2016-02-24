@@ -22,7 +22,7 @@ typedef enum {
 
 typedef enum {
     ASSET_ATLAS1,
-    ASSET_TEXTURE_WHITE,
+    ASSET_TEXTURE_WHITE = 65,
     ASSET_TEXTURE_DIRT,
     ASSET_TEXTURE_STONE,
     ASSET_TEXTURE_MARKER,
@@ -54,11 +54,12 @@ typedef struct {
 typedef struct {
     v2f uvOrigin;
     v2f uvEnd;
-    AssetId id;
+    uint32 id;
 } AtlasAssetEntry;
 
 typedef struct {
     uint32 id;
+    uint32 size;
     uint32 width;
     uint32 height;
     uint8 *data;
@@ -69,12 +70,8 @@ typedef struct {
 typedef struct {
     uint32 id;
     AssetType type;
+    uint32 tag;
     uint32 offset;
-    union {
-        ImageAsset image;
-        ShaderAsset shader;
-        AtlasAsset atlas;
-    };
     uint32_t size;
 } AssetFileEntry;
 
@@ -86,7 +83,7 @@ typedef struct {
 
 GameAssets AssetsInit(platform_api *api, MemorySegment memory);
 ShaderAsset AssetGetShader(GameAssets *assets, uint32 id);
-AtlasAsset AssetGetAtlas(GameAssets *assets, AssetId id);
+AtlasAsset *AssetGetAtlas(GameAssets *assets, AssetId id);
 
 #endif
 

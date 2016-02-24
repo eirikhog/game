@@ -35,7 +35,7 @@ typedef struct RenderContext {
     uint32 entries_count;
     uint32 entries_max;
 
-    AtlasAsset atlas;
+    AtlasAsset *atlas;
 } RenderContext;
 
 static void Draw(RenderContext *ctx);
@@ -86,13 +86,13 @@ static void InitializeOpenGL(GameAssets *assets) {
 }
 
 static void LoadTextures(GameAssets *assets, RenderContext *ctx) {
-    AtlasAsset a = AssetGetAtlas(assets, ASSET_ATLAS1);
+    AtlasAsset *a = AssetGetAtlas(assets, ASSET_ATLAS1);
     ctx->atlas = a;
 
     GLuint id;
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, a.width, a.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, a.data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, a->width, a->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, a->data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -159,7 +159,7 @@ void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id) {
         ctx->entries_count = 0;
     }
 
-    AtlasAssetEntry entry = GetAtlasEntry(&ctx->atlas, image_id);
+    AtlasAssetEntry entry = GetAtlasEntry(ctx->atlas, image_id);
     
     RenderVertex vertices[4];
     vertices[0] = { { (real32)r.x, (real32)r.y, 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvOrigin.y } };

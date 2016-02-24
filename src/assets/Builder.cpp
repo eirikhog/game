@@ -84,26 +84,12 @@ void WriteAssetFile(AssetFileGenerator *generator) {
     if (fp) {
         fwrite(&generator->header, sizeof(AssetFileHeader), 1, fp);
         for (auto it : generator->entries) {
-            AssetGeneratorFileEntry *genEntry = &it;
-            switch (genEntry->entry.type) {
-                case ASSET_IMAGE:
-                    std::cout << "Writing image (ID: " << genEntry->entry.id << ")" << std::endl;
-                    WriteImageAsset(fp, generator, genEntry);
-                    break;
-                case ASSET_SHADER:
-                    std::cout << "Writing shader (ID: " << genEntry->entry.id << ")" << std::endl;
-                    WriteShaderAsset(fp, generator, genEntry);
-                    break;
-                case ASSET_SOUND:
-                    std::cout << "Writing sound (ID: " << genEntry->entry.id << ")" << std::endl;
-                    WriteSoundAsset(fp, generator, genEntry);
-                    break;
-                case ASSET_ATLAS:
-                    std::cout << "Writing atlas (ID: " << genEntry->entry.id << ")" << std::endl;
-                    WriteAtlasAsset(fp, generator, genEntry);
-                    break;
-            }
+            //it.data = (void*)generator->dataOffset;
+            it.entry.offset = generator->dataOffset;
+            generator->dataOffset += it.size;
+            fwrite(&it.entry, sizeof(AssetFileEntry), 1, fp);
         }
+
         // Now write the data.
         for (auto it : generator->entries) {
             std::cout << "Writing data for asset (ID: " << it.entry.id << ", Size: " << it.size << ", Offset : " << ftell(fp) << ")" << std::endl;
@@ -111,28 +97,6 @@ void WriteAssetFile(AssetFileGenerator *generator) {
         }
         fclose(fp);
     }
-}
-
-void AddImage(AssetFileGenerator *gen, char *filename) {
-    // Load image from file
-    // Create Imageasset struct with width, height, etc.
-    // Keep data in memory until we read.
-
-    Image img = LoadBMP(filename);
-
-    AssetFileEntry entry = {};
-    entry.id = gen->idCounter++;
-    entry.type = ASSET_IMAGE;
-    entry.offset = 0; // This is calculated on write.
-    entry.image.width = img.width;
-    entry.image.height = img.height;
-
-    AssetGeneratorFileEntry genEntry = {};
-    genEntry.entry = entry;
-    genEntry.size = img.width * img.height * 4;
-    genEntry.data = img.data;
-
-    gen->entries.push_back(genEntry);
 }
 
 AtlasGenerator CreateAtlasGenerator(AssetFileGenerator *gen) {
@@ -152,7 +116,7 @@ void AddImageToAtlas(AtlasGenerator *gen, char *filePath, AssetId id) {
 
 #define TEXTURE_SIZE 32
 
-AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
+AtlasAsset *CreateAtlas(AtlasGenerator *atlasGen) {
     TIMED_FUNCTION();
     uint32 minimumDim = (uint32)square_root((real32)atlasGen->count * TEXTURE_SIZE * TEXTURE_SIZE);
     
@@ -162,23 +126,29 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
         dim = (uint32)pow(2, i++);
     } while (dim < minimumDim);
 
-    AtlasAsset atlas = {};
-    atlas.width = dim;
-    atlas.height = dim;
-    atlas.count = atlasGen->count;
-    atlas.data = (uint8*)malloc(dim*dim * 32);
+    uint32 atlasSize = sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlasGen->count + dim*dim * 32;
+
+    AtlasAsset *atlas = (AtlasAsset *)malloc(atlasSize);
+    
+    atlas->size = atlasSize;
+    atlas->width = dim;
+    atlas->height = dim;
+    atlas->count = atlasGen->count;
+    // Put the bitmap data at the end.
+    atlas->data = (uint8*)atlas + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlasGen->count;
+    atlas->entries = (AtlasAssetEntry*)((uint8*)atlas + sizeof(AtlasAsset));
 
     for (int32 i = 0; i < (int32)atlasGen->count; ++i) {
         int32 offsetX = (i * TEXTURE_SIZE) % dim;
         int32 offsetY = TEXTURE_SIZE * ((i * TEXTURE_SIZE) / dim);
 
         // Add metadata to atlas
-        atlas.entries[i].id = atlasGen->ids[i];
-        atlas.entries[i].uvOrigin = { (real32)offsetX / (real32)dim, 1.0f - (real32)(offsetY + TEXTURE_SIZE) / (real32)dim };
-        atlas.entries[i].uvEnd = { (real32)(offsetX + TEXTURE_SIZE) / (real32)dim, 1.0f - ((real32)offsetY / (real32)dim) };
+        atlas->entries[i].id = atlasGen->ids[i];
+        atlas->entries[i].uvOrigin = { (real32)offsetX / (real32)dim, 1.0f - (real32)(offsetY + TEXTURE_SIZE) / (real32)dim };
+        atlas->entries[i].uvEnd = { (real32)(offsetX + TEXTURE_SIZE) / (real32)dim, 1.0f - ((real32)offsetY / (real32)dim) };
 
         // Copy image to atlas
-        uint32_t *dest = (uint32_t*)atlas.data;
+        uint32_t *dest = (uint32_t*)atlas->data;
         uint32_t *src = (uint32_t*)atlasGen->images[i].data;
         for (int32 y = 0; y < TEXTURE_SIZE; ++y) {
             for (int32 x = 0; x < TEXTURE_SIZE; ++x) {
@@ -190,24 +160,25 @@ AtlasAsset CreateAtlas(AtlasGenerator *atlasGen) {
     return atlas;
 }
 
-void AddAtlasToAssetFile(AssetFileGenerator *gen, AtlasAsset atlas) {
+void AddAtlasToAssetFile(AssetFileGenerator *gen, AtlasAsset *atlas) {
+
     AssetFileEntry entry = {};
     entry.type = ASSET_ATLAS;
-    entry.atlas = atlas;
-    entry.size = atlas.width * atlas.height * 32;
+    entry.size = atlas->size;
     entry.id = gen->idCounter++;
 
     AssetGeneratorFileEntry fileEntry = {};
     fileEntry.entry = entry;
-    fileEntry.data = atlas.data;
-    fileEntry.size = entry.size;
+    fileEntry.data = atlas;
+    fileEntry.size = atlas->size;
 
     gen->entries.push_back(fileEntry);
 }
 
-void BuildFontSpritemap(AssetFileGenerator *gen) {
+AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
 
     const int BitmapSize = 256;
+
 
     HDC dc = CreateCompatibleDC(GetDC(0));
     BITMAPINFO bmi = {};
@@ -265,6 +236,17 @@ void BuildFontSpritemap(AssetFileGenerator *gen) {
         codepoints[codepointCount++] = extra[i];
     }
 
+    uint32 atlasSize = sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * codepointCount + BitmapSize * BitmapSize * 32;
+    AtlasAsset *atlas = (AtlasAsset *)malloc(atlasSize);
+    AtlasAssetEntry *entries = (AtlasAssetEntry *)((uint8*)atlas + sizeof(AtlasAsset));
+
+    atlas->size = atlasSize;
+    atlas->width = BitmapSize;
+    atlas->height = BitmapSize;
+    atlas->count = codepointCount;
+    atlas->entries = entries;
+    atlas->data = (uint8*)atlas + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlas->count;
+
     // Create font spritemap
     for (uint32 i = 0; i < codepointCount; ++i) {
         wchar_t c = codepoints[i];
@@ -283,12 +265,28 @@ void BuildFontSpritemap(AssetFileGenerator *gen) {
         if (size.cy > highest) {
             highest = size.cy;
         }
+
+        entries[i].id = (uint32)c;
+        entries[i].uvOrigin = { (real32)offsetX / (real32)BitmapSize, 1.0f - (real32)offsetY / (real32)BitmapSize };
+        entries[i].uvEnd = { (real32)(offsetX + size.cx) / (real32)BitmapSize, 1.0f - (real32)(offsetY + size.cy) / (real32)BitmapSize };
     }
 
     DumpBMP((uint8*)bitmapData, BitmapSize, BitmapSize, "fontmap.bmp");
 
+    // Copy image data to asset
+    uint32 *dest = (uint32*)atlas->data;
+    for (int32 y = 0; y < BitmapSize; ++y) {
+        for (int32 x = 0; x < BitmapSize; ++x) {
+            // 0x00bbggrr
+            uint32 color = GetPixel(dc, x, y);
+            dest[x + y * BitmapSize] = (0xFF << 24) | color;
+        }
+    }
+
     DeleteObject(fontHandle);
     ReleaseDC(0, dc);
+
+    return atlas;
 }
 
 int main(int argc, char* argvp[]) {
@@ -303,13 +301,17 @@ int main(int argc, char* argvp[]) {
     AddImageToAtlas(&atlasGen, "../data/images/marker.bmp", ASSET_TEXTURE_MARKER);
     AddImageToAtlas(&atlasGen, "../data/images/shroud1.bmp", ASSET_TEXTURE_SHROUD);
     AddImageToAtlas(&atlasGen, "../data/images/q.bmp", ASSET_TEXTURE_Q);
-    AtlasAsset atlas = CreateAtlas(&atlasGen);
+    AtlasAsset *atlas = CreateAtlas(&atlasGen);
 
     AddAtlasToAssetFile(&gen, atlas);
 
-    BuildFontSpritemap(&gen);
+    AtlasAsset *fontAtlas = BuildFontSpritemap(&gen);
+    AddAtlasToAssetFile(&gen, fontAtlas);
 
     WriteAssetFile(&gen);
+
+    // TODO: Probably want to free resources in a better way.
+    free(atlas);
 
     return 0;
 }
