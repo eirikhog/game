@@ -29,6 +29,9 @@ typedef struct RenderContext {
     uint32 fontAtlasId;
 
     uint32 selectedTexture;
+
+    uint32 prevFrameObjects;
+    uint32 currFrameObjects;
 } RenderContext;
 
 static void Draw(RenderContext *ctx);
@@ -199,6 +202,7 @@ void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint3
     }
 
     ctx->entriesCount++;
+    ctx->currFrameObjects++;
 }
 
 void RenderStart(RenderContext *ctx, v2i windowSize) {
@@ -208,6 +212,8 @@ void RenderStart(RenderContext *ctx, v2i windowSize) {
 
     ctx->rendering = true;
     ctx->windowSize = windowSize;
+
+    ctx->currFrameObjects = 0;
 }
 
 void RenderEnd(RenderContext *ctx) {
@@ -218,7 +224,13 @@ void RenderEnd(RenderContext *ctx) {
     SegmentClear(&ctx->vertexBuffer);
     ctx->entriesCount = 0;
 
+    ctx->prevFrameObjects = ctx->currFrameObjects;
+
     ctx->rendering = false;
+}
+
+uint32 RenderedObjects(RenderContext *ctx) {
+    return ctx->prevFrameObjects;
 }
 
 void Draw(RenderContext *ctx) {

@@ -2,6 +2,10 @@
 
 #include "Platform.h"
 
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+
 typedef struct {
     uint8 *base;
     uint32 size;
@@ -39,3 +43,27 @@ SegmentClear(MemorySegment *segment) {
     segment->used = 0;
 }
 
+#include <stdio.h>
+
+inline char *mprintf(const char *format, ...) {
+    va_list ap;
+    char buffer[256];
+    va_start(ap, format);
+    uint32 length = vsprintf(buffer, format, ap);
+    va_end(ap);
+
+    char *result = (char*)malloc(length + 1);
+    memcpy(result, buffer, length + 1);
+    return result;
+}
+
+#define CONCAT_IMPL( x, y ) x##y
+#define MACRO_CONCAT( x, y ) CONCAT_IMPL( x, y )
+#define _SCOPE_FREE(x) ScopeFree MACRO_CONCAT(_scope_free_, __COUNTER__)##(x)
+#define SCOPE_FREE(x) _SCOPE_FREE(x)
+
+struct ScopeFree {
+    ScopeFree(void *ptr) : mPtr(ptr) {};
+    ~ScopeFree() { free(mPtr); }
+    void *mPtr;
+};

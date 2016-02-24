@@ -95,6 +95,8 @@ void WorldCreate(World *world) {
 
 void WorldUpdate(World *world, game_input *input, real32 dt) {
 
+    world->mousePos = input->mouse_position;
+
     if (input->mouse_buttons & MOUSE_RIGHT) {
         world->camera -= input->mouse_delta;
     }
@@ -125,6 +127,26 @@ GetTileCoordinate(v2i camera, v2i screenSize, v2i position) {
     return result;
 }
 
+void DrawDiagnostics(World *world, RenderContext *ctx) {
+    const Color white = { 1.0f, 1.0f, 1.0f };
+    char *text = mprintf("Screen size: %ix%i", world->screenSize.x, world->screenSize.y);
+    SCOPE_FREE((void*)text);
+    DrawText(ctx, text, { 0, 0 }, white);
+
+    char *mouseText = mprintf("Mouse position: (%i, %i)", world->mousePos.x, world->mousePos.y);
+    SCOPE_FREE(mouseText);
+    DrawText(ctx, mouseText, { 0, 12 }, white);
+
+    char *worldPosText = mprintf("Camera position: (%i, %i)", world->camera.x, world->camera.y);
+    SCOPE_FREE(worldPosText);
+    DrawText(ctx, worldPosText, { 0, 24 }, white);
+
+    char *tilesText = mprintf("Drawn objects: %i", RenderedObjects(ctx));
+    SCOPE_FREE(tilesText);
+    DrawText(ctx, tilesText, { 0, 36 }, white);
+
+}
+
 void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
 
     const v2i screenSize = windowSize;
@@ -143,7 +165,7 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
     DrawSolidRect(ctx, Rect2Di(0, 0, (int32)screenSize.x, (int32)screenSize.y), { 0.486f, 0.678f, 0.965f });
 
     uint32 texture = (uint32)ASSET_TEXTURE_DIRT;
-
+    int drawnTiles = 0;
     v2i center = world->camera;
     for (int32 y = chunkStartY; y <= chunkEndY; ++y) {
         for (int32 x = chunkStartX; x <= chunkEndX; ++x) {
@@ -174,6 +196,7 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
                     v2i pos = screenPos + offset;
                     texture = (AssetId)chunk->tiles[tileX + tileY * CHUNK_DIM];
                     DrawImage(ctx, Rect2Di((int32)pos.x, (int32)pos.y, TILE_SIZE, TILE_SIZE), texture);
+                    drawnTiles++;
                 }
             }
 
@@ -184,5 +207,5 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
     DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
     DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });
 
-    DrawText(ctx, "Hello world?!", { 0, 0 }, white);
+    DrawDiagnostics(world, ctx);
 }

@@ -27,6 +27,7 @@ typedef struct {
     v2i camera;
     v2i screenSize;
     WorldChunk chunks[32];
+    v2i mousePos;
 } World;
 
 void WorldCreate(World *world);
