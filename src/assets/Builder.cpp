@@ -231,7 +231,7 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
         codepoints[codepointCount++] = (wchar_t)('0' + i);
     }
 
-    const char extra[] = { ' ', '_', '-', '+', '=', '!' };
+    const char extra[] = { ' ', '_', '-', '+', '=', '!', '?' };
     for (int32 i = 0; i < sizeof(extra); ++i) {
         codepoints[codepointCount++] = extra[i];
     }
@@ -261,14 +261,16 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
 
         SetTextColor(dc, RGB(255, 255, 255));
         TextOutW(dc, offsetX, offsetY, &c, 1);
+        
+        entries[i].id = (uint32)c;
+        entries[i].uvOrigin = { (real32)offsetX / (real32)BitmapSize, 1.0f - (real32)offsetY / (real32)BitmapSize };
+        entries[i].uvEnd = { (real32)(offsetX + size.cx) / (real32)BitmapSize, 1.0f - (real32)(offsetY + size.cy) / (real32)BitmapSize };
+
         offsetX += size.cx + bounds;
         if (size.cy > highest) {
             highest = size.cy;
         }
 
-        entries[i].id = (uint32)c;
-        entries[i].uvOrigin = { (real32)offsetX / (real32)BitmapSize, 1.0f - (real32)offsetY / (real32)BitmapSize };
-        entries[i].uvEnd = { (real32)(offsetX + size.cx) / (real32)BitmapSize, 1.0f - (real32)(offsetY + size.cy) / (real32)BitmapSize };
     }
 
     DumpBMP((uint8*)bitmapData, BitmapSize, BitmapSize, "fontmap.bmp");

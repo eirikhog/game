@@ -142,7 +142,7 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
 
     DrawSolidRect(ctx, Rect2Di(0, 0, (int32)screenSize.x, (int32)screenSize.y), { 0.486f, 0.678f, 0.965f });
 
-    AssetId texture = ASSET_TEXTURE_DIRT;
+    uint32 texture = (uint32)ASSET_TEXTURE_DIRT;
 
     v2i center = world->camera;
     for (int32 y = chunkStartY; y <= chunkEndY; ++y) {
@@ -183,4 +183,6 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
 
     DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
     DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });
+
+    DrawText(ctx, "Hello world?!", { 0, 0 }, white);
 }

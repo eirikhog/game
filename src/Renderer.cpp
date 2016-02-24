@@ -24,10 +24,15 @@ typedef struct RenderContext {
     uint32 entriesMax;
 
     AtlasAsset *atlas;
+    uint32 atlasId;
+    AtlasAsset *fontAtlas;
+    uint32 fontAtlasId;
+
+    uint32 selectedTexture;
 } RenderContext;
 
 static void Draw(RenderContext *ctx);
-static void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id);
+static void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint32 spritemapId);
 
 static void InitializeOpenGL(GameAssets *assets) {
     GLenum err = glewInit();
@@ -74,16 +79,29 @@ static void InitializeOpenGL(GameAssets *assets) {
 }
 
 static void LoadTextures(GameAssets *assets, RenderContext *ctx) {
-    AtlasAsset *a = AssetGetAtlas(assets, ASSET_ATLAS1);
-    ctx->atlas = a;
+    AtlasAsset *atlas = AssetGetAtlas(assets, ASSET_SPRITEMAP);
+    ctx->atlas = atlas;
 
     GLuint id;
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, a->width, a->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, a->data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas->width, atlas->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas->data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    ctx->atlasId = id;
+
+    AtlasAsset *fontAtlas = AssetGetAtlas(assets, ASSET_FONT_SPRITEMAP);
+    ctx->fontAtlas = fontAtlas;
+
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fontAtlas->width, fontAtlas->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, fontAtlas->data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    ctx->fontAtlasId = id;
+
+    ctx->selectedTexture = id;
 }
 
 RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
@@ -110,12 +128,12 @@ RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
     return ctx;
 }
 
-void DrawImage(RenderContext *ctx, Rect2Di target, AssetId image_id) {
-    RenderObject(ctx, target, { 1.0f, 1.0f, 1.0f }, image_id);
+void DrawImage(RenderContext *ctx, Rect2Di target, uint32 image_id) {
+    RenderObject(ctx, target, { 1.0f, 1.0f, 1.0f }, image_id, ASSET_SPRITEMAP);
 }
 
 void DrawSolidRect(RenderContext *ctx, Rect2Di r, Color c) {
-    RenderObject(ctx, r, c, ASSET_TEXTURE_WHITE);
+    RenderObject(ctx, r, c, ASSET_TEXTURE_WHITE, ASSET_SPRITEMAP);
 }
 
 void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
@@ -125,35 +143,55 @@ void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
     DrawSolidRect(ctx, Rect2Di(r.x + r.width - 1, r.y, 1, r.height), c);
 }
 
+void DrawText(RenderContext *ctx, const char *str, v2i position, Color c) {
+    
+    const int size = 12;
 
-AtlasAssetEntry GetAtlasEntry(AtlasAsset *atlas, AssetId id) {
+    int32 offsetX = 0;
+    const char *ptr = str;
+    while (*ptr != 0) {
+        RenderObject(ctx, { position.x + offsetX, position.y, size, size }, c, *ptr, ASSET_FONT_SPRITEMAP);
+        offsetX += size;
+        ptr++;
+    }
+}
+
+AtlasAssetEntry *GetAtlasEntry(AtlasAsset *atlas, uint32 id) {
     
     for (uint32 i = 0; i < atlas->count; ++i) {
         if (atlas->entries[i].id == id) {
-            return atlas->entries[i];
+            return &atlas->entries[i];
         }
     }
 
     InvalidCodePath();
-    return{};
+    return 0;
 }
 
-void RenderObject(RenderContext *ctx, Rect2Di r, Color c, AssetId image_id) {
+void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint32 spritemapId) {
+    bool32 flush = 0;
+
+    if (ctx->selectedTexture != spritemapId) {
+        uint32 id = spritemapId == ASSET_SPRITEMAP ? ctx->atlasId : ctx->fontAtlasId;
+        glBindTexture(GL_TEXTURE_2D, id);
+        flush = 1;
+    }
 
     // If the buffer is full, push the data to the graphics card and render what we got.
-    if (ctx->entriesCount >= ctx->entriesMax) {
+    if (ctx->entriesCount >= ctx->entriesMax || flush) {
         Draw(ctx);
         SegmentClear(&ctx->vertexBuffer);
         ctx->entriesCount = 0;
     }
 
-    AtlasAssetEntry entry = GetAtlasEntry(ctx->atlas, image_id);
+    AtlasAsset *atlas = spritemapId == ASSET_SPRITEMAP ? ctx->atlas : ctx->fontAtlas;
+    AtlasAssetEntry *entry = GetAtlasEntry(atlas, image_id);
     
     RenderVertex vertices[4];
-    vertices[0] = { { (real32)r.x, (real32)r.y, 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvOrigin.y } };
-    vertices[1] = { { (real32)r.x, (real32)(r.y + r.height), 0.f }, c, { entry.uvOrigin.x, 1.0f - entry.uvEnd.y } };
-    vertices[2] = { { (real32)(r.x + r.width), (real32)(r.y + r.height), 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvEnd.y } };
-    vertices[3] = { { (real32)(r.x + r.width), (real32)r.y, 0.f }, c, { entry.uvEnd.x, 1.0f - entry.uvOrigin.y } };
+    vertices[0] = { { (real32)r.x, (real32)r.y, 0.f }, c, { entry->uvOrigin.x, 1.0f - entry->uvOrigin.y } };
+    vertices[1] = { { (real32)r.x, (real32)(r.y + r.height), 0.f }, c, { entry->uvOrigin.x, 1.0f - entry->uvEnd.y } };
+    vertices[2] = { { (real32)(r.x + r.width), (real32)(r.y + r.height), 0.f }, c, { entry->uvEnd.x, 1.0f - entry->uvEnd.y } };
+    vertices[3] = { { (real32)(r.x + r.width), (real32)r.y, 0.f }, c, { entry->uvEnd.x, 1.0f - entry->uvOrigin.y } };
 
     for (int i = 0; i < 4; ++i) {
         RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertexBuffer, RenderVertex);

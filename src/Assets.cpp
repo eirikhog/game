@@ -40,7 +40,7 @@ ShaderAsset AssetGetShader(GameAssets *assets, uint32 id) {
     return asset;
 }
 
-AtlasAsset *AssetGetAtlas(GameAssets *assets, AssetId id) {
+AtlasAsset *AssetGetAtlas(GameAssets *assets, uint32 id) {
     uint32 size;
     uint8 *data = (uint8*)assets->api->ReadEntireFile("assets.gap", &size);
     Assert(size > sizeof(AssetFileHeader));

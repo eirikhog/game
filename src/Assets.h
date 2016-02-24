@@ -13,6 +13,9 @@
 #define ASSET_SHADER_FRAGMENT 2
 #define ASSET_IMAGE_SPRITEMAP 0
 
+#define ASSET_SPRITEMAP 0
+#define ASSET_FONT_SPRITEMAP 1
+
 typedef enum {
     ASSET_SHADER,
     ASSET_IMAGE,
@@ -83,7 +86,7 @@ typedef struct {
 
 GameAssets AssetsInit(platform_api *api, MemorySegment memory);
 ShaderAsset AssetGetShader(GameAssets *assets, uint32 id);
-AtlasAsset *AssetGetAtlas(GameAssets *assets, AssetId id);
+AtlasAsset *AssetGetAtlas(GameAssets *assets, uint32 id);
 
 #endif
 

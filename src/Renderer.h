@@ -10,6 +10,7 @@ RenderContext *RenderInit(GameAssets *assets, MemorySegment memory);
 void RenderStart(RenderContext *ctx, v2i windowSize);
 void RenderEnd(RenderContext *ctx);
 
-void DrawImage(RenderContext *ctx, Rect2Di r, AssetId id);
+void DrawImage(RenderContext *ctx, Rect2Di r, uint32 id);
 void DrawSolidRect(RenderContext *ctx, Rect2Di r, Color c);
 void DrawRect(RenderContext *ctx, Rect2Di r, Color c);
+void DrawText(RenderContext *ctx, const char *str, v2i position, Color c);
