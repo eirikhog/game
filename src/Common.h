@@ -2,6 +2,10 @@
 #define _COMMON_H
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdio.h>
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -36,6 +40,30 @@ struct Rect2D {
 };
 
 typedef Rect2D<int32> Rect2Di;
+
+inline char *mprintf(const char *format, ...) {
+    const int bufferSize = 256;
+    va_list ap;
+    char buffer[bufferSize];
+    va_start(ap, format);
+    uint32 length = vsnprintf(buffer, bufferSize, format, ap);
+    va_end(ap);
+
+    char *result = (char*)malloc(length + 1);
+    memcpy(result, buffer, length + 1);
+    return result;
+}
+
+#define _CONCAT( x, y ) x##y
+#define CONCAT( x, y ) _CONCAT( x, y )
+#define _SCOPE_FREE(x) ScopeFree CONCAT(_scope_free_, __COUNTER__)##(x)
+#define SCOPE_FREE(x) _SCOPE_FREE(x)
+
+struct ScopeFree {
+    ScopeFree(void *ptr) : mPtr(ptr) {};
+    ~ScopeFree() { free(mPtr); }
+    void *mPtr;
+};
 
 #endif
 
