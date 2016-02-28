@@ -33,12 +33,8 @@ typedef enum {
     ASSET_TEXTURE_Q,
     ASSET_TEXTURE_GRASS,
     ASSET_TEXTURE_COLORS,
+    ASSET_TEXTURE_WATER,
 } AssetId;
-
-typedef struct {
-    platform_api *api;
-    MemorySegment memory;
-} GameAssets;
 
 typedef struct {
     uint32 id;
@@ -86,8 +82,15 @@ typedef struct {
     uint32 assetOffset;
 } AssetFileHeader;
 
+typedef struct {
+    platform_api *api;
+    MemorySegment memory;
+    AssetFileHeader *assetFile;
+    AssetFileEntry *entries;
+} GameAssets;
+
 GameAssets AssetsInit(platform_api *api, MemorySegment memory);
-ShaderAsset AssetGetShader(GameAssets *assets, uint32 id);
+ShaderAsset *AssetGetShader(GameAssets *assets, uint32 id);
 AtlasAsset *AssetGetAtlas(GameAssets *assets, uint32 id);
 
 #endif

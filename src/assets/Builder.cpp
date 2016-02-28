@@ -301,23 +301,27 @@ void AddShader(AssetFileGenerator *gen, char *file, uint32 id) {
         uint32 size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
 
-        void *data = malloc(sizeof(ShaderAsset) + size);
-        fread(data, size + sizeof(ShaderAsset), 1, fp);
+        uint32 assetSize = sizeof(ShaderAsset) + size + 1; // +1 for zero termination.
+        uint8 *data = (uint8*)malloc(assetSize);
+        ZeroMemory(data, assetSize);
+
+        // Data follows the asset struct.
+        fread(data + sizeof(ShaderAsset), size, 1, fp);
 
         ShaderAsset *asset = (ShaderAsset*)data;
         asset->id = id;
         asset->size = size;
-        asset->content = 0;
+        asset->content = (char*)(data + sizeof(ShaderAsset));
 
         AssetFileEntry entry = {};
         entry.type = ASSET_SHADER;
-        entry.size = sizeof(ShaderAsset) + size;
+        entry.size = assetSize;
         entry.id = gen->idCounter++;
 
         AssetGeneratorFileEntry fileEntry = {};
         fileEntry.entry = entry;
         fileEntry.data = data;
-        fileEntry.size = sizeof(ShaderAsset) + size;
+        fileEntry.size = assetSize;
 
         gen->entries.push_back(fileEntry);
     }
@@ -338,6 +342,7 @@ int main(int argc, char* argvp[]) {
     AddImageToAtlas(&atlasGen, "../data/images/q.bmp", ASSET_TEXTURE_Q);
     AddImageToAtlas(&atlasGen, "../data/images/grass1.bmp", ASSET_TEXTURE_GRASS);
     AddImageToAtlas(&atlasGen, "../data/images/colortest.bmp", ASSET_TEXTURE_COLORS);
+    AddImageToAtlas(&atlasGen, "../data/images/water.bmp", ASSET_TEXTURE_WATER);
     AtlasAsset *atlas = CreateAtlas(&atlasGen);
     AddAtlasToAssetFile(&gen, atlas);
 

@@ -4,7 +4,7 @@
 
 static WorldChunk*
 GetChunk(World *world, int x, int y) {
-    for (int i = 0; i < 16; ++i) {
+    for (int i = 0; i < 32; ++i) {
         if (world->chunks[i].x == x && world->chunks[i].y == y) {
             return &(world->chunks[i]);
         }
@@ -79,8 +79,8 @@ void WorldCreate(World *world) {
     CenterOnChunk(world, { 0, 0 });
 
     for (int i = 0; i < 32; ++i) {
-        world->chunks[i].x = (i % 4)-2;
-        world->chunks[i].y = (i / 4)-2;
+        world->chunks[i].x = (i % 6)-3;
+        world->chunks[i].y = (i / 6)-3;
         for (int j = 0; j < CHUNK_DIM * CHUNK_DIM; ++j) {
             world->chunks[i].tiles[j] = ASSET_TEXTURE_GRASS;
         }

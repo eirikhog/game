@@ -50,13 +50,13 @@ static void InitializeOpenGL(GameAssets *assets) {
     GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
 
     // load shaders & get length of each
-    ShaderAsset vs = AssetGetShader(assets, ASSET_SHADER_VERTEX);
-    ShaderAsset fs = AssetGetShader(assets, ASSET_SHADER_FRAGMENT);
+    ShaderAsset *vs = AssetGetShader(assets, ASSET_SHADER_VERTEX);
+    ShaderAsset *fs = AssetGetShader(assets, ASSET_SHADER_FRAGMENT);
 
-    GLint vlen = (GLint)vs.size;
-    GLint flen = (GLint)fs.size;
-    const char * vv = vs.content;
-    const char * ff = fs.content;
+    GLint vlen = (GLint)vs->size;
+    GLint flen = (GLint)fs->size;
+    const char * vv = vs->content;
+    const char * ff = fs->content;
     glShaderSource(v, 1, &vv, &vlen);
     glShaderSource(f, 1, &ff, &flen);
     GLint compiled;
