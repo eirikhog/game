@@ -102,8 +102,17 @@ void WorldUpdate(World *world, game_input *input, real32 dt) {
     }
 
     if (input->mouse_buttons & MOUSE_LEFT) {
-        v2i tilePos = GetTileFromScreenPosition(world, input->mouse_position);
-        SetTile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_SHROUD);
+        if (!world->mouseDrag) {
+            world->mouseDragOrigin = world->mousePos;
+            world->mouseDrag = 1;
+        }
+
+        //v2i tilePos = GetTileFromScreenPosition(world, input->mouse_position);
+        //SetTile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_SHROUD);
+    } else {
+        if (world->mouseDrag) {
+            world->mouseDrag = 0;
+        }
     }
 
 }
@@ -200,8 +209,14 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
                 }
             }
 
-            DrawRect(ctx, { (int32)screenPos.x, (int32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
+            //DrawRect(ctx, { (int32)screenPos.x, (int32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
         }
+    }
+
+    if (world->mouseDrag) {
+        Rect2Di dragArea = { world->mouseDragOrigin.x, world->mouseDragOrigin.y, 
+            world->mousePos.x - world->mouseDragOrigin.x, world->mousePos.y - world->mouseDragOrigin.y };
+        DrawRect(ctx, dragArea, white);
     }
 
     DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });

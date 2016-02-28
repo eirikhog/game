@@ -28,6 +28,8 @@ typedef struct {
     v2i screenSize;
     WorldChunk chunks[32];
     v2i mousePos;
+    bool32 mouseDrag;
+    v2i mouseDragOrigin;
 } World;
 
 void WorldCreate(World *world);
