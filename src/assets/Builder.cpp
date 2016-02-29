@@ -197,11 +197,6 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
     SelectObject(dc, bitmap);
     SetBkColor(dc, RGB(0, 0, 0));
 
-    wchar_t cp = (wchar_t)'g';
-
-    SIZE fontSize;
-    GetTextExtentPoint32W(dc, &cp, 1, &fontSize);
-
     char *fontName = "Lucida Console";
     char *fontFile = "c:/windows/fonts/lucon.ttf";
     AddFontResourceExA(fontFile, FR_PRIVATE, 0);
@@ -209,6 +204,11 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
         ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, fontName);
 
     SelectObject(dc, fontHandle);
+
+    //// TODO: Render ALL glyphs in the font?
+    //DWORD fontSetSize = GetFontUnicodeRanges(dc, NULL);
+    //GLYPHSET *fontSet = (GLYPHSET*)malloc(fontSetSize);
+    //GetFontUnicodeRanges(dc, fontSet);
 
     TEXTMETRIC metric;
     GetTextMetrics(dc, &metric);
