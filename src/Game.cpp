@@ -11,6 +11,10 @@ typedef struct {
     MemorySegment renderer_memory;
     GameAssets assets;
     World *world;
+
+    bool showConsole;
+    char consoleInput[256];
+    u32 consoelInputCount;
 } game_state;
 
 static void
@@ -36,7 +40,26 @@ GameInit(game_state *state, platform_api *api, game_memory *memory) {
     state->world = (World*)world_memory.base;
     WorldCreate(state->world);
 
+    state->showConsole = false;
     state->initialized = true;
+}
+
+void DrawConsole(game_state *state, RenderContext *ctx) {
+    Rect2Di targetRect = { 0, 0, state->world->screenSize.x, state->world->screenSize.y / 2 };
+    Color bgcolor = { .25f, .35f, .35f };
+    DrawSolidRect(ctx, targetRect, bgcolor);
+
+    DrawText(ctx, state->consoleInput, { 0, state->world->screenSize.y / 2 - 20 }, { 1.0f, 1.0f, 1.0f });
+}
+
+void ReadConsoleInput(game_state *state, keyboard_state *keyboard) {
+    for (i32 i = 0; i < keyboard->keyCount; ++i) {
+        if (keyboard->keyStack[i] >= 'a' && keyboard->keyStack[i] <= 'z') {
+            state->consoleInput[state->consoelInputCount++] = keyboard->keyStack[i];
+        }
+        // TODO: Backspace, caret position, etc...
+    }
+    state->consoleInput[state->consoelInputCount + 1] = 0;
 }
 
 extern "C"
@@ -49,12 +72,30 @@ void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_
 
     state->world->screenSize = platformState->windowSize;
 
+    static bool32 consolePressedReg = 0;
+    if (input->buttons & BUTTON_CONSOLE) {
+        if (!consolePressedReg) {
+            state->showConsole = !state->showConsole;
+            consolePressedReg = 1;
+        }
+    } else {
+        consolePressedReg = 0;
+    }
+
     // Updating
+    if (state->showConsole) {
+        ReadConsoleInput(state, &input->keyboard);
+    }
     WorldUpdate(state->world, input, dt);
 
     // Rendering
     RenderStart(state->renderer, platformState->windowSize);
     WorldRender(state->world, state->renderer, platformState->windowSize);
+
+    if (state->showConsole) {
+        DrawConsole(state, state->renderer);
+    }
+
     RenderEnd(state->renderer);
 }
 

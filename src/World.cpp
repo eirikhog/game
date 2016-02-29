@@ -144,15 +144,15 @@ void DrawDiagnostics(World *world, RenderContext *ctx) {
 
     char *mouseText = mprintf("Mouse position: (%i, %i)", world->mousePos.x, world->mousePos.y);
     SCOPE_FREE(mouseText);
-    DrawText(ctx, mouseText, { 0, 12 }, white);
+    DrawText(ctx, mouseText, { 0, 16 }, white);
 
     char *worldPosText = mprintf("Camera position: (%i, %i)", world->camera.x, world->camera.y);
     SCOPE_FREE(worldPosText);
-    DrawText(ctx, worldPosText, { 0, 24 }, white);
+    DrawText(ctx, worldPosText, { 0, 32 }, white);
 
     char *tilesText = mprintf("Drawn objects: %i", RenderedObjects(ctx));
     SCOPE_FREE(tilesText);
-    DrawText(ctx, tilesText, { 0, 36 }, white);
+    DrawText(ctx, tilesText, { 0, 48 }, white);
 
 }
 

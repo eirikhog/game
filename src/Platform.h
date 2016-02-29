@@ -44,7 +44,15 @@ enum InputButtons {
     BUTTON_UP = 1,
     BUTTON_DOWN = 2,
     BUTTON_LEFT = 4,
-    BUTTON_RIGHT = 8
+    BUTTON_RIGHT = 8,
+    BUTTON_CONSOLE = 16,
+};
+
+#define KEYBOARD_MAX 32
+
+struct keyboard_state {
+    i32 keyCount;
+    i32 keyStack[KEYBOARD_MAX]; // max 32 keys per frame
 };
 
 struct game_input {
@@ -53,6 +61,7 @@ struct game_input {
     v2i mouse_delta;
     uint32 mouse_buttons;
     v2f joystick;
+    keyboard_state keyboard;
 };
 
 typedef void update_game(platform_state *state, game_memory *memory, game_input *input, real32 dt);

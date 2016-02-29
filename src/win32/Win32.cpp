@@ -225,6 +225,18 @@ void HandleKeyInput(game_input *input, InputButtons button, bool32 pressed) {
     }
 }
 
+void InputKeyboardReset(keyboard_state *keyboard) {
+    keyboard->keyCount = 0;
+}
+
+void InputPushKeyboard(keyboard_state *keyboard, u32 key) {
+    if (keyboard->keyCount >= KEYBOARD_MAX) {
+        return; // Ignore key -- buffer is full
+    }
+
+    keyboard->keyStack[keyboard->keyCount++] = key;
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     win32_state program_state = {};
 
@@ -295,6 +307,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         
         QueryPerformanceCounter(&tStart);    
         UpdateJoystick(&input);
+        InputKeyboardReset(&input.keyboard);
 
         MSG msg;
         while (PeekMessage(&msg, window, NULL, NULL, PM_REMOVE)) {
@@ -334,6 +347,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         case VK_RIGHT:
                             HandleKeyInput(&input, BUTTON_RIGHT, pressed);
                             break;
+                        case VK_OEM_3:
+                            // Tilde key
+                            HandleKeyInput(&input, BUTTON_CONSOLE, pressed);
+                            break;
                         case VK_F11:
                             if (pressed) {
                                 ToggleFullscreen(window, &program_state);
@@ -342,6 +359,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         case VK_ESCAPE:
                             program_state.running = false;
                             break;
+                    }
+                    if (pressed) {
+                        // TODO: Consider unicode?
+                        UINT vkCode = msg.wParam;
+                        UINT scanCode = (msg.lParam & 0x7F0000) >> 16;
+                        byte keyState[256];
+                        GetKeyboardState(keyState);
+                        wchar_t buffer[8];
+                        ZeroMemory(buffer, 8);
+                        u32 code = ToUnicode(vkCode, scanCode, keyState, buffer, 8, 0);
+                        if (code) {
+                            InputPushKeyboard(&input.keyboard, 0xFF & (u32)buffer[0]);
+                        }
                     }
                 }break;
                 default:

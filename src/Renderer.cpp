@@ -151,13 +151,14 @@ void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
 
 void DrawText(RenderContext *ctx, const char *str, v2i position, Color c) {
     
-    const int size = 12;
+    const i32 width = 10;
+    const i32 height = 16;
 
     int32 offsetX = 0;
     const char *ptr = str;
     while (*ptr != 0) {
-        RenderObject(ctx, { position.x + offsetX, position.y, size, size }, c, *ptr, ASSET_FONT_SPRITEMAP);
-        offsetX += size;
+        RenderObject(ctx, { position.x + offsetX, position.y, width, height }, c, *ptr, ASSET_FONT_SPRITEMAP);
+        offsetX += width;
         ptr++;
     }
 }

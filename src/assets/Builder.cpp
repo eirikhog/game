@@ -205,7 +205,7 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
     char *fontName = "Lucida Console";
     char *fontFile = "c:/windows/fonts/lucon.ttf";
     AddFontResourceExA(fontFile, FR_PRIVATE, 0);
-    HFONT fontHandle = CreateFontA(18, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+    HFONT fontHandle = CreateFontA(16, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
         ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, fontName);
 
     SelectObject(dc, fontHandle);
