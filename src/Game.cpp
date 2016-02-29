@@ -4,6 +4,15 @@
 #include "Renderer.h"
 #include "World.h"
 
+struct ConsoleState {
+    bool32 active;
+    char input[256];
+    u32 inputCount;
+
+    real32 animationProgress;
+    real32 animationSpeed;
+};
+
 typedef struct {
     bool initialized;
     RenderContext *renderer;
@@ -12,9 +21,7 @@ typedef struct {
     GameAssets assets;
     World *world;
 
-    bool showConsole;
-    char consoleInput[256];
-    u32 consoleInputCount;
+    ConsoleState console;
 } game_state;
 
 static void
@@ -40,40 +47,85 @@ GameInit(game_state *state, platform_api *api, game_memory *memory) {
     state->world = (World*)world_memory.base;
     WorldCreate(state->world);
 
-    state->showConsole = false;
+    state->console.animationProgress = 0.0f;
+    state->console.animationSpeed = 0.05f;
+
     state->initialized = true;
 }
 
-void DrawConsole(game_state *state, RenderContext *ctx) {
-    Rect2Di targetRect = { 0, 0, state->world->screenSize.x, state->world->screenSize.y / 2 };
+void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
+
+    if (console->animationProgress <= 0.0f) {
+        return;
+    }
+
+    i32 width = screenSize.x;
+    i32 height = (i32)(sin(console->animationProgress * 3.1415f / 2.0f) * screenSize.y / 2);
+
+    Rect2Di targetRect = { 0, 0, width, height  };
     Color bgcolor = { .25f, .35f, .35f };
     DrawSolidRect(ctx, targetRect, bgcolor);
 
     Color inputbg = { 0.2f, 0.2f, 0.2f };
-    DrawSolidRect(ctx, { 1, state->world->screenSize.y / 2 - 19, state->world->screenSize.x - 2, 18}, inputbg);
-    DrawText(ctx, ">", { 2, state->world->screenSize.y / 2 - 18 }, { 1.0f, 1.0f, 1.0f });
-    DrawText(ctx, state->consoleInput, { 20, state->world->screenSize.y / 2 - 18 }, { 1.0f, 1.0f, 1.0f });
+    DrawSolidRect(ctx, { 1, height - 19, width - 2, 18}, inputbg);
+    DrawText(ctx, ">", { 2, height - 18 }, { 1.0f, 1.0f, 1.0f });
+    DrawText(ctx, console->input, { 20, height - 18 }, { 1.0f, 1.0f, 1.0f });
 }
 
-void ReadConsoleInput(game_state *state, keyboard_state *keyboard) {
+void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
+    
+    if (!console->active) {
+        // Console is not displayed, do not consume input
+        return;
+    }
+
     for (i32 i = 0; i < keyboard->keyCount; ++i) {
         u32 key = keyboard->keyStack[i];
-        if (key == '\b' && state->consoleInputCount != 0) {
-            state->consoleInputCount--;
-            state->consoleInput[state->consoleInputCount] = 0;
+        if (key == '\b' && console->inputCount != 0) {
+            console->inputCount--;
+            console->input[console->inputCount] = 0;
         } else if (key == '\r') {
             // TODO: Execute command
-            state->consoleInputCount = 0;
-            state->consoleInput[0] = 0;
+            console->inputCount = 0;
+            console->input[0] = 0;
         } else if (key == '`') {
             // Ignore show/hide console command
         }
         else {
-            state->consoleInput[state->consoleInputCount++] = key;
+            console->input[console->inputCount++] = key;
         }
     }
 
-    state->consoleInput[state->consoleInputCount + 1] = 0;
+    console->input[console->inputCount + 1] = 0;
+}
+
+void UpdateConsole(game_state *state, game_input *input) {
+    ReadConsoleInput(&state->console, &input->keyboard);
+
+    if (state->console.active && state->console.animationProgress < 1.0f) {
+        state->console.animationProgress += state->console.animationSpeed;
+        if (state->console.animationProgress > 1.0f) {
+            state->console.animationProgress = 1.0f;
+        }
+    }
+    else if (!state->console.active && state->console.animationProgress > 0.0f) {
+        state->console.animationProgress -= state->console.animationSpeed;
+        if (state->console.animationProgress < 0.0f) {
+            state->console.animationProgress = 0.0f;
+        }
+    }
+
+    static bool32 consolePressedReg = 0;
+    if (input->buttons & BUTTON_CONSOLE) {
+        if (!consolePressedReg) {
+            state->console.active = !state->console.active;
+            consolePressedReg = 1;
+        }
+    }
+    else {
+        consolePressedReg = 0;
+    }
+
 }
 
 extern "C"
@@ -86,29 +138,15 @@ void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_
 
     state->world->screenSize = platformState->windowSize;
 
-    static bool32 consolePressedReg = 0;
     // Updating
-    if (state->showConsole) {
-        ReadConsoleInput(state, &input->keyboard);
-    }
+    UpdateConsole(state, input);
     WorldUpdate(state->world, input, dt);
-
-    if (input->buttons & BUTTON_CONSOLE) {
-        if (!consolePressedReg) {
-            state->showConsole = !state->showConsole;
-            consolePressedReg = 1;
-        }
-    } else {
-        consolePressedReg = 0;
-    }
 
     // Rendering
     RenderStart(state->renderer, platformState->windowSize);
     WorldRender(state->world, state->renderer, platformState->windowSize);
 
-    if (state->showConsole) {
-        DrawConsole(state, state->renderer);
-    }
+    DrawConsole(&state->console, state->renderer, state->world->screenSize);
 
     RenderEnd(state->renderer);
 }
