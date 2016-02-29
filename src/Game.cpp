@@ -14,7 +14,7 @@ typedef struct {
 
     bool showConsole;
     char consoleInput[256];
-    u32 consoelInputCount;
+    u32 consoleInputCount;
 } game_state;
 
 static void
@@ -49,17 +49,31 @@ void DrawConsole(game_state *state, RenderContext *ctx) {
     Color bgcolor = { .25f, .35f, .35f };
     DrawSolidRect(ctx, targetRect, bgcolor);
 
-    DrawText(ctx, state->consoleInput, { 0, state->world->screenSize.y / 2 - 20 }, { 1.0f, 1.0f, 1.0f });
+    Color inputbg = { 0.2f, 0.2f, 0.2f };
+    DrawSolidRect(ctx, { 1, state->world->screenSize.y / 2 - 19, state->world->screenSize.x - 2, 18}, inputbg);
+    DrawText(ctx, ">", { 2, state->world->screenSize.y / 2 - 18 }, { 1.0f, 1.0f, 1.0f });
+    DrawText(ctx, state->consoleInput, { 20, state->world->screenSize.y / 2 - 18 }, { 1.0f, 1.0f, 1.0f });
 }
 
 void ReadConsoleInput(game_state *state, keyboard_state *keyboard) {
     for (i32 i = 0; i < keyboard->keyCount; ++i) {
-        if (keyboard->keyStack[i] >= 'a' && keyboard->keyStack[i] <= 'z') {
-            state->consoleInput[state->consoelInputCount++] = keyboard->keyStack[i];
+        u32 key = keyboard->keyStack[i];
+        if (key == '\b' && state->consoleInputCount != 0) {
+            state->consoleInputCount--;
+            state->consoleInput[state->consoleInputCount] = 0;
+        } else if (key == '\r') {
+            // TODO: Execute command
+            state->consoleInputCount = 0;
+            state->consoleInput[0] = 0;
+        } else if (key == '`') {
+            // Ignore show/hide console command
         }
-        // TODO: Backspace, caret position, etc...
+        else {
+            state->consoleInput[state->consoleInputCount++] = key;
+        }
     }
-    state->consoleInput[state->consoelInputCount + 1] = 0;
+
+    state->consoleInput[state->consoleInputCount + 1] = 0;
 }
 
 extern "C"
@@ -73,6 +87,12 @@ void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_
     state->world->screenSize = platformState->windowSize;
 
     static bool32 consolePressedReg = 0;
+    // Updating
+    if (state->showConsole) {
+        ReadConsoleInput(state, &input->keyboard);
+    }
+    WorldUpdate(state->world, input, dt);
+
     if (input->buttons & BUTTON_CONSOLE) {
         if (!consolePressedReg) {
             state->showConsole = !state->showConsole;
@@ -81,12 +101,6 @@ void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_
     } else {
         consolePressedReg = 0;
     }
-
-    // Updating
-    if (state->showConsole) {
-        ReadConsoleInput(state, &input->keyboard);
-    }
-    WorldUpdate(state->world, input, dt);
 
     // Rendering
     RenderStart(state->renderer, platformState->windowSize);

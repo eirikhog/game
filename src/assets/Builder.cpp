@@ -233,7 +233,8 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
         codepoints[codepointCount++] = (wchar_t)('0' + i);
     }
 
-    const char extra[] = { ' ', '_', '-', '+', '=', '!', '?', ';', ':', '\'', '\\', '/', '(', ')', '.', ',' };
+    const char extra[] = { ' ', '_', '-', '+', '=', '!', '?', ';', ':', '\'', '\\', '/', '(', ')', '.', ',', '`', 
+                           '<', '>' };
     for (int32 i = 0; i < sizeof(extra); ++i) {
         codepoints[codepointCount++] = extra[i];
     }

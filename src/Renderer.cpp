@@ -171,7 +171,6 @@ AtlasAssetEntry *GetAtlasEntry(AtlasAsset *atlas, uint32 id) {
         }
     }
 
-    InvalidCodePath();
     return 0;
 }
 
@@ -199,6 +198,10 @@ void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint3
 
     AtlasAsset *atlas = spritemapId == ASSET_SPRITEMAP ? ctx->atlas : ctx->fontAtlas;
     AtlasAssetEntry *entry = GetAtlasEntry(atlas, image_id);
+
+    if (!entry) {
+        return;
+    }
     
     RenderVertex vertices[4];
     vertices[0] = { { (real32)r.x, (real32)r.y, 0.f }, c, { entry->uvOrigin.x, 1.0f - entry->uvOrigin.y } };
