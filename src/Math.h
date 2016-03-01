@@ -80,4 +80,6 @@ inline real32 square_root(real32 value) {
     return sqrtf(value);
 }
 
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+
 #endif

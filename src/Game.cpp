@@ -4,6 +4,9 @@
 #include "Renderer.h"
 #include "World.h"
 
+#define CONSOLE_LOG_SIZE 64
+#define CONSOLE_LINE_SIZE 256
+
 struct ConsoleState {
     bool32 active;
     char input[256];
@@ -11,6 +14,9 @@ struct ConsoleState {
 
     real32 animationProgress;
     real32 animationSpeed;
+
+    char log[CONSOLE_LOG_SIZE][CONSOLE_LINE_SIZE];
+    i32 logNext;
 };
 
 typedef struct {
@@ -65,11 +71,43 @@ void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
     Rect2Di targetRect = { 0, 0, width, height  };
     Color bgcolor = { .25f, .35f, .35f };
     DrawSolidRect(ctx, targetRect, bgcolor);
+    
+    // Draw input in buffer
+    i32 index = console->logNext - 1;
+    for (i32 i = 0; i < CONSOLE_LOG_SIZE; ++i) {
+        // TODO: Dont bother drawing outside screen...
+        if (index < 0) {
+            index = CONSOLE_LOG_SIZE - 1;
+        }
+
+        DrawText(ctx, console->log[index], { 0, height - 40 - 20 * i }, { 0.8f, 0.8f, 0.8f});
+        index--;
+    }
+
 
     Color inputbg = { 0.2f, 0.2f, 0.2f };
     DrawSolidRect(ctx, { 1, height - 19, width - 2, 18}, inputbg);
     DrawText(ctx, ">", { 2, height - 18 }, { 1.0f, 1.0f, 1.0f });
     DrawText(ctx, console->input, { 20, height - 18 }, { 1.0f, 1.0f, 1.0f });
+}
+
+void WriteConsole(ConsoleState *console, char *text, u32 length) {
+
+    // Note: text will not be 0-terminated
+    char *src = text;
+    char *dst = console->log[console->logNext];
+    
+    for (u32 i = 0; i < min(length, CONSOLE_LINE_SIZE - 1); ++i) {
+        dst[i] = src[i];
+    }
+
+    dst[min(length, CONSOLE_LINE_SIZE-1)] = 0;
+
+    console->logNext++;
+    if (console->logNext >= CONSOLE_LOG_SIZE) {
+        console->logNext = 0;
+    }
+
 }
 
 void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
@@ -85,6 +123,7 @@ void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
             console->inputCount--;
             console->input[console->inputCount] = 0;
         } else if (key == '\r') {
+            WriteConsole(console, console->input, console->inputCount);
             // TODO: Execute command
             console->inputCount = 0;
             console->input[0] = 0;
