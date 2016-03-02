@@ -36,12 +36,14 @@ typedef double real64;
 
 typedef uint32 bool32;
 
-typedef struct {
-    real32 r;
-    real32 g;
-    real32 b;
-    real32 a;
-} Color;
+struct Color {
+    r32 r;
+    r32 g;
+    r32 b;
+    r32 a;
+    Color(r32 _r, r32 _g, r32 _b, r32 _a = 1.0f) : r(_r), g(_g), b(_b), a(_a) {}
+    Color() : r(0), g(0), b(0), a(0) { }
+};
 
 template<typename T>
 struct Rect2D {
@@ -60,7 +62,7 @@ inline char *mprintf(const char *format, ...) {
     va_list ap;
     char buffer[bufferSize];
     va_start(ap, format);
-    uint32 length = vsnprintf(buffer, bufferSize, format, ap);
+    u32 length = vsnprintf(buffer, bufferSize, format, ap);
     va_end(ap);
 
     char *result = (char*)malloc(length + 1);

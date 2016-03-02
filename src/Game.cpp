@@ -19,6 +19,8 @@ struct ConsoleState {
     i32 logNext;
 };
 
+void WriteConsole(ConsoleState *console, char *text);
+
 typedef struct {
     bool initialized;
     RenderContext *renderer;
@@ -28,13 +30,13 @@ typedef struct {
     World *world;
 
     ConsoleState console;
-} game_state;
+} GameState;
 
 static void
-GameInit(game_state *state, platform_api *api, game_memory *memory) {
+GameInit(GameState *state, platform_api *api, game_memory *memory) {
     MemorySegment mem_all = {};
-    mem_all.size = memory->permanentSize - sizeof(game_state);
-    mem_all.base = (uint8*)memory->permanent + sizeof(game_state);
+    mem_all.size = memory->permanentSize - sizeof(GameState);
+    mem_all.base = (uint8*)memory->permanent + sizeof(GameState);
     mem_all.used = 0;
     state->game_memory = mem_all;
 
@@ -57,6 +59,8 @@ GameInit(game_state *state, platform_api *api, game_memory *memory) {
     state->console.animationSpeed = 0.05f;
 
     state->initialized = true;
+
+    WriteConsole(&state->console, "Game initialized.");
 }
 
 void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
@@ -69,7 +73,7 @@ void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
     i32 height = (i32)(sin(console->animationProgress * 3.1415f / 2.0f) * screenSize.y / 2);
 
     Rect2Di targetRect = { 0, 0, width, height  };
-    Color bgcolor = { .25f, .35f, .35f };
+    Color bgcolor = { .25f, .35f, .35f, 0.5f };
     DrawSolidRect(ctx, targetRect, bgcolor);
     
     // Draw input in buffer
@@ -91,11 +95,13 @@ void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
     DrawText(ctx, console->input, { 20, height - 18 }, { 1.0f, 1.0f, 1.0f });
 }
 
-void WriteConsole(ConsoleState *console, char *text, u32 length) {
+void WriteConsole(ConsoleState *console, char *text) {
 
     // Note: text will not be 0-terminated
     char *src = text;
     char *dst = console->log[console->logNext];
+
+    u32 length = strlen(text);
     
     for (u32 i = 0; i < min(length, CONSOLE_LINE_SIZE - 1); ++i) {
         dst[i] = src[i];
@@ -123,7 +129,9 @@ void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
             console->inputCount--;
             console->input[console->inputCount] = 0;
         } else if (key == '\r') {
-            WriteConsole(console, console->input, console->inputCount);
+            // Make sure the string is 0-terminated
+            console->input[console->inputCount] = 0;
+            WriteConsole(console, console->input);
             // TODO: Execute command
             console->inputCount = 0;
             console->input[0] = 0;
@@ -138,7 +146,7 @@ void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
     console->input[console->inputCount + 1] = 0;
 }
 
-void UpdateConsole(game_state *state, game_input *input) {
+void UpdateConsole(GameState *state, game_input *input) {
     ReadConsoleInput(&state->console, &input->keyboard);
 
     if (state->console.active && state->console.animationProgress < 1.0f) {
@@ -170,7 +178,7 @@ void UpdateConsole(game_state *state, game_input *input) {
 extern "C"
 void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_input *input, real32 dt) {
 
-    game_state *state = (game_state *)memory->permanent;    
+    GameState *state = (GameState *)memory->permanent;    
     if (!state->initialized) {
         GameInit(state, platformState->api, memory);
     }

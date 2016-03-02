@@ -262,7 +262,7 @@ void Draw(RenderContext *ctx) {
     glEnableVertexAttribArray(0);
 
     // VBO for color data
-    glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (GLvoid*)offsetof(RenderVertex, color));
+    glVertexAttribPointer((GLuint)1, 4, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (GLvoid*)offsetof(RenderVertex, color));
     glEnableVertexAttribArray(1);
 
     // UV buffer
