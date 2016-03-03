@@ -42,7 +42,7 @@ struct Color {
     r32 b;
     r32 a;
     Color(r32 _r, r32 _g, r32 _b, r32 _a = 1.0f) : r(_r), g(_g), b(_b), a(_a) {}
-    Color() : r(0), g(0), b(0), a(0) { }
+    Color() : r(0.0f), g(0.0f), b(0.0f), a(0.0f) { }
 };
 
 template<typename T>
