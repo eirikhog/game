@@ -344,6 +344,8 @@ int main(int argc, char* argvp[]) {
     AddImageToAtlas(&atlasGen, "../data/images/grass1.bmp", ASSET_TEXTURE_GRASS);
     AddImageToAtlas(&atlasGen, "../data/images/colortest.bmp", ASSET_TEXTURE_COLORS);
     AddImageToAtlas(&atlasGen, "../data/images/water.bmp", ASSET_TEXTURE_WATER);
+    AddImageToAtlas(&atlasGen, "../data/images/empty.bmp", ASSET_TEXTURE_EMPTY);
+    AddImageToAtlas(&atlasGen, "../data/images/entity.bmp", ASSET_TEXTURE_ENTITY);
     AtlasAsset *atlas = CreateAtlas(&atlasGen);
     AddAtlasToAssetFile(&gen, atlas);
 

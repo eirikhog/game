@@ -34,6 +34,8 @@ typedef enum {
     ASSET_TEXTURE_GRASS,
     ASSET_TEXTURE_COLORS,
     ASSET_TEXTURE_WATER,
+    ASSET_TEXTURE_EMPTY,
+    ASSET_TEXTURE_ENTITY,
 } AssetId;
 
 typedef struct {
