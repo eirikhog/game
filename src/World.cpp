@@ -1,6 +1,7 @@
 #include "World.h"
 #include "Math.h"
 #include "Platform.h"
+#include "Chunk.h"
 
 static WorldChunk*
 GetChunk(World *world, int x, int y) {

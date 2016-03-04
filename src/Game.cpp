@@ -61,6 +61,18 @@ GameInit(GameState *state, platform_api *api, game_memory *memory) {
     state->initialized = true;
 
     WriteConsole(&state->console, "Game initialized.");
+
+    char *memUsedText = mprintf("Used memory: %d MB", mem_all.used / (1024 * 1024));
+    SCOPE_FREE(memUsedText);
+    WriteConsole(&state->console, memUsedText);
+
+    char *memText = mprintf("Free memory: %d MB", (mem_all.size - mem_all.used) / (1024 * 1024));
+    SCOPE_FREE(memText);
+    WriteConsole(&state->console, memText);
+
+    char *memTotalText = mprintf("Total memory: %d MB", mem_all.size / (1024 * 1024));
+    SCOPE_FREE(memTotalText);
+    WriteConsole(&state->console, memTotalText);
 }
 
 void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {

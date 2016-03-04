@@ -4,24 +4,7 @@
 #include "Memory.h"
 #include "Math.h"
 #include "Renderer.h"
-
-#define CHUNK_DIM 16
-#define TILE_SIZE 32
-
-typedef struct {
-    int32 x;
-    int32 y;
-    uint32 tiles[CHUNK_DIM*CHUNK_DIM];
-} WorldChunk;
-
-typedef struct {
-    WorldChunk *next;
-    WorldChunk *prev;
-} LoadedWorldChunk;
-
-typedef struct {
-    v2i position;
-} Entity;
+#include "Chunk.h"
 
 typedef struct {
     v2i camera;
