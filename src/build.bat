@@ -4,7 +4,7 @@ rem TODO: Avoid hardcoding paths..
 rem For now, we assume a working drive w:
 
 set BUILDDIR=w:/game/build
-set CFLAGS=/Od /MTd /nologo /Oi /EHa /W4 /wd4100 /wd4189 /wd4244 /wd4456 /wd4701 /wd4505 /wd4703 /DGLEW_STATIC
+set CFLAGS=/Od /MTd /nologo /Oi /Gm- /GR /Zo /EHa /FC /Z7 /W4 /wd4100 /wd4189 /wd4244 /wd4456 /wd4701 /wd4505 /wd4703 /DGLEW_STATIC
 set LFLAGS=
 set INCLUDES=-I../dep/glew-1.13.0/include
 
@@ -29,11 +29,11 @@ if not "%1" == "all" goto END
 
 :WIN32
 if not "%1" == "win32" if not "%1" == "all" goto GAME
-cl %CFLAGS% %WIN32SRC% %INCLUDES% /link %LFLAGS% opengl32.lib user32.lib gdi32.lib winmm.lib xinput.lib
+cl %CFLAGS% %WIN32SRC% %INCLUDES% /link /PDB:win32.pdb %LFLAGS% opengl32.lib user32.lib gdi32.lib winmm.lib xinput.lib
 if not "%1" == "all" goto END
 
 :GAME
-cl %CFLAGS% %GAMESRC% %INCLUDES% /LD /link %LFLAGS% opengl32.lib -EXPORT:UpdateGame
+cl %CFLAGS% %GAMESRC% %INCLUDES% /LD /link /PDB:game_%random%.pdb %LFLAGS% opengl32.lib -EXPORT:UpdateGame
 if not "%1" == "all" goto END
 
 :END
