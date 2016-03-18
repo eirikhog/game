@@ -4,6 +4,8 @@
 #include "Renderer.h"
 #include "World.h"
 
+#include "Unity.cpp"
+
 #define CONSOLE_LOG_SIZE 64
 #define CONSOLE_LINE_SIZE 256
 
@@ -151,7 +153,7 @@ void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
             // Ignore show/hide console command
         }
         else {
-            console->input[console->inputCount++] = key;
+            console->input[console->inputCount++] = (char)key;
         }
     }
 

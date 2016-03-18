@@ -1,8 +1,10 @@
 #include "../Platform.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <GL/glew.h>
 #include <GL/wglew.h>
+#include "../../dep/glew-1.13.0/src/glew.c"
 
 // TODO: Dynamic loading
 #include <xinput.h>
@@ -364,7 +366,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         // TODO: Consider unicode?
                         UINT vkCode = msg.wParam;
                         UINT scanCode = (msg.lParam & 0x7F0000) >> 16;
-                        byte keyState[256];
+                        u8 keyState[256];
                         GetKeyboardState(keyState);
                         wchar_t buffer[8];
                         ZeroMemory(buffer, 8);
