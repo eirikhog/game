@@ -5,7 +5,7 @@ rem For now, we assume a working drive w:
 
 set BUILDDIR=w:/game/build
 set CFLAGS=/Od /MTd /nologo /Oi /Gm- /GR /Zo /EHa /FC /Z7 /W4 /wd4100 /wd4189 /wd4244 /wd4456 /wd4701 /wd4505 /wd4703 /DGLEW_STATIC
-set LFLAGS=
+set LFLAGS=/incremental:no /opt:ref
 set INCLUDES=-I../dep/glew-1.13.0/include
 
 set WIN32SRC=../src/win32/win32.cpp
