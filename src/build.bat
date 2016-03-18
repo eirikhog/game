@@ -1,9 +1,7 @@
 @echo off
 
-rem TODO: Avoid hardcoding paths..
-rem For now, we assume a working drive w:
-
-set BUILDDIR=w:/game/build
+set SCRIPTDIR=%~dp0
+set BUILDDIR=%SCRIPTDIR%../build
 set CFLAGS=/Od /MTd /nologo /Oi /Gm- /GR /Zo /EHa /FC /Z7 /W4 /wd4100 /wd4189 /wd4244 /wd4456 /wd4701 /wd4505 /wd4703 /DGLEW_STATIC
 set LFLAGS=/incremental:no /opt:ref
 set INCLUDES=-I../dep/glew-1.13.0/include
@@ -18,8 +16,9 @@ if not exist "%BUILDDIR%" mkdir "%BUILDDIR%"
 pushd .
 cd %BUILDDIR%
 
-rem Cleanup from previous build\
-del *.pdb > NUL 2> NUL
+if not "%1" == "clean" goto ASSETS
+del *.pdb *.dll *.exe *.obj *.exp *.lib > NUL 2> NUL
+goto END
 
 :ASSETS
 if not "%1" == "assets" if not "%1" == "all" goto WIN32
