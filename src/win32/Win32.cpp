@@ -23,9 +23,9 @@
 
 #ifdef _DEBUG
 typedef struct {
-    uint32 frame_count;
-    uint64 work_time;
-    uint64 sleep_time;
+    u32 frame_count;
+    u64 work_time;
+    u64 sleep_time;
 } win32_performance;
 #endif
 
@@ -114,8 +114,8 @@ void Win32WriteFile(char *filename, void *data, uint32 size) {
     CloseHandle(handle);
 }
 
-game_functions LoadGameLibrary() {
-    game_functions library = {};
+GameFunctions LoadGameLibrary() {
+    GameFunctions library = {};
     library.DebugOutput = OutputDebug;
 
     HMODULE module = LoadLibrary("Game.dll");
@@ -194,7 +194,7 @@ void SetupOpenGL(HDC hdc) {
     }
 }
 
-void UpdateJoystick(game_input *input) {
+void UpdateJoystick(GameInput *input) {
     // TODO: Handle more than one joystick
     XINPUT_STATE state;
     ZeroMemory(&state, sizeof(XINPUT_STATE));
@@ -219,7 +219,7 @@ void UpdateJoystick(game_input *input) {
     }
 }
 
-void HandleKeyInput(game_input *input, InputButtons button, bool32 pressed) {
+void HandleKeyInput(GameInput *input, InputButtons button, bool32 pressed) {
     if (pressed) {
         input->buttons |= button;
     } else {
@@ -227,11 +227,11 @@ void HandleKeyInput(game_input *input, InputButtons button, bool32 pressed) {
     }
 }
 
-void InputKeyboardReset(keyboard_state *keyboard) {
+void InputKeyboardReset(KeyboardState *keyboard) {
     keyboard->keyCount = 0;
 }
 
-void InputPushKeyboard(keyboard_state *keyboard, u32 key) {
+void InputPushKeyboard(KeyboardState *keyboard, u32 key) {
     if (keyboard->keyCount >= KEYBOARD_MAX) {
         return; // Ignore key -- buffer is full
     }
@@ -240,7 +240,7 @@ void InputPushKeyboard(keyboard_state *keyboard, u32 key) {
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    win32_state program_state = {};
+    win32_state programState = {};
 
     PlatformState platformState = {};
     PlatformAPI api = {};
@@ -248,7 +248,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     api.WriteEntireFile = Win32WriteFile;
 
     platformState.api = &api;
-    program_state.platformState = &platformState;
+    programState.platformState = &platformState;
     
     WNDCLASS myclass = {};
     myclass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
@@ -266,7 +266,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     HWND window = CreateWindow(myclass.lpszClassName, "Game Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-            CW_USEDEFAULT, CW_USEDEFAULT, 1366, 768, NULL, NULL, hInstance, &program_state);
+            CW_USEDEFAULT, CW_USEDEFAULT, 1366, 768, NULL, NULL, hInstance, &programState);
 
     if (!window) {
         OutputDebugString("Could not create window.");
@@ -278,8 +278,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     QueryPerformanceFrequency(&cpuFreq);
 
     // Initialize game functions.
-    game_functions gameLib = LoadGameLibrary();
-    game_memory memory = {};
+    GameFunctions gameLib = LoadGameLibrary();
+    GameMemory memory = {};
     
     const uint32 permanentMemorySize = 1024 * 1024 * 256;
     memory.permanent = VirtualAlloc(0, permanentMemorySize, MEM_COMMIT, PAGE_READWRITE);
@@ -302,10 +302,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #endif
     v2i mouse_prev_position = {};
     HCURSOR mouse_cursor = LoadCursor(NULL, IDC_ARROW);
-    game_input input = {};
+    GameInput input = {};
 
-    program_state.running = true;
-    while(program_state.running) {
+    programState.running = true;
+    while(programState.running) {
         
         QueryPerformanceCounter(&tStart);    
         UpdateJoystick(&input);
@@ -355,11 +355,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                             break;
                         case VK_F11:
                             if (pressed) {
-                                ToggleFullscreen(window, &program_state);
+                                ToggleFullscreen(window, &programState);
                             }
                             break;
                         case VK_ESCAPE:
-                            program_state.running = false;
+                            programState.running = false;
                             break;
                     }
                     if (pressed) {

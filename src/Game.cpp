@@ -35,7 +35,7 @@ typedef struct {
 } GameState;
 
 static void
-GameInit(GameState *state, PlatformAPI *api, game_memory *memory) {
+GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
     MemorySegment mem_all = {};
     mem_all.size = memory->permanentSize - sizeof(GameState);
     mem_all.base = (uint8*)memory->permanent + sizeof(GameState);
@@ -130,7 +130,7 @@ void WriteConsole(ConsoleState *console, char *text) {
 
 }
 
-void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
+void ReadConsoleInput(ConsoleState *console, KeyboardState *keyboard) {
     
     if (!console->active) {
         // Console is not displayed, do not consume input
@@ -160,7 +160,7 @@ void ReadConsoleInput(ConsoleState *console, keyboard_state *keyboard) {
     console->input[console->inputCount + 1] = 0;
 }
 
-void UpdateConsole(GameState *state, game_input *input) {
+void UpdateConsole(GameState *state, GameInput *input) {
     ReadConsoleInput(&state->console, &input->keyboard);
 
     if (state->console.active && state->console.animationProgress < 1.0f) {
@@ -190,7 +190,7 @@ void UpdateConsole(GameState *state, game_input *input) {
 }
 
 extern "C"
-void EXPORT UpdateGame(PlatformState *platformState, game_memory *memory, game_input *input, real32 dt) {
+void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInput *input, real32 dt) {
 
     GameState *state = (GameState *)memory->permanent;    
     if (!state->initialized) {

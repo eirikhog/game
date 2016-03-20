@@ -94,7 +94,7 @@ void WorldCreate(World *world) {
     SetTile(world, 9, 8, ASSET_TEXTURE_DIRT);
 }
 
-void WorldUpdate(World *world, game_input *input, real32 dt) {
+void WorldUpdate(World *world, GameInput *input, r32 dt) {
 
     world->mousePos = input->mouse_position;
 
