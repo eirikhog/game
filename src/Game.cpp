@@ -35,7 +35,7 @@ typedef struct {
 } GameState;
 
 static void
-GameInit(GameState *state, platform_api *api, game_memory *memory) {
+GameInit(GameState *state, PlatformAPI *api, game_memory *memory) {
     MemorySegment mem_all = {};
     mem_all.size = memory->permanentSize - sizeof(GameState);
     mem_all.base = (uint8*)memory->permanent + sizeof(GameState);
@@ -190,7 +190,7 @@ void UpdateConsole(GameState *state, game_input *input) {
 }
 
 extern "C"
-void EXPORT UpdateGame(platform_state *platformState, game_memory *memory, game_input *input, real32 dt) {
+void EXPORT UpdateGame(PlatformState *platformState, game_memory *memory, game_input *input, real32 dt) {
 
     GameState *state = (GameState *)memory->permanent;    
     if (!state->initialized) {

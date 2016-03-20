@@ -32,10 +32,10 @@ typedef struct {
 typedef struct {
     bool running;
     WINDOWPLACEMENT windowPlacement;
-    platform_state *platformState;
+    PlatformState *platformState;
 } win32_state;
 
-void ResizeWindow(platform_state *platformState, uint32 width, uint32 height) {
+void ResizeWindow(PlatformState *platformState, uint32 width, uint32 height) {
     platformState->windowSize = { (int32)width, (int32)height };
     glViewport(0, 0, width, height);
 }
@@ -242,8 +242,8 @@ void InputPushKeyboard(keyboard_state *keyboard, u32 key) {
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     win32_state program_state = {};
 
-    platform_state platformState = {};
-    platform_api api = {};
+    PlatformState platformState = {};
+    PlatformAPI api = {};
     api.ReadEntireFile = Win32ReadFile;
     api.WriteEntireFile = Win32WriteFile;
 

@@ -85,13 +85,13 @@ typedef struct {
 } AssetFileHeader;
 
 typedef struct {
-    platform_api *api;
+    PlatformAPI *api;
     MemorySegment memory;
     AssetFileHeader *assetFile;
     AssetFileEntry *entries;
 } GameAssets;
 
-GameAssets AssetsInit(platform_api *api, MemorySegment memory);
+GameAssets AssetsInit(PlatformAPI *api, MemorySegment memory);
 ShaderAsset *AssetGetShader(GameAssets *assets, uint32 id);
 AtlasAsset *AssetGetAtlas(GameAssets *assets, uint32 id);
 

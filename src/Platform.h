@@ -21,12 +21,12 @@
 #endif
 
 struct game_buffer;
-struct platform_api;
+struct PlatformAPI;
 
 typedef struct {
     v2i windowSize;
-    platform_api *api;
-} platform_state;
+    PlatformAPI *api;
+} PlatformState;
 
 typedef struct {
     void *permanent;
@@ -64,14 +64,16 @@ struct game_input {
     keyboard_state keyboard;
 };
 
-typedef void update_game(platform_state *state, game_memory *memory, game_input *input, real32 dt);
+typedef void update_game(PlatformState *state, game_memory *memory, game_input *input, real32 dt);
 typedef char *read_entire_file(char *filename, uint32 *size);
 typedef void write_entire_file(char *filename, void *data, uint32 size);
+typedef void RunExternalProgram(const char* command, char *outputBuffer, u32 bufferSize);
 
-typedef struct platform_api {
+typedef struct PlatformAPI {
     read_entire_file* ReadEntireFile;
     write_entire_file* WriteEntireFile;
-} platform_api;
+    RunExternalProgram* RunProgram;
+} PlatformAPI;
 
 typedef struct {
     void (*DebugOutput)(char *);
