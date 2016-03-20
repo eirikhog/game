@@ -67,5 +67,61 @@ struct ScopeFree {
     void *mPtr;
 };
 
+struct Time {
+    u16 year;
+    u8 month;
+    u8 day;
+    u8 hour;
+    u8 minute;
+    u8 second;
+    u16 milisecond;
+};
+
+i32 compareTime(Time *first, Time *second) {
+    if (first->year < second->year) {
+        return -1;
+    } else if (first->year > second->year) {
+        return 1;
+    }
+
+    if (first->month < second->month) {
+        return -1;
+    } else if (first->month > second->month) {
+        return -1;
+    }
+
+    if (first->day < second->day) {
+        return -1;
+    } else if (first->day > second->day) {
+        return 1;
+    }
+
+    if (first->hour < second->hour) {
+        return -1;
+    } else if (first->hour > second->hour) {
+        return 1;
+    }
+
+    if (first->minute < second->minute) {
+        return -1;
+    } else if (first->minute > second->minute) {
+        return 1;
+    }
+
+    if (first->second < second->second) {
+        return -1;
+    } else if (first->second > second->second) {
+        return 1;
+    }
+
+    if (first->milisecond < second->milisecond) {
+        return -1;
+    } else if (first->milisecond > second->milisecond) {
+        return 1;
+    }
+
+    return 0;
+}
+
 #endif
 
