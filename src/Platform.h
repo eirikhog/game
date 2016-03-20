@@ -25,6 +25,7 @@ struct PlatformAPI;
 struct PlatformState {
     v2i windowSize;
     PlatformAPI *api;
+    bool32 libReloaded;
 };
 
 struct GameMemory {

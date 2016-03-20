@@ -197,6 +197,13 @@ void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInp
         GameInit(state, platformState->api, memory);
     }
 
+    // TODO: Get rid of this ad-hoc loading of glew function pointers.
+    if (platformState->libReloaded) {
+        glewInit();
+        WriteConsole(&state->console, "Loading game library.");
+        platformState->libReloaded = false;
+    }
+
     state->world->screenSize = platformState->windowSize;
 
     // Updating

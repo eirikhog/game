@@ -74,7 +74,7 @@ struct Time {
     u8 hour;
     u8 minute;
     u8 second;
-    u16 milisecond;
+    u16 millisecond;
 };
 
 i32 compareTime(Time *first, Time *second) {
@@ -114,9 +114,9 @@ i32 compareTime(Time *first, Time *second) {
         return 1;
     }
 
-    if (first->milisecond < second->milisecond) {
+    if (first->millisecond < second->millisecond) {
         return -1;
-    } else if (first->milisecond > second->milisecond) {
+    } else if (first->millisecond > second->millisecond) {
         return 1;
     }
 

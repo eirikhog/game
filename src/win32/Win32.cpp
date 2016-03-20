@@ -29,11 +29,17 @@ typedef struct {
 } win32_performance;
 #endif
 
+#define GAMELIB "Game.dll"
+#define GAMELIB_ACTIVE "Game_loaded.dll"
+
 typedef struct {
     bool running;
     WINDOWPLACEMENT windowPlacement;
     PlatformState *platformState;
-} win32_state;
+
+    HMODULE gamelibHandle;
+    Time gamelibTimestamp;
+} Win32State;
 
 void ResizeWindow(PlatformState *platformState, u32 width, u32 height) {
     platformState->windowSize = { (i32)width, (i32)height };
@@ -56,11 +62,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             result = DefWindowProc(hwnd, uMsg, wParam, lParam);
         }break;
         case WM_CLOSE:{
-            win32_state *state = (win32_state*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            Win32State *state = (Win32State*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
             state->running = false;
         }break;
         case WM_SIZE: {
-            win32_state *state = (win32_state*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            Win32State *state = (Win32State*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
             if (state && state->platformState) {
                 RECT windowRect;
                 GetClientRect(hwnd, &windowRect);
@@ -114,20 +120,61 @@ void Win32WriteFile(char *filename, void *data, u32 size) {
     CloseHandle(handle);
 }
 
-GameFunctions LoadGameLibrary() {
+Time GetLastWriteTime(const char *file) {
+    Time result;
+    WIN32_FILE_ATTRIBUTE_DATA fileInfo;
+    if (GetFileAttributesEx(file, GetFileExInfoStandard, &fileInfo)) {
+        FILETIME lastWriteFt = fileInfo.ftLastWriteTime;
+        SYSTEMTIME lastWrite;
+        FileTimeToSystemTime(&lastWriteFt, &lastWrite);
+
+        result.year = lastWrite.wYear;
+        result.month = lastWrite.wMonth;
+        result.day = lastWrite.wDay;
+        result.hour = lastWrite.wHour;
+        result.minute = lastWrite.wMinute;
+        result.second = lastWrite.wSecond;
+        result.millisecond = lastWrite.wMilliseconds;
+
+    } else {
+        InvalidCodePath();
+    }
+
+    return result;
+}
+
+GameFunctions LoadGameLibrary(Win32State *state) {
     GameFunctions library = {};
     library.DebugOutput = OutputDebug;
 
-    HMODULE module = LoadLibrary("Game.dll");
-    library.UpdateGame = (update_game *)GetProcAddress(module, "UpdateGame");
+    u32 copyRetryCount = 5;
+    BOOL copyResult;
+    do {
+        copyResult = CopyFile(GAMELIB, GAMELIB_ACTIVE, false);
+        if (!copyResult) {
+            Sleep(200);
+        }
+    } while (!copyResult && --copyRetryCount);
+
+    if (!copyResult) {
+        InvalidCodePath();
+    }
+
+    state->gamelibHandle = LoadLibrary(GAMELIB_ACTIVE);
+    library.UpdateGame = (update_game *)GetProcAddress(state->gamelibHandle, "UpdateGame");
     Assert(library.UpdateGame);
-    Assert(module);
+    Assert(state->gamelibHandle);
 
     return library;
 }
 
+void UnloadGameLibrary(Win32State *state) {
+    FreeLibrary(state->gamelibHandle);
+    state->gamelibHandle = 0;
+}
 
-void ToggleFullscreen(HWND window, win32_state *state) {
+
+void ToggleFullscreen(HWND window, Win32State *state) {
 
     DWORD style = GetWindowLong(window, GWL_STYLE);
     if (style & WS_OVERLAPPEDWINDOW) {
@@ -240,7 +287,7 @@ void InputPushKeyboard(KeyboardState *keyboard, u32 key) {
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    win32_state programState = {};
+    Win32State programState = {};
 
     PlatformState platformState = {};
     PlatformAPI api = {};
@@ -278,7 +325,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     QueryPerformanceFrequency(&cpuFreq);
 
     // Initialize game functions.
-    GameFunctions gameLib = LoadGameLibrary();
+    // TODO: Copy the game dll to a different location, so that the compiler can
+    // overwrite the old file with a newer version...
+    GameFunctions gameLib = LoadGameLibrary(&programState);
+    programState.gamelibTimestamp = GetLastWriteTime(GAMELIB);
+    platformState.libReloaded = true;
     GameMemory memory = {};
     
     const u32 permanentMemorySize = 1024 * 1024 * 256;
@@ -306,6 +357,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     programState.running = true;
     while(programState.running) {
+
+        Time lastWrite = GetLastWriteTime(GAMELIB);
+        if (compareTime(&lastWrite, &programState.gamelibTimestamp) > 0) {
+            UnloadGameLibrary(&programState);
+            gameLib = LoadGameLibrary(&programState);
+            programState.gamelibTimestamp = GetLastWriteTime(GAMELIB);
+            platformState.libReloaded = true;
+        }
         
         QueryPerformanceCounter(&tStart);    
         UpdateJoystick(&input);
