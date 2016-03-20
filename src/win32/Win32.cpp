@@ -35,8 +35,8 @@ typedef struct {
     PlatformState *platformState;
 } win32_state;
 
-void ResizeWindow(PlatformState *platformState, uint32 width, uint32 height) {
-    platformState->windowSize = { (int32)width, (int32)height };
+void ResizeWindow(PlatformState *platformState, u32 width, u32 height) {
+    platformState->windowSize = { (i32)width, (i32)height };
     glViewport(0, 0, width, height);
 }
 
@@ -73,8 +73,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     return result;
 }
 
-inline int64_t GetElapsedMicroseconds(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER freq) {
-    int64_t elapsedMicroseconds = (1000000 * (end.QuadPart - start.QuadPart) / freq.QuadPart);
+inline i64 GetElapsedMicroseconds(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER freq) {
+    i64 elapsedMicroseconds = (1000000 * (end.QuadPart - start.QuadPart) / freq.QuadPart);
     return elapsedMicroseconds;
 }
 
@@ -82,7 +82,7 @@ extern "C" void OutputDebug(char *text) {
     OutputDebugString(text);
 }
 
-char *Win32ReadFile(char *filename, uint32 *filesize) {
+char *Win32ReadFile(char *filename, u32 *filesize) {
     HANDLE handle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     Assert(handle != INVALID_HANDLE_VALUE);
     if (handle == INVALID_HANDLE_VALUE) {
@@ -101,7 +101,7 @@ char *Win32ReadFile(char *filename, uint32 *filesize) {
     return (char*)content;
 }
 
-void Win32WriteFile(char *filename, void *data, uint32 size) {
+void Win32WriteFile(char *filename, void *data, u32 size) {
     HANDLE handle = CreateFile(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     Assert(handle != INVALID_HANDLE_VALUE);
     if (handle == INVALID_HANDLE_VALUE) {
@@ -200,8 +200,8 @@ void UpdateJoystick(GameInput *input) {
     ZeroMemory(&state, sizeof(XINPUT_STATE));
 
     if (!XInputGetState(0, &state)) {
-        v2f leftStick = { (real32)state.Gamepad.sThumbLX, (real32)state.Gamepad.sThumbLY };
-        real32 magnitude = sqrt( leftStick.x * leftStick.x + leftStick.y * leftStick.y);
+        v2f leftStick = { (r32)state.Gamepad.sThumbLX, (r32)state.Gamepad.sThumbLY };
+        r32 magnitude = sqrt( leftStick.x * leftStick.x + leftStick.y * leftStick.y);
         if (magnitude > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
             v2f normalized = leftStick / magnitude;
             input->joystick = normalized;
@@ -281,11 +281,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     GameFunctions gameLib = LoadGameLibrary();
     GameMemory memory = {};
     
-    const uint32 permanentMemorySize = 1024 * 1024 * 256;
+    const u32 permanentMemorySize = 1024 * 1024 * 256;
     memory.permanent = VirtualAlloc(0, permanentMemorySize, MEM_COMMIT, PAGE_READWRITE);
     memory.permanentSize = permanentMemorySize;
 
-    const uint32 transientMemorySize = 1024 * 1024 * 32;
+    const u32 transientMemorySize = 1024 * 1024 * 32;
     memory.transient = VirtualAlloc(0, transientMemorySize, MEM_COMMIT, PAGE_READWRITE);
     memory.transientSize = transientMemorySize;
 
@@ -295,7 +295,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     LARGE_INTEGER ftStart, ftEnd;
     QueryPerformanceCounter(&ftStart);
-    real32 frameTime = 1.0f / 60.0f;
+    r32 frameTime = 1.0f / 60.0f;
 
 #ifdef _DEBUG
     win32_performance perf = {};
@@ -321,9 +321,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 case WM_MOUSEMOVE:{
                     SetCursor(mouse_cursor);
 
-                    uint32 xPos = 0xFFFF & msg.lParam;
-                    uint32 yPos = (uint64)(0xFFFF0000 & msg.lParam) >> 16;
-                    input.mouse_position = { (int32)xPos, (int32)yPos };
+                    u32 xPos = 0xFFFF & msg.lParam;
+                    u32 yPos = (u64)(0xFFFF0000 & msg.lParam) >> 16;
+                    input.mouse_position = { (i32)xPos, (i32)yPos };
                     input.mouse_buttons = 0;
                     if (msg.wParam & MK_LBUTTON) {
                         input.mouse_buttons |= MOUSE_LEFT;
@@ -389,7 +389,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         SwapBackbuffer(window);
         
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...
-        uint64_t tElapsedUs = GetElapsedMicroseconds(tStart, tEnd, cpuFreq);
+        u64 tElapsedUs = GetElapsedMicroseconds(tStart, tEnd, cpuFreq);
 #ifdef _DEBUG
         perf.work_time += tElapsedUs;
 #endif
@@ -403,14 +403,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             frameTime = 1.0f / 60.0f;
         } else {
             // If the process did not sleep, it means that we have too much work for the frame!
-            frameTime = (real32)tElapsedUs / 1000000.0f;
+            frameTime = (r32)tElapsedUs / 1000000.0f;
         }
 
 #ifdef _DEBUG
         perf.frame_count++;
         if (perf.frame_count == 59) {
             QueryPerformanceCounter(&ftEnd);
-            uint64 a = GetElapsedMicroseconds(ftStart, ftEnd, cpuFreq);
+            u64 a = GetElapsedMicroseconds(ftStart, ftEnd, cpuFreq);
             float time_per_frame = (float)perf.work_time / 60000.0f;
             float sleep_per_frame = (float)perf.sleep_time / 60000.0f;
             float utilization = 100.0f * time_per_frame / (sleep_per_frame + time_per_frame);

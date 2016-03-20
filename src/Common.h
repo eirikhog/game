@@ -20,21 +20,7 @@ typedef int64_t i64;
 typedef float r32;
 typedef double r64;
 
-// TODO: Depricate and remove these from the code.
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-
-typedef float real32;
-typedef double real64;
-
-typedef uint32 bool32;
+typedef u32 bool32;
 
 struct Color {
     r32 r;
@@ -55,7 +41,7 @@ struct Rect2D {
     Rect2D(T _x, T _y, T _width, T _height) : x(_x), y(_y), width(_width), height(_height) { }
 };
 
-typedef Rect2D<int32> Rect2Di;
+typedef Rect2D<i32> Rect2Di;
 
 inline char *mprintf(const char *format, ...) {
     const int bufferSize = 256;

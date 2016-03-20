@@ -39,49 +39,49 @@ typedef enum {
 } AssetId;
 
 typedef struct {
-    uint32 id;
+    u32 id;
 } AssetEntry;
 
 typedef struct {
-    uint32 width;
-    uint32 height;
+    u32 width;
+    u32 height;
     void *data;
 } ImageAsset;
 
 typedef struct {
-    uint32 id;
-    uint32 size;
+    u32 id;
+    u32 size;
     char *content;
 } ShaderAsset;
 
 typedef struct {
     v2f uvOrigin;
     v2f uvEnd;
-    uint32 id;
+    u32 id;
 } AtlasAssetEntry;
 
 typedef struct {
-    uint32 id;
-    uint32 size;
-    uint32 width;
-    uint32 height;
-    uint8 *data;
-    uint32 count;
+    u32 id;
+    u32 size;
+    u32 width;
+    u32 height;
+    u8 *data;
+    u32 count;
     AtlasAssetEntry *entries;
 } AtlasAsset;
 
 typedef struct {
-    uint32 id;
+    u32 id;
     AssetType type;
-    uint32 tag;
-    uint32 offset;
-    uint32_t size;
+    u32 tag;
+    u32 offset;
+    u32 size;
 } AssetFileEntry;
 
 typedef struct {
-    uint16 magic;
-    uint32 assetCount;
-    uint32 assetOffset;
+    u16 magic;
+    u32 assetCount;
+    u32 assetOffset;
 } AssetFileHeader;
 
 typedef struct {
@@ -92,8 +92,8 @@ typedef struct {
 } GameAssets;
 
 GameAssets AssetsInit(PlatformAPI *api, MemorySegment memory);
-ShaderAsset *AssetGetShader(GameAssets *assets, uint32 id);
-AtlasAsset *AssetGetAtlas(GameAssets *assets, uint32 id);
+ShaderAsset *AssetGetShader(GameAssets *assets, u32 id);
+AtlasAsset *AssetGetAtlas(GameAssets *assets, u32 id);
 
 #endif
 

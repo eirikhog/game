@@ -55,7 +55,7 @@ struct KeyboardState {
 };
 
 struct GameInput {
-    uint32 buttons;
+    u32 buttons;
     v2i mouse_position;
     v2i mouse_delta;
     u32 mouse_buttons;

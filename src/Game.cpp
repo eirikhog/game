@@ -14,8 +14,8 @@ struct ConsoleState {
     char input[256];
     u32 inputCount;
 
-    real32 animationProgress;
-    real32 animationSpeed;
+    r32 animationProgress;
+    r32 animationSpeed;
 
     char log[CONSOLE_LOG_SIZE][CONSOLE_LINE_SIZE];
     i32 logNext;
@@ -38,13 +38,13 @@ static void
 GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
     MemorySegment mem_all = {};
     mem_all.size = memory->permanentSize - sizeof(GameState);
-    mem_all.base = (uint8*)memory->permanent + sizeof(GameState);
+    mem_all.base = (u8*)memory->permanent + sizeof(GameState);
     mem_all.used = 0;
     state->game_memory = mem_all;
 
     MemorySegment mem_transient = {};
     mem_transient.size = memory->transientSize;
-    mem_transient.base = (uint8*)memory->transient;
+    mem_transient.base = (u8*)memory->transient;
     mem_transient.used = 0;
     state->assets = AssetsInit(api, mem_transient);
 
@@ -190,7 +190,7 @@ void UpdateConsole(GameState *state, GameInput *input) {
 }
 
 extern "C"
-void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInput *input, real32 dt) {
+void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInput *input, r32 dt) {
 
     GameState *state = (GameState *)memory->permanent;    
     if (!state->initialized) {

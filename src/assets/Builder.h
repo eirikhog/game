@@ -7,8 +7,8 @@
 
 typedef struct {
     AssetFileEntry entry;
-    uint32 size;
-    uint32 type;
+    u32 size;
+    u32 type;
     void *data;
 } AssetGeneratorFileEntry;
 

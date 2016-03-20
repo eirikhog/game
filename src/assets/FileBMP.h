@@ -94,15 +94,15 @@ Image LoadBMP(char *filename) {
         // We don't care about 4-bits or other formats
         Assert(dbi->bits_per_pixel == 24);
 
-        uint32 pitch = (uint32)floor(dbi->bits_per_pixel * dbi->width / 32) * 4;
-        uint32 pixelDataSize = pitch * dbi->height;
-        uint8 *source = ((uint8*)data + header->data_offset);
-        uint32 *dest = (uint32*)img.data;
-        for (uint32 i = 0; i < dbi->width * dbi->height; ++i) {
+        uint32_t pitch = (uint32_t)floor(dbi->bits_per_pixel * dbi->width / 32) * 4;
+        uint32_t pixelDataSize = pitch * dbi->height;
+        uint8_t *source = ((uint8_t*)data + header->data_offset);
+        uint32_t *dest = (uint32_t*)img.data;
+        for (uint32_t i = 0; i < dbi->width * dbi->height; ++i) {
             if (i % pitch <= 3 * dbi->width) {
-                uint8 b = *source++;
-                uint8 g = *source++;
-                uint8 r = *source++;
+                uint8_t b = *source++;
+                uint8_t g = *source++;
+                uint8_t r = *source++;
                 dest[i] = (0xFF << 24) | (b << 16) | (g << 8) | (r << 0);
             } else {
                 // TODO: For images which are not a power of 2, we probably
@@ -116,7 +116,7 @@ Image LoadBMP(char *filename) {
 }
 
 // Very rudamentary code for dumping a bmp (for debug purposes)
-void DumpBMP(uint8* data, uint32 width, uint32 height, char *filename) {
+void DumpBMP(uint8_t* data, uint32_t width, uint32_t height, char *filename) {
 
     bmp_header bmp;
     bmp.file_type = BMP_FILE_TYPE;
@@ -139,19 +139,19 @@ void DumpBMP(uint8* data, uint32 width, uint32 height, char *filename) {
     FILE *fp = fopen(filename, "wb");
     if (fp) {
 
-        uint32 pitch = (uint32)floor(dbi.bits_per_pixel * width / 32) * 4;
-        uint32 pixelDataSize = pitch * height;
+        uint32_t pitch = (uint32_t)floor(dbi.bits_per_pixel * width / 32) * 4;
+        uint32_t pixelDataSize = pitch * height;
         
-        uint8 *bitmap = (uint8*)malloc(pixelDataSize);
-        uint32 *source = (uint32*)data;
+        uint8_t *bitmap = (uint8_t*)malloc(pixelDataSize);
+        uint32_t *source = (uint32_t*)data;
         memset(bitmap, 0, pixelDataSize);
-        for (uint32 y = 0; y < height; ++y) {
-            for (uint32 x = 0; x < width; ++x) {
-                uint32 color = source[x + y * width];
-                uint8 r = color >> 0;
-                uint8 g = color >> 8;
-                uint8 b = color >> 16;
-                //uint8 a = color >> 24; /* Discard alpha */
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                uint32_t color = source[x + y * width];
+                uint8_t r = color >> 0;
+                uint8_t g = color >> 8;
+                uint8_t b = color >> 16;
+                //uint8_t a = color >> 24; /* Discard alpha */
                 bitmap[(x * 3) + y*pitch] = b;
                 bitmap[(x * 3) + y*pitch + 1] = g;
                 bitmap[(x * 3) + y*pitch + 2] = r;

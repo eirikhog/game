@@ -20,22 +20,22 @@ typedef struct RenderContext {
     MemorySegment memory;
     MemorySegment vertexBuffer;
 
-    uint32 entriesCount;
-    uint32 entriesMax;
+    u32 entriesCount;
+    u32 entriesMax;
 
     AtlasAsset *atlas;
-    uint32 atlasId;
+    u32 atlasId;
     AtlasAsset *fontAtlas;
-    uint32 fontAtlasId;
+    u32 fontAtlasId;
 
-    uint32 selectedTexture;
+    u32 selectedTexture;
 
-    uint32 prevFrameObjects;
-    uint32 currFrameObjects;
+    u32 prevFrameObjects;
+    u32 currFrameObjects;
 } RenderContext;
 
 static void Draw(RenderContext *ctx);
-static void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint32 spritemapId);
+static void RenderObject(RenderContext *ctx, Rect2Di r, Color c, u32 image_id, u32 spritemapId);
 
 static void InitializeOpenGL(GameAssets *assets) {
     GLenum err = glewInit();
@@ -122,8 +122,8 @@ RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
     LoadTextures(assets, ctx);
 
     // Allocate memory buffer
-    uint32 vertex_size = sizeof(RenderVertex) * 4;
-    uint32 available_memory = (memory.size - memory.used) / vertex_size;
+    u32 vertex_size = sizeof(RenderVertex) * 4;
+    u32 available_memory = (memory.size - memory.used) / vertex_size;
     MemorySegment vertex_segment = AllocMemory(&memory, available_memory);
 
     ctx->entriesMax = available_memory / vertex_size;
@@ -134,7 +134,7 @@ RenderContext *RenderInit(GameAssets *assets, MemorySegment memory) {
     return ctx;
 }
 
-void DrawImage(RenderContext *ctx, Rect2Di target, uint32 image_id) {
+void DrawImage(RenderContext *ctx, Rect2Di target, u32 image_id) {
     RenderObject(ctx, target, { 1.0f, 1.0f, 1.0f }, image_id, ASSET_SPRITEMAP);
 }
 
@@ -154,7 +154,7 @@ void DrawText(RenderContext *ctx, const char *str, v2i position, Color c) {
     const i32 width = 10;
     const i32 height = 16;
 
-    int32 offsetX = 0;
+    i32 offsetX = 0;
     const char *ptr = str;
     while (*ptr != 0) {
         RenderObject(ctx, { position.x + offsetX, position.y, width, height }, c, *ptr, ASSET_FONT_SPRITEMAP);
@@ -163,9 +163,9 @@ void DrawText(RenderContext *ctx, const char *str, v2i position, Color c) {
     }
 }
 
-AtlasAssetEntry *GetAtlasEntry(AtlasAsset *atlas, uint32 id) {
+AtlasAssetEntry *GetAtlasEntry(AtlasAsset *atlas, u32 id) {
     
-    for (uint32 i = 0; i < atlas->count; ++i) {
+    for (u32 i = 0; i < atlas->count; ++i) {
         if (atlas->entries[i].id == id) {
             return &atlas->entries[i];
         }
@@ -174,10 +174,10 @@ AtlasAssetEntry *GetAtlasEntry(AtlasAsset *atlas, uint32 id) {
     return 0;
 }
 
-void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint32 spritemapId) {
+void RenderObject(RenderContext *ctx, Rect2Di r, Color c, u32 image_id, u32 spritemapId) {
     bool32 flush = 0;
 
-    uint32 id = spritemapId == ASSET_SPRITEMAP ? ctx->atlasId : ctx->fontAtlasId;
+    u32 id = spritemapId == ASSET_SPRITEMAP ? ctx->atlasId : ctx->fontAtlasId;
     if (ctx->selectedTexture != id) {
         // Draw whatever is in the buffer, and switch texture.
         Draw(ctx);
@@ -204,10 +204,10 @@ void RenderObject(RenderContext *ctx, Rect2Di r, Color c, uint32 image_id, uint3
     }
     
     RenderVertex vertices[4];
-    vertices[0] = { { (real32)r.x, (real32)r.y, 0.f }, c, { entry->uvOrigin.x, 1.0f - entry->uvOrigin.y } };
-    vertices[1] = { { (real32)r.x, (real32)(r.y + r.height), 0.f }, c, { entry->uvOrigin.x, 1.0f - entry->uvEnd.y } };
-    vertices[2] = { { (real32)(r.x + r.width), (real32)(r.y + r.height), 0.f }, c, { entry->uvEnd.x, 1.0f - entry->uvEnd.y } };
-    vertices[3] = { { (real32)(r.x + r.width), (real32)r.y, 0.f }, c, { entry->uvEnd.x, 1.0f - entry->uvOrigin.y } };
+    vertices[0] = { { (r32)r.x, (r32)r.y, 0.f }, c, { entry->uvOrigin.x, 1.0f - entry->uvOrigin.y } };
+    vertices[1] = { { (r32)r.x, (r32)(r.y + r.height), 0.f }, c, { entry->uvOrigin.x, 1.0f - entry->uvEnd.y } };
+    vertices[2] = { { (r32)(r.x + r.width), (r32)(r.y + r.height), 0.f }, c, { entry->uvEnd.x, 1.0f - entry->uvEnd.y } };
+    vertices[3] = { { (r32)(r.x + r.width), (r32)r.y, 0.f }, c, { entry->uvEnd.x, 1.0f - entry->uvOrigin.y } };
 
     for (int i = 0; i < 4; ++i) {
         RenderVertex *c_vert = PUSH_STRUCT(&ctx->vertexBuffer, RenderVertex);
@@ -242,7 +242,7 @@ void RenderEnd(RenderContext *ctx) {
     ctx->rendering = false;
 }
 
-uint32 RenderedObjects(RenderContext *ctx) {
+u32 RenderedObjects(RenderContext *ctx) {
     return ctx->prevFrameObjects;
 }
 

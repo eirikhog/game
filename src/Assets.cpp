@@ -8,8 +8,8 @@ GameAssets AssetsInit(PlatformAPI *api, MemorySegment memory) {
 
     // Load the entire asset file to memory for now.
     // TODO: Free this sometime.
-    uint32 size;
-    uint8 *data = (uint8*)api->ReadEntireFile("assets.gap", &size);
+    u32 size;
+    u8 *data = (u8*)api->ReadEntireFile("assets.gap", &size);
     Assert(size > 0);
 
     AssetFileHeader *header = (AssetFileHeader*)data;
@@ -22,14 +22,14 @@ GameAssets AssetsInit(PlatformAPI *api, MemorySegment memory) {
     return assets;
 }
 
-ShaderAsset *AssetGetShader(GameAssets *assets, uint32 id) {
-    uint8 *data = (uint8*)assets->assetFile;
-    for (uint32 i = 0; i < assets->assetFile->assetCount; ++i) {
+ShaderAsset *AssetGetShader(GameAssets *assets, u32 id) {
+    u8 *data = (u8*)assets->assetFile;
+    for (u32 i = 0; i < assets->assetFile->assetCount; ++i) {
         if (assets->entries[i].type == ASSET_SHADER) {
             Assert(assets->entries[i].type == ASSET_SHADER);
             ShaderAsset *shader = (ShaderAsset*)(data + assets->entries[i].offset);
 
-            shader->content = (char *)((uint8*)shader + sizeof(ShaderAsset));
+            shader->content = (char *)((u8*)shader + sizeof(ShaderAsset));
 
             if (shader->id == id) {
                 return shader;
@@ -41,12 +41,12 @@ ShaderAsset *AssetGetShader(GameAssets *assets, uint32 id) {
     return 0;
 }
 
-AtlasAsset *AssetGetAtlas(GameAssets *assets, uint32 id) {
-    for (uint32 i = 0; i < assets->assetFile->assetCount; ++i) {
+AtlasAsset *AssetGetAtlas(GameAssets *assets, u32 id) {
+    for (u32 i = 0; i < assets->assetFile->assetCount; ++i) {
         if (assets->entries[i].id == id) {
-            AtlasAsset *atlas = (AtlasAsset*)((uint8*)assets->assetFile + assets->entries[i].offset);
-            atlas->entries = (AtlasAssetEntry *)((uint8*)assets->assetFile + assets->entries[i].offset + sizeof(AtlasAsset));
-            atlas->data = (uint8*)((uint8*)assets->assetFile + assets->entries[i].offset + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlas->count);
+            AtlasAsset *atlas = (AtlasAsset*)((u8*)assets->assetFile + assets->entries[i].offset);
+            atlas->entries = (AtlasAssetEntry *)((u8*)assets->assetFile + assets->entries[i].offset + sizeof(AtlasAsset));
+            atlas->data = (u8*)((u8*)assets->assetFile + assets->entries[i].offset + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlas->count);
             return atlas;
         }
     }

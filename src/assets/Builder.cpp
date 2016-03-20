@@ -31,14 +31,14 @@ private:
 typedef struct {
     AssetFileHeader header;
     char *filename;
-    uint32 idCounter;
+    u32 idCounter;
     std::vector<AssetGeneratorFileEntry> entries;
-    uint32 dataOffset;
+    u32 dataOffset;
 } AssetFileGenerator;
 
 typedef struct {
-    uint16 elementSize;
-    uint32 count;
+    u16 elementSize;
+    u32 count;
     Image images[256];
     AssetId ids[256];
 } AtlasGenerator;
@@ -67,7 +67,7 @@ void WriteShaderAsset(FILE *fp, AssetFileGenerator *gen, AssetGeneratorFileEntry
 void WriteAtlasAsset(FILE *fp, AssetFileGenerator *gen, AssetGeneratorFileEntry *genEntry) {
     genEntry->entry.offset = gen->dataOffset;
     gen->dataOffset += genEntry->entry.size;
-    uint32 position = ftell(fp);
+    u32 position = ftell(fp);
     std::cout << "Writing AtlasAsset at offset " << position << std::endl;
     fwrite(&genEntry->entry, sizeof(AssetFileEntry), 1, fp);
 }
@@ -118,15 +118,15 @@ void AddImageToAtlas(AtlasGenerator *gen, char *filePath, AssetId id) {
 
 AtlasAsset *CreateAtlas(AtlasGenerator *atlasGen) {
     TIMED_FUNCTION();
-    uint32 minimumDim = (uint32)square_root((real32)atlasGen->count * TEXTURE_SIZE * TEXTURE_SIZE);
+    u32 minimumDim = (u32)square_root((r32)atlasGen->count * TEXTURE_SIZE * TEXTURE_SIZE);
     
-    uint32 i = 0;
-    uint32 dim = 0;
+    u32 i = 0;
+    u32 dim = 0;
     do {
-        dim = (uint32)pow(2, i++);
+        dim = (u32)pow(2, i++);
     } while (dim < minimumDim);
 
-    uint32 atlasSize = sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlasGen->count + dim*dim * 32;
+    u32 atlasSize = sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlasGen->count + dim*dim * 32;
 
     AtlasAsset *atlas = (AtlasAsset *)malloc(atlasSize);
     
@@ -135,23 +135,23 @@ AtlasAsset *CreateAtlas(AtlasGenerator *atlasGen) {
     atlas->height = dim;
     atlas->count = atlasGen->count;
     // Put the bitmap data at the end.
-    atlas->data = (uint8*)atlas + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlasGen->count;
-    atlas->entries = (AtlasAssetEntry*)((uint8*)atlas + sizeof(AtlasAsset));
+    atlas->data = (u8*)atlas + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlasGen->count;
+    atlas->entries = (AtlasAssetEntry*)((u8*)atlas + sizeof(AtlasAsset));
 
-    for (int32 i = 0; i < (int32)atlasGen->count; ++i) {
-        int32 offsetX = (i * TEXTURE_SIZE) % dim;
-        int32 offsetY = TEXTURE_SIZE * ((i * TEXTURE_SIZE) / dim);
+    for (i32 i = 0; i < (i32)atlasGen->count; ++i) {
+        i32 offsetX = (i * TEXTURE_SIZE) % dim;
+        i32 offsetY = TEXTURE_SIZE * ((i * TEXTURE_SIZE) / dim);
 
         // Add metadata to atlas
         atlas->entries[i].id = atlasGen->ids[i];
-        atlas->entries[i].uvOrigin = { (real32)offsetX / (real32)dim, 1.0f - (real32)(offsetY + TEXTURE_SIZE) / (real32)dim };
-        atlas->entries[i].uvEnd = { (real32)(offsetX + TEXTURE_SIZE) / (real32)dim, 1.0f - ((real32)offsetY / (real32)dim) };
+        atlas->entries[i].uvOrigin = { (r32)offsetX / (r32)dim, 1.0f - (r32)(offsetY + TEXTURE_SIZE) / (r32)dim };
+        atlas->entries[i].uvEnd = { (r32)(offsetX + TEXTURE_SIZE) / (r32)dim, 1.0f - ((r32)offsetY / (r32)dim) };
 
         // Copy image to atlas
-        uint32_t *dest = (uint32_t*)atlas->data;
-        uint32_t *src = (uint32_t*)atlasGen->images[i].data;
-        for (int32 y = 0; y < TEXTURE_SIZE; ++y) {
-            for (int32 x = 0; x < TEXTURE_SIZE; ++x) {
+        u32 *dest = (u32*)atlas->data;
+        u32 *src = (u32*)atlasGen->images[i].data;
+        for (i32 y = 0; y < TEXTURE_SIZE; ++y) {
+            for (i32 x = 0; x < TEXTURE_SIZE; ++x) {
                 dest[(offsetX + x) + (offsetY + y) * dim] = src[x + y * TEXTURE_SIZE];
             }
         }
@@ -213,12 +213,12 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
     TEXTMETRIC metric;
     GetTextMetrics(dc, &metric);
 
-    int32 bounds = 1;
-    int32 offsetX = bounds;
-    int32 offsetY = bounds;
-    int32 highest = 0;
+    i32 bounds = 1;
+    i32 offsetX = bounds;
+    i32 offsetY = bounds;
+    i32 highest = 0;
 
-    uint32 codepointCount = 0;
+    u32 codepointCount = 0;
     wchar_t codepoints[512];
 
     // Add all english characters to spritemap
@@ -229,29 +229,29 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
         codepoints[codepointCount++] = c;
     }
 
-    for (int32 i = 0; i < 10; ++i) {
+    for (i32 i = 0; i < 10; ++i) {
         codepoints[codepointCount++] = (wchar_t)('0' + i);
     }
 
     const char extra[] = { ' ', '_', '-', '+', '=', '!', '?', ';', ':', '\'', '\\', '/', '(', ')', '.', ',', '`', 
                            '<', '>', '"', '$', '#', '@', '^', '&', '*', '%' };
-    for (int32 i = 0; i < sizeof(extra); ++i) {
+    for (i32 i = 0; i < sizeof(extra); ++i) {
         codepoints[codepointCount++] = extra[i];
     }
 
-    uint32 atlasSize = sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * codepointCount + BitmapSize * BitmapSize * 32;
+    u32 atlasSize = sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * codepointCount + BitmapSize * BitmapSize * 32;
     AtlasAsset *atlas = (AtlasAsset *)malloc(atlasSize);
-    AtlasAssetEntry *entries = (AtlasAssetEntry *)((uint8*)atlas + sizeof(AtlasAsset));
+    AtlasAssetEntry *entries = (AtlasAssetEntry *)((u8*)atlas + sizeof(AtlasAsset));
 
     atlas->size = atlasSize;
     atlas->width = BitmapSize;
     atlas->height = BitmapSize;
     atlas->count = codepointCount;
     atlas->entries = entries;
-    atlas->data = (uint8*)atlas + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlas->count;
+    atlas->data = (u8*)atlas + sizeof(AtlasAsset) + sizeof(AtlasAssetEntry) * atlas->count;
 
     // Create font spritemap
-    for (uint32 i = 0; i < codepointCount; ++i) {
+    for (u32 i = 0; i < codepointCount; ++i) {
         wchar_t c = codepoints[i];
 
         SIZE size;
@@ -265,9 +265,9 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
         SetTextColor(dc, RGB(255, 255, 255));
         TextOutW(dc, offsetX, offsetY, &c, 1);
         
-        entries[i].id = (uint32)c;
-        entries[i].uvOrigin = { (real32)offsetX / (real32)BitmapSize, 1.0f - (real32)offsetY / (real32)BitmapSize };
-        entries[i].uvEnd = { (real32)(offsetX + size.cx) / (real32)BitmapSize, 1.0f - (real32)(offsetY + size.cy) / (real32)BitmapSize };
+        entries[i].id = (u32)c;
+        entries[i].uvOrigin = { (r32)offsetX / (r32)BitmapSize, 1.0f - (r32)offsetY / (r32)BitmapSize };
+        entries[i].uvEnd = { (r32)(offsetX + size.cx) / (r32)BitmapSize, 1.0f - (r32)(offsetY + size.cy) / (r32)BitmapSize };
 
         offsetX += size.cx + bounds;
         if (size.cy > highest) {
@@ -276,14 +276,14 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
 
     }
 
-    DumpBMP((uint8*)bitmapData, BitmapSize, BitmapSize, "fontmap.bmp");
+    DumpBMP((u8*)bitmapData, BitmapSize, BitmapSize, "fontmap.bmp");
 
     // Copy image data to asset
-    uint32 *dest = (uint32*)atlas->data;
-    for (int32 y = 0; y < BitmapSize; ++y) {
-        for (int32 x = 0; x < BitmapSize; ++x) {
+    u32 *dest = (u32*)atlas->data;
+    for (i32 y = 0; y < BitmapSize; ++y) {
+        for (i32 x = 0; x < BitmapSize; ++x) {
             // 0x00bbggrr
-            uint32 color = GetPixel(dc, x, y);
+            u32 color = GetPixel(dc, x, y);
             dest[x + y * BitmapSize] = ((color & 0xFF) << 24) | color;
         }
     }
@@ -294,16 +294,16 @@ AtlasAsset *BuildFontSpritemap(AssetFileGenerator *gen) {
     return atlas;
 }
 
-void AddShader(AssetFileGenerator *gen, char *file, uint32 id) {
+void AddShader(AssetFileGenerator *gen, char *file, u32 id) {
 
     FILE *fp = fopen(file, "rb");
     if (fp) {
         fseek(fp, 0, SEEK_END);
-        uint32 size = ftell(fp);
+        u32 size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
 
-        uint32 assetSize = sizeof(ShaderAsset) + size + 1; // +1 for zero termination.
-        uint8 *data = (uint8*)malloc(assetSize);
+        u32 assetSize = sizeof(ShaderAsset) + size + 1; // +1 for zero termination.
+        u8 *data = (u8*)malloc(assetSize);
         ZeroMemory(data, assetSize);
 
         // Data follows the asset struct.

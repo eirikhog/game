@@ -13,13 +13,13 @@ struct v2 {
     T y;
 };
 
-typedef v2<int32> v2i;
-typedef v2<real32> v2f;
+typedef v2<i32> v2i;
+typedef v2<r32> v2f;
 
 typedef struct {
-    real32 x;
-    real32 y;
-    real32 z;
+    r32 x;
+    r32 y;
+    r32 z;
 } v3;
 
 template<typename T>
@@ -76,7 +76,7 @@ inline v2<T>& operator/=(v2<T> &left, const T scalar) {
 
 // Visual Studio intinsics
 
-inline real32 square_root(real32 value) {
+inline r32 square_root(r32 value) {
     return sqrtf(value);
 }
 

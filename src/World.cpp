@@ -4,8 +4,8 @@
 #include "Chunk.h"
 
 static WorldChunk*
-GetChunk(World *world, int x, int y) {
-    for (int i = 0; i < 32; ++i) {
+GetChunk(World *world, i32 x, i32 y) {
+    for (i32 i = 0; i < 32; ++i) {
         if (world->chunks[i].x == x && world->chunks[i].y == y) {
             return &(world->chunks[i]);
         }
@@ -14,14 +14,14 @@ GetChunk(World *world, int x, int y) {
     return 0;
 }
 
-static uint32
-GetTile(World *world, real32 x, real32 y) {
-    int32 chunkX = (int32)floor(x / CHUNK_DIM);
-    int32 chunkY = (int32)floor(y / CHUNK_DIM);
+static u32
+GetTile(World *world, r32 x, r32 y) {
+    i32 chunkX = (i32)floor(x / CHUNK_DIM);
+    i32 chunkY = (i32)floor(y / CHUNK_DIM);
     WorldChunk *chunk = GetChunk(world, chunkX, chunkY);
     if (chunk) {
-        int32 localX = (int32)x % CHUNK_DIM;
-        int32 localY = (int32)y % CHUNK_DIM;
+        i32 localX = (i32)x % CHUNK_DIM;
+        i32 localY = (i32)y % CHUNK_DIM;
         return chunk->tiles[localX + localY * CHUNK_DIM];
     }
 
@@ -34,20 +34,20 @@ GetTileFromScreenPosition(World *world, v2i screenPos) {
     v2i camera = world->camera;
     v2i worldPosition = { screenPos.x - world->screenSize.x / 2 - world->camera.x,
                          screenPos.y - world->screenSize.y / 2 - world->camera.y };
-    v2i result = { (int32)floor((real32)worldPosition.x / TILE_SIZE), (int32)floor((real32)worldPosition.y / TILE_SIZE) };
+    v2i result = { (i32)floor((r32)worldPosition.x / TILE_SIZE), (i32)floor((r32)worldPosition.y / TILE_SIZE) };
     return result;
 }
 
-void SetTile(World *world, int32 x, int32 y, uint32 tileValue) {
-    int32 chunkX = (int32)floor((real32)x / CHUNK_DIM);
-    int32 chunkY = (int32)floor((real32)y / CHUNK_DIM);
+void SetTile(World *world, i32 x, i32 y, u32 tileValue) {
+    i32 chunkX = (i32)floor((r32)x / CHUNK_DIM);
+    i32 chunkY = (i32)floor((r32)y / CHUNK_DIM);
     WorldChunk *chunk = GetChunk(world, chunkX, chunkY);
     if (chunk) {
-        int32 localX = (int32)x % CHUNK_DIM;
+        i32 localX = (i32)x % CHUNK_DIM;
         if (localX < 0) {
             localX = localX + CHUNK_DIM;
         }
-        int32 localY = (int32)y % CHUNK_DIM;
+        i32 localY = (i32)y % CHUNK_DIM;
         if (localY < 0) {
             localY += CHUNK_DIM;
         }
@@ -65,7 +65,7 @@ void CenterOnTile(World *world, v2i tile) {
 }
 
 void CenterOnChunk(World *world, v2i chunk) {
-    int32 chunkWidth = (TILE_SIZE * CHUNK_DIM);
+    i32 chunkWidth = (TILE_SIZE * CHUNK_DIM);
     v2i newCamera = chunk * chunkWidth;
     newCamera += { -chunkWidth / 2, -chunkWidth / 2 };
     newCamera += { -TILE_SIZE / 2, -TILE_SIZE / 2};
@@ -79,10 +79,10 @@ void WorldCreate(World *world) {
     // Start at center
     CenterOnChunk(world, { 0, 0 });
 
-    for (int i = 0; i < 32; ++i) {
+    for (i32 i = 0; i < 32; ++i) {
         world->chunks[i].x = (i % 6)-3;
         world->chunks[i].y = (i / 6)-3;
-        for (int j = 0; j < CHUNK_DIM * CHUNK_DIM; ++j) {
+        for (i32 j = 0; j < CHUNK_DIM * CHUNK_DIM; ++j) {
             world->chunks[i].tiles[j] = ASSET_TEXTURE_GRASS;
         }
     }
@@ -119,10 +119,10 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
 }
 
 static inline v2i
-ChunkCoordsToScreenCorrds(v2i camera, v2i screenSize, int x, int y) {
-    const int32 chunkSideLength = (TILE_SIZE * CHUNK_DIM);
-    v2i result = { (int32)(camera.x + screenSize.x / 2.0f + x * chunkSideLength),
-                   (int32)(camera.y + screenSize.y / 2.0f + y * chunkSideLength) };
+ChunkCoordsToScreenCorrds(v2i camera, v2i screenSize, i32 x, i32 y) {
+    const i32 chunkSideLength = (TILE_SIZE * CHUNK_DIM);
+    v2i result = { (i32)(camera.x + screenSize.x / 2.0f + x * chunkSideLength),
+                   (i32)(camera.y + screenSize.y / 2.0f + y * chunkSideLength) };
     return result;
 }
 
@@ -130,7 +130,7 @@ static inline v2i
 GetTileCoordinate(v2i camera, v2i screenSize, v2i position) {
     v2i worldPosition = { position.x - screenSize.x / 2 - camera.x,
                           position.y - screenSize.y / 2 - camera.y };
-    v2i tile = { (int32)floor(worldPosition.x / TILE_SIZE), (int32)floor(worldPosition.y / TILE_SIZE) };
+    v2i tile = { (i32)floor(worldPosition.x / TILE_SIZE), (i32)floor(worldPosition.y / TILE_SIZE) };
 
     v2i result = { camera.x + screenSize.x / 2 + tile.x * TILE_SIZE, camera.y + screenSize.y / 2 + tile.y * TILE_SIZE };
 
@@ -161,24 +161,24 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
 
     const v2i screenSize = windowSize;
 
-    Rect2Di drawWindow((int32)(-world->camera.x - windowSize.x / 2), (int32)(-world->camera.y - windowSize.y / 2), (int32)windowSize.x, (int32)windowSize.y);
+    Rect2Di drawWindow((i32)(-world->camera.x - windowSize.x / 2), (i32)(-world->camera.y - windowSize.y / 2), (i32)windowSize.x, (i32)windowSize.y);
 
-    const int32 chunkSideLength = (TILE_SIZE * CHUNK_DIM);
-    int32 chunkStartX = (int32)floorf((real32)drawWindow.x / chunkSideLength);
-    int32 chunkStartY = (int32)floorf((real32)drawWindow.y / chunkSideLength);
-    int32 chunkEndX = (int32)ceil((real32)(drawWindow.x + drawWindow.width) / chunkSideLength);
-    int32 chunkEndY = (int32)ceil((real32)(drawWindow.y + drawWindow.height) / chunkSideLength);
+    const i32 chunkSideLength = (TILE_SIZE * CHUNK_DIM);
+    i32 chunkStartX = (i32)floorf((r32)drawWindow.x / chunkSideLength);
+    i32 chunkStartY = (i32)floorf((r32)drawWindow.y / chunkSideLength);
+    i32 chunkEndX = (i32)ceil((r32)(drawWindow.x + drawWindow.width) / chunkSideLength);
+    i32 chunkEndY = (i32)ceil((r32)(drawWindow.y + drawWindow.height) / chunkSideLength);
 
     Color white = { 1.0f, 1.0f, 1.0f };
     Color black = { 0.0f, 0.0f, 0.0f };
 
-    DrawSolidRect(ctx, Rect2Di(0, 0, (int32)screenSize.x, (int32)screenSize.y), { 0.486f, 0.678f, 0.965f });
+    DrawSolidRect(ctx, Rect2Di(0, 0, (i32)screenSize.x, (i32)screenSize.y), { 0.486f, 0.678f, 0.965f });
 
-    uint32 texture = (uint32)ASSET_TEXTURE_DIRT;
-    int drawnTiles = 0;
+    u32 texture = (u32)ASSET_TEXTURE_DIRT;
+    i32 drawnTiles = 0;
     v2i center = world->camera;
-    for (int32 y = chunkStartY; y <= chunkEndY; ++y) {
-        for (int32 x = chunkStartX; x <= chunkEndX; ++x) {
+    for (i32 y = chunkStartY; y <= chunkEndY; ++y) {
+        for (i32 x = chunkStartX; x <= chunkEndX; ++x) {
             WorldChunk *chunk = GetChunk(world, x, y);
             if (!chunk) {
                 continue;
@@ -187,30 +187,30 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
             v2i screenPos = ChunkCoordsToScreenCorrds(center, screenSize, x, y);
 
             // Don't draw stuff outside the window.
-            int32 startX = screenPos.x < 0 ? (int32)abs((int32)screenPos.x / TILE_SIZE) : 0;
-            int32 startY = screenPos.y < 0 ? (int32)abs((int32)screenPos.y / TILE_SIZE) : 0;
-            int32 endX = CHUNK_DIM;
-            if ((int32)screenPos.x + CHUNK_DIM * TILE_SIZE > world->screenSize.x) {
-                int32 overflow = (int32)screenPos.x + CHUNK_DIM * TILE_SIZE - (int32)world->screenSize.x;
+            i32 startX = screenPos.x < 0 ? (i32)abs((i32)screenPos.x / TILE_SIZE) : 0;
+            i32 startY = screenPos.y < 0 ? (i32)abs((i32)screenPos.y / TILE_SIZE) : 0;
+            i32 endX = CHUNK_DIM;
+            if ((i32)screenPos.x + CHUNK_DIM * TILE_SIZE > world->screenSize.x) {
+                i32 overflow = (i32)screenPos.x + CHUNK_DIM * TILE_SIZE - (i32)world->screenSize.x;
                 endX = CHUNK_DIM - overflow / TILE_SIZE;
             }
-            int32 endY = CHUNK_DIM;
-            if ((int32)screenPos.y + CHUNK_DIM * TILE_SIZE > world->screenSize.y) {
-                int32 overflow = (int32)screenPos.y + CHUNK_DIM * TILE_SIZE - (int32)world->screenSize.y;
+            i32 endY = CHUNK_DIM;
+            if ((i32)screenPos.y + CHUNK_DIM * TILE_SIZE > world->screenSize.y) {
+                i32 overflow = (i32)screenPos.y + CHUNK_DIM * TILE_SIZE - (i32)world->screenSize.y;
                 endY = CHUNK_DIM - overflow / TILE_SIZE;
             }
 
-            for (int32 tileY = startY; tileY < endY; ++tileY) {
-                for (int32 tileX = startX; tileX < endX; ++tileX) {
-                    v2i offset = { (int32)tileX * TILE_SIZE, (int32)tileY * TILE_SIZE };
+            for (i32 tileY = startY; tileY < endY; ++tileY) {
+                for (i32 tileX = startX; tileX < endX; ++tileX) {
+                    v2i offset = { (i32)tileX * TILE_SIZE, (i32)tileY * TILE_SIZE };
                     v2i pos = screenPos + offset;
                     texture = (AssetId)chunk->tiles[tileX + tileY * CHUNK_DIM];
-                    DrawImage(ctx, Rect2Di((int32)pos.x, (int32)pos.y, TILE_SIZE, TILE_SIZE), texture);
+                    DrawImage(ctx, Rect2Di((i32)pos.x, (i32)pos.y, TILE_SIZE, TILE_SIZE), texture);
                     drawnTiles++;
                 }
             }
 
-            //DrawRect(ctx, { (int32)screenPos.x, (int32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
+            //DrawRect(ctx, { (i32)screenPos.x, (i32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
         }
     }
 
@@ -220,8 +220,8 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
         DrawRect(ctx, dragArea, white);
     }
 
-    DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
-    DrawSolidRect(ctx, Rect2Di((int32)screenSize.x / 2, (int32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });
+    DrawSolidRect(ctx, Rect2Di((i32)screenSize.x / 2, (i32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
+    DrawSolidRect(ctx, Rect2Di((i32)screenSize.x / 2, (i32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });
 
     DrawDiagnostics(world, ctx);
 }
