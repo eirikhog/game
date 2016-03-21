@@ -31,6 +31,7 @@ typedef struct {
     GameAssets assets;
     World *world;
 
+    r32 elapsedTime;
     ConsoleState console;
 } GameState;
 
@@ -59,6 +60,8 @@ GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
 
     state->console.animationProgress = 0.0f;
     state->console.animationSpeed = 0.05f;
+
+    state->elapsedTime = 0.0f;
 
     state->initialized = true;
 
@@ -189,6 +192,13 @@ void UpdateConsole(GameState *state, GameInput *input) {
 
 }
 
+void DrawElapsedTime(GameState *state, RenderContext *ctx, v2i windowSize) {
+
+    char *output = mprintf("%.2f seconds elapsed.", state->elapsedTime);
+    SCOPE_FREE(output);
+    DrawText(ctx, output, { windowSize.x - 300 , 0 }, Color(1.0f, 1.0f, 1.0f));
+}
+
 extern "C"
 void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInput *input, r32 dt) {
 
@@ -204,6 +214,8 @@ void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInp
         platformState->libReloaded = false;
     }
 
+    state->elapsedTime += dt;
+
     state->world->screenSize = platformState->windowSize;
 
     // Updating
@@ -215,6 +227,8 @@ void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInp
     WorldRender(state->world, state->renderer, platformState->windowSize);
 
     DrawConsole(&state->console, state->renderer, state->world->screenSize);
+
+    DrawElapsedTime(state, state->renderer, platformState->windowSize);
 
     RenderEnd(state->renderer);
 }
