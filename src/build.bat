@@ -32,6 +32,7 @@ cl %CFLAGS% %WIN32SRC% %INCLUDES% /link /PDB:win32.pdb %LFLAGS% opengl32.lib use
 if not "%1" == "all" goto END
 
 :GAME
+del game_*.pdb > NUL 2> NUL
 cl %CFLAGS% %GAMESRC% %INCLUDES% /LD /link /PDB:game_%random%.pdb %LFLAGS% opengl32.lib -EXPORT:UpdateGame
 if not "%1" == "all" goto END
 
