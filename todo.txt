@@ -1,19 +1,28 @@
+Ideas/todo list for the game.
 
+Game memory:
+ - Remove use of malloc/free
+ - Implement an allocator which can use the memory we reserve at startup.
+   We don't want to depend on allocating memory while we're running.
 
-Things left to do:
+Asset system:
+ - Can we keep everything in memory on startup?
+   (For now: Yes!)
 
-- Allocate memory for the game
-  - Remove use of malloc/free
-  - Custom memory allocator
-- Asset loading
-  - Load images
-  - Load sounds
-  - Unload assets
-- Render
-  - Lighting effects
-  - Particle effects
-- World generation
-- Game input
-  - XInput
-- Remove any standard library usage
+Rendering:
+ - Lighting effects
+ - Particle effects
+
+World generation:
+ - Everything...
+
+Game input:
+ - XInput: Load dynamically (library might not be installed/available?)
+
+Diagnostics:
+ - Display render time, etc in the game window.
+
+Standard library:
+ - Get rid of the usage. Don't want to depend on it.
+
 
