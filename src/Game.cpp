@@ -192,11 +192,15 @@ void UpdateConsole(GameState *state, GameInput *input) {
 
 }
 
-void DrawElapsedTime(GameState *state, RenderContext *ctx, v2i windowSize) {
+void DrawElapsedTime(GameState *state, RenderContext *ctx, v2i windowSize, r32 frameTime) {
 
     char *output = mprintf("%.2f seconds elapsed.", state->elapsedTime);
     SCOPE_FREE(output);
     DrawText(ctx, output, { windowSize.x - 300 , 0 }, Color(1.0f, 1.0f, 1.0f));
+
+    char *lastFrame = mprintf("%.2f milliseconds.", frameTime);
+    SCOPE_FREE(lastFrame);
+    DrawText(ctx, lastFrame, { windowSize.x - 300, 18}, Color(1.0f, 1.0f, 1.0f));
 }
 
 extern "C"
@@ -228,7 +232,7 @@ void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInp
 
     DrawConsole(&state->console, state->renderer, state->world->screenSize);
 
-    DrawElapsedTime(state, state->renderer, platformState->windowSize);
+    DrawElapsedTime(state, state->renderer, platformState->windowSize, platformState->lastFrameTime);
 
     RenderEnd(state->renderer);
 }

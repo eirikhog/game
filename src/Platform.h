@@ -26,6 +26,7 @@ struct PlatformState {
     v2i windowSize;
     PlatformAPI *api;
     bool32 libReloaded;
+    r32 lastFrameTime;
 };
 
 struct GameMemory {
