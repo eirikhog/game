@@ -4,26 +4,16 @@ Things left to do:
 
 - Allocate memory for the game
   - Remove use of malloc/free
-  - Create PushStruct, PushArray, etc. for putting data in segment.
-- Hot loading of game code
-- Asset file creation.
-  - Load bitmaps
-  - Create fonts
+  - Custom memory allocator
 - Asset loading
-  - Generation of assetfile.
-  - Read the generated file
   - Load images
   - Load sounds
-  - Fonts
   - Unload assets
 - Render
-  - Software renderer?
-  - Render images (textures)
   - Lighting effects
+  - Particle effects
 - World generation
 - Game input
-  - Keyboard
   - XInput
-  - Mouse control
 - Remove any standard library usage
 
