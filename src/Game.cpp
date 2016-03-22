@@ -260,9 +260,8 @@ void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInp
     RenderStart(state->renderer, platformState->windowSize);
     WorldRender(state->world, state->renderer, platformState->windowSize);
 
-    DrawConsole(&state->console, state->renderer, state->world->screenSize);
-
     DrawElapsedTime(state, state->renderer, platformState->windowSize, platformState->lastFrameTime);
+    DrawConsole(&state->console, state->renderer, state->world->screenSize);
 
     RenderEnd(state->renderer);
 
