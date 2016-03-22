@@ -96,8 +96,16 @@ void ProcessCommand(GameState *state, const char *input) {
 
     if (strcmp("quit", buff) == 0) {
         state->shutdown = true;
-    } else if (strcmp("reload", buff)) {
+    } else if (strcmp("reload", buff) == 0) {
         WriteConsole(&state->console, "Reloading...");
+    } else if (strcmp("clear", buff) == 0) {
+        for (i32 i = 0; i < CONSOLE_LOG_SIZE; ++i) {
+            state->console.log[i][0] = 0;
+        }
+    } else {
+        char *output = mprintf("Unrecognized command '%s'", buff);
+        SCOPE_FREE(output);
+        WriteConsole(&state->console, output);
     }
 }
 
@@ -177,8 +185,7 @@ void ReadConsoleInput(GameState *state, ConsoleState *console, KeyboardState *ke
             console->input[0] = 0;
         } else if (key == '`') {
             // Ignore show/hide console command
-        }
-        else {
+        } else {
             console->input[console->inputCount++] = (char)key;
         }
     }
