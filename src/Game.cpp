@@ -120,7 +120,7 @@ void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
     i32 height = (i32)(sin(console->animationProgress * 3.1415f / 2.0f) * screenSize.y / 2);
 
     Rect2Di targetRect = { 0, 0, width, height  };
-    Color bgcolor = { .25f, .35f, .35f, 0.5f };
+    Color bgcolor = { .25f, .35f, .35f, 0.9f };
     DrawSolidRect(ctx, targetRect, bgcolor);
     
     // Draw input in buffer
@@ -131,7 +131,7 @@ void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
             index = CONSOLE_LOG_SIZE - 1;
         }
 
-        DrawText(ctx, console->log[index], { 0, height - 40 - 20 * i }, { 0.8f, 0.8f, 0.8f});
+        DrawText(ctx, console->log[index], { 0, height - 40 - 20 * i }, { 1.0f, 1.0f, 1.0f });
         index--;
     }
 
@@ -172,9 +172,12 @@ void ReadConsoleInput(GameState *state, ConsoleState *console, KeyboardState *ke
 
     for (i32 i = 0; i < keyboard->keyCount; ++i) {
         u32 key = keyboard->keyStack[i];
-        if (key == '\b' && console->inputCount != 0) {
-            console->inputCount--;
-            console->input[console->inputCount] = 0;
+        if (key == '\b') {
+            // Consume the backspace input.
+            if (console->inputCount > 0) {
+                console->inputCount--;
+                console->input[console->inputCount] = 0;
+            }
         } else if (key == '\r') {
             // Make sure the string is 0-terminated
             console->input[console->inputCount] = 0;
