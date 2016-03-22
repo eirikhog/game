@@ -27,6 +27,7 @@ struct PlatformState {
     PlatformAPI *api;
     bool32 libReloaded;
     r32 lastFrameTime;
+    bool32 shutdownRequested;
 };
 
 struct GameMemory {

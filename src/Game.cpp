@@ -30,6 +30,7 @@ typedef struct {
     MemorySegment renderer_memory;
     GameAssets assets;
     World *world;
+    bool32 shutdown;
 
     r32 elapsedTime;
     ConsoleState console;
@@ -63,6 +64,7 @@ GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
 
     state->elapsedTime = 0.0f;
 
+    state->shutdown = false;
     state->initialized = true;
 
     WriteConsole(&state->console, "Game initialized.");
@@ -79,6 +81,26 @@ GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
     SCOPE_FREE(memTotalText);
     WriteConsole(&state->console, memTotalText);
 }
+
+void ProcessCommand(GameState *state, const char *input) {
+   
+    const char *src = input;
+    char buff[256];
+    for (i32 i = 0; i < 255; ++i) {
+        buff[i] = *src++;
+        if (*src == '\r' || *src == ' ' || *src == 0) {
+            buff[i+1] = 0;
+            break;
+        }
+    }
+
+    if (strcmp("quit", buff) == 0) {
+        state->shutdown = true;
+    } else if (strcmp("reload", buff)) {
+        WriteConsole(&state->console, "Reloading...");
+    }
+}
+
 
 void DrawConsole(ConsoleState *console, RenderContext *ctx, v2i screenSize) {
 
@@ -133,7 +155,7 @@ void WriteConsole(ConsoleState *console, char *text) {
 
 }
 
-void ReadConsoleInput(ConsoleState *console, KeyboardState *keyboard) {
+void ReadConsoleInput(GameState *state, ConsoleState *console, KeyboardState *keyboard) {
     
     if (!console->active) {
         // Console is not displayed, do not consume input
@@ -149,6 +171,7 @@ void ReadConsoleInput(ConsoleState *console, KeyboardState *keyboard) {
             // Make sure the string is 0-terminated
             console->input[console->inputCount] = 0;
             WriteConsole(console, console->input);
+            ProcessCommand(state, console->input);
             // TODO: Execute command
             console->inputCount = 0;
             console->input[0] = 0;
@@ -164,7 +187,7 @@ void ReadConsoleInput(ConsoleState *console, KeyboardState *keyboard) {
 }
 
 void UpdateConsole(GameState *state, GameInput *input) {
-    ReadConsoleInput(&state->console, &input->keyboard);
+    ReadConsoleInput(state, &state->console, &input->keyboard);
 
     if (state->console.active && state->console.animationProgress < 1.0f) {
         state->console.animationProgress += state->console.animationSpeed;
@@ -198,7 +221,7 @@ void DrawElapsedTime(GameState *state, RenderContext *ctx, v2i windowSize, r32 f
     SCOPE_FREE(output);
     DrawText(ctx, output, { windowSize.x - 300 , 0 }, Color(1.0f, 1.0f, 1.0f));
 
-    char *lastFrame = mprintf("%.2f milliseconds.", frameTime);
+    char *lastFrame = mprintf("Frame time: %.2f", frameTime);
     SCOPE_FREE(lastFrame);
     DrawText(ctx, lastFrame, { windowSize.x - 300, 18}, Color(1.0f, 1.0f, 1.0f));
 }
@@ -235,6 +258,10 @@ void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInp
     DrawElapsedTime(state, state->renderer, platformState->windowSize, platformState->lastFrameTime);
 
     RenderEnd(state->renderer);
+
+    if (state->shutdown) {
+        platformState->shutdownRequested = true;
+    }
 }
 
 

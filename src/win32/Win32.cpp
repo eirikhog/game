@@ -466,6 +466,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
 
         platformState.lastFrameTime = (r32)tElapsedUs / 1000.0f;
+        if (platformState.shutdownRequested) {
+            programState.running = false;
+        }
 
 #ifdef _DEBUG
         perf.frame_count++;
