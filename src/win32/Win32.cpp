@@ -2,8 +2,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <GL/glew.h>
-#include <GL/wglew.h>
 #include "../../dep/glew-1.13.0/src/glew.c"
 
 // TODO: Dynamic loading
@@ -12,7 +10,6 @@
 #include <chrono>
 #include <thread>
 
-// TODO: Unify this with platform.h
 #ifdef _DEBUG
 #undef Assert
 #define Assert(x) if(!(x)) { OutputDebugString("Assert failed: " #x "\n"); (*(int*)(0)) = 0; }
@@ -23,10 +20,10 @@
 
 #ifdef _DEBUG
 typedef struct {
-    u32 frame_count;
-    u64 work_time;
-    u64 sleep_time;
-} win32_performance;
+    u32 frameCount;
+    u64 workTime;
+    u64 sleepTime;
+} Win32Performance;
 #endif
 
 #define GAMELIB "Game.dll"
@@ -349,7 +346,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     r32 frameTime = 1.0f / 60.0f;
 
 #ifdef _DEBUG
-    win32_performance perf = {};
+    Win32Performance perf = {};
 #endif
     v2i mouse_prev_position = {};
     HCURSOR mouse_cursor = LoadCursor(NULL, IDC_ARROW);
@@ -450,12 +447,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         QueryPerformanceCounter(&tEnd); // TODO: Replace with std::chrono? Do testing...
         u64 tElapsedUs = GetElapsedMicroseconds(tStart, tEnd, cpuFreq);
 #ifdef _DEBUG
-        perf.work_time += tElapsedUs;
+        perf.workTime += tElapsedUs;
 #endif
         const int64_t targetTime = 1000000 / 60; // us in 1 frame at 60 fps
         int64_t sleepTime = (targetTime - tElapsedUs);
 #ifdef _DEBUG
-        perf.sleep_time += sleepTime;
+        perf.sleepTime += sleepTime;
 #endif
         if (sleepTime > 0) {
             std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
@@ -471,19 +468,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
 
 #ifdef _DEBUG
-        perf.frame_count++;
-        if (perf.frame_count == 59) {
+        perf.frameCount++;
+        if (perf.frameCount == 59) {
             QueryPerformanceCounter(&ftEnd);
             u64 a = GetElapsedMicroseconds(ftStart, ftEnd, cpuFreq);
-            float time_per_frame = (float)perf.work_time / 60000.0f;
-            float sleep_per_frame = (float)perf.sleep_time / 60000.0f;
+            float time_per_frame = (float)perf.workTime / 60000.0f;
+            float sleep_per_frame = (float)perf.sleepTime / 60000.0f;
             float utilization = 100.0f * time_per_frame / (sleep_per_frame + time_per_frame);
             char text[256];
             sprintf_s(text, 256, "Performance: Time per frame: %f ms. Sleep per frame: %f (%f %%)\n", time_per_frame, sleep_per_frame, utilization);
             OutputDebugString(text);
-            perf.frame_count = 0;
-            perf.work_time = 0;
-            perf.sleep_time = 0;
+            perf.frameCount = 0;
+            perf.workTime = 0;
+            perf.sleepTime = 0;
             QueryPerformanceCounter(&ftStart);
         }
 #endif
