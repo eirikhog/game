@@ -6,14 +6,7 @@
 #include "Renderer.h"
 #include "Chunk.h"
 
-typedef struct {
-    v2i camera;
-    v2i screenSize;
-    WorldChunk chunks[32];
-    v2i mousePos;
-    bool32 mouseDrag;
-    v2i mouseDragOrigin;
-} World;
+struct World;
 
 void WorldCreate(World *world);
 void WorldUpdate(World *world, GameInput *input, r32 dt);

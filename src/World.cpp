@@ -3,6 +3,27 @@
 #include "Platform.h"
 #include "Chunk.h"
 
+enum EntityType {
+    EntityType_None
+};
+
+struct Entity {
+    EntityType type;
+    v2f position;
+};
+
+struct World {
+    v2i camera;
+    v2i screenSize;
+    WorldChunk chunks[32];
+    v2i mousePos;
+    bool32 mouseDrag;
+    v2i mouseDragOrigin;
+
+    u32 entityCount;
+    Entity ent[128];
+};
+
 static WorldChunk*
 GetChunk(World *world, i32 x, i32 y) {
     for (i32 i = 0; i < 32; ++i) {
@@ -155,6 +176,9 @@ void DrawDiagnostics(World *world, RenderContext *ctx) {
     SCOPE_FREE(tilesText);
     DrawText(ctx, tilesText, { 0, 48 }, white);
 
+    char *entityText = mprintf("Entities: %i", world->entityCount);
+    SCOPE_FREE(entityText);
+    DrawText(ctx, entityText, { 0, 64 }, white);
 }
 
 void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
@@ -212,6 +236,11 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
 
             //DrawRect(ctx, { (i32)screenPos.x, (i32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
         }
+    }
+
+    // TODO: Move entities to different chunks
+    for (u32 i = world->entityCount; i < world->entityCount; ++i) {
+        // Render each entity
     }
 
     if (world->mouseDrag) {
