@@ -4,7 +4,8 @@
 #include "Chunk.h"
 
 enum EntityType {
-    EntityType_None
+    EntityType_None,
+    EntityType_Unit,
 };
 
 struct Entity {
@@ -12,21 +13,32 @@ struct Entity {
     v2f position;
 };
 
+#define CHUNK_DIM 16
+#define TILE_SIZE 32
+#define CHUNK_COUNT 64 
+#define ENTITIES_MAX 128
+
+typedef struct {
+    i32 x;
+    i32 y;
+    u32 tiles[CHUNK_DIM*CHUNK_DIM];
+} WorldChunk;
+
 struct World {
     v2i camera;
     v2i screenSize;
-    WorldChunk chunks[32];
+    WorldChunk chunks[CHUNK_COUNT];
     v2i mousePos;
     bool32 mouseDrag;
     v2i mouseDragOrigin;
 
     u32 entityCount;
-    Entity ent[128];
+    Entity entities[ENTITIES_MAX];
 };
 
 static WorldChunk*
 GetChunk(World *world, i32 x, i32 y) {
-    for (i32 i = 0; i < 32; ++i) {
+    for (i32 i = 0; i < CHUNK_COUNT; ++i) {
         if (world->chunks[i].x == x && world->chunks[i].y == y) {
             return &(world->chunks[i]);
         }
@@ -100,9 +112,9 @@ void WorldCreate(World *world) {
     // Start at center
     CenterOnChunk(world, { 0, 0 });
 
-    for (i32 i = 0; i < 32; ++i) {
-        world->chunks[i].x = (i % 6)-3;
-        world->chunks[i].y = (i / 6)-3;
+    for (i32 i = 0; i < CHUNK_COUNT; ++i) {
+        world->chunks[i].x = (i % (i32)sqrt(CHUNK_COUNT))-3;
+        world->chunks[i].y = (i / (i32)sqrt(CHUNK_COUNT))-3;
         for (i32 j = 0; j < CHUNK_DIM * CHUNK_DIM; ++j) {
             world->chunks[i].tiles[j] = ASSET_TEXTURE_GRASS;
         }
@@ -113,6 +125,10 @@ void WorldCreate(World *world) {
     SetTile(world, 8, 8, ASSET_TEXTURE_DIRT);
     SetTile(world, 8, 9, ASSET_TEXTURE_DIRT);
     SetTile(world, 9, 8, ASSET_TEXTURE_DIRT);
+
+    world->entities[0].type = EntityType_Unit;
+    world->entities[0].position = { -100, -100 };
+    world->entityCount++;
 }
 
 void WorldUpdate(World *world, GameInput *input, r32 dt) {
@@ -134,6 +150,15 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
     } else {
         if (world->mouseDrag) {
             world->mouseDrag = 0;
+        }
+    }
+
+    for (u32 i = 0; i < world->entityCount; ++i) {
+        Entity *e = &world->entities[i];
+        e->position.x += 0.3f;
+        e->position.y += 0.2f;
+        if (e->position.x > 0.0f) {
+            e->position = { -100, -100 };
         }
     }
 
@@ -179,6 +204,12 @@ void DrawDiagnostics(World *world, RenderContext *ctx) {
     char *entityText = mprintf("Entities: %i", world->entityCount);
     SCOPE_FREE(entityText);
     DrawText(ctx, entityText, { 0, 64 }, white);
+}
+
+inline v2i WorldToScreenPosition(World *world, v2i worldPos) {
+    v2i result = { world->camera.x + worldPos.x + world->screenSize.x / 2,
+                   world->camera.y + worldPos.y + world->screenSize.y / 2 };
+    return result;
 }
 
 void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
@@ -239,8 +270,11 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
     }
 
     // TODO: Move entities to different chunks
-    for (u32 i = world->entityCount; i < world->entityCount; ++i) {
-        // Render each entity
+    for (u32 i = 0; i < world->entityCount; ++i) {
+        Entity *e = &world->entities[i];
+        v2i screenPos = WorldToScreenPosition(world, { (i32)e->position.x, (i32)e->position.y });
+        Rect2Di target(screenPos.x, screenPos.y, 32, 32);
+        DrawImage(ctx, target, ASSET_TEXTURE_ENTITY);
     }
 
     if (world->mouseDrag) {
