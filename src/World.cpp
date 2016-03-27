@@ -11,6 +11,7 @@ enum EntityType {
 struct Entity {
     EntityType type;
     v2f position;
+    bool32 selected;
 };
 
 #define CHUNK_DIM 16
@@ -150,6 +151,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
     } else {
         if (world->mouseDrag) {
             world->mouseDrag = 0;
+            // Figure out what we selected...
         }
     }
 
@@ -275,6 +277,10 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
         v2i screenPos = WorldToScreenPosition(world, { (i32)e->position.x, (i32)e->position.y });
         Rect2Di target(screenPos.x, screenPos.y, 32, 32);
         DrawImage(ctx, target, ASSET_TEXTURE_ENTITY);
+
+        if (e->selected) {
+            DrawRect(ctx, target, { 0.0f, 1.0f, 0.0f });
+        }
     }
 
     if (world->mouseDrag) {
