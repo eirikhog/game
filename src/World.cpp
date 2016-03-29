@@ -32,9 +32,15 @@ void WorldCreate(World *world) {
     SetTile(world, 8, 9, ASSET_TEXTURE_DIRT);
     SetTile(world, 9, 8, ASSET_TEXTURE_DIRT);
 
-    world->entities[0].type = EntityType_Unit;
-    world->entities[0].position = { -100, -100 };
-    world->entityCount++;
+    v2f origins[] = { v2f(-100.0f, -100.0f), v2f(500.0f, 100.0f), v2f(534, 1234), v2f(-4562, -1455) };
+    v2f targets[] = { v2f(200.0f, 200.0f), v2f(300.0f, 300.0f), v2f(200, 300), v2f(300, 200) };
+
+    for (i32 i = 0; i < 4; ++i) {
+        world->entities[i].type = EntityType_Unit;
+        world->entities[i].position = origins[i];
+        world->entities[i].moveTarget = targets[i];
+        world->entityCount++;
+    }
 }
 
 void WorldUpdate(World *world, GameInput *input, r32 dt) {

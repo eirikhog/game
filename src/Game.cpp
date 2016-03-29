@@ -31,6 +31,7 @@ typedef struct {
     GameAssets assets;
     World *world;
     bool32 shutdown;
+    bool32 restart;
 
     r32 elapsedTime;
     ConsoleState console;
@@ -64,6 +65,7 @@ GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
 
     state->elapsedTime = 0.0f;
 
+    state->restart = false;
     state->shutdown = false;
     state->initialized = true;
 
@@ -95,9 +97,10 @@ void ProcessCommand(GameState *state, const char *input) {
     }
 
     if (strcmp("quit", buff) == 0) {
-        state->shutdown = true;
+        state->shutdown = 1;
     } else if (strcmp("reload", buff) == 0) {
         WriteConsole(&state->console, "Reloading...");
+        state->restart = 1;
     } else if (strcmp("clear", buff) == 0) {
         for (i32 i = 0; i < CONSOLE_LOG_SIZE; ++i) {
             state->console.log[i][0] = 0;
@@ -240,7 +243,7 @@ extern "C"
 void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInput *input, r32 dt) {
 
     GameState *state = (GameState *)memory->permanent;    
-    if (!state->initialized) {
+    if (!state->initialized || state->restart) {
         GameInit(state, platformState->api, memory);
     }
 
