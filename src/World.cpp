@@ -106,6 +106,14 @@ void CenterOnChunk(World *world, v2i chunk) {
     world->camera = newCamera;
 }
 
+static inline v2i
+ScreenCoordsToWorldCoords(World *world, v2i screenCoords) {
+    v2i result(-world->screenSize.x / 2 + world->camera.x + screenCoords.x,
+               -world->screenSize.y / 2 + world->camera.y + screenCoords.y);
+
+    return result;
+}
+
 // Create world from scratch
 void WorldCreate(World *world) {
     *world = {};
@@ -136,6 +144,9 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
 
     world->mousePos = input->mouse_position;
 
+    bool32 dragSelect = 0;
+    Rect2Di dragTarget;
+
     if (input->mouse_buttons & MOUSE_RIGHT) {
         world->camera -= input->mouse_delta;
     }
@@ -152,11 +163,26 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
         if (world->mouseDrag) {
             world->mouseDrag = 0;
             // Figure out what we selected...
+            v2i worldCoords = ScreenCoordsToWorldCoords(world, world->mouseDragOrigin);
+            Rect2Di targetRect(worldCoords.x, worldCoords.y,
+                               world->mousePos.x - world->mouseDragOrigin.x, world->mousePos.y - world->mouseDragOrigin.y);
+            dragTarget = targetRect;
+            dragSelect = 1;
         }
     }
 
     for (u32 i = 0; i < world->entityCount; ++i) {
         Entity *e = &world->entities[i];
+
+        if (dragSelect) {
+            Rect2Di eRect((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+            if (Intersects(dragTarget, eRect)) {
+                e->selected = 1;
+            } else {
+                e->selected = 0;
+            }
+        }
+
         e->position.x += 0.3f;
         e->position.y += 0.2f;
         if (e->position.x > 0.0f) {

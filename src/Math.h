@@ -11,6 +11,8 @@ template<typename T>
 struct v2 {
     T x;
     T y;
+    v2() : x(0), y(0) {}
+    v2(T x, T y) : x(x), y(y) {}
 };
 
 typedef v2<i32> v2i;
@@ -81,5 +83,13 @@ inline r32 square_root(r32 value) {
 }
 
 #define min(x, y) (((x) < (y)) ? (x) : (y))
+
+template<typename T>
+bool32 Intersects(Rect2D<T> a, Rect2D<T> b) {
+    if (a.x + a.width < b.x || b.x + b.width < a.x || a.y + a.height < b.y || b.y + b.height < a.y) {
+        return 0;
+    }
+    return 1;
+}
 
 #endif

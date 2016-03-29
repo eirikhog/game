@@ -38,6 +38,7 @@ struct Rect2D {
     T width;
     T height;
 
+    Rect2D() : x(0), y(0), width(0), height(0) { };
     Rect2D(T _x, T _y, T _width, T _height) : x(_x), y(_y), width(_width), height(_height) { }
 };
 
