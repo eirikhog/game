@@ -11,6 +11,7 @@ enum EntityType {
 struct Entity {
     EntityType type;
     v2f position;
+    v2f moveTarget;
     bool32 selected;
 };
 
@@ -146,9 +147,13 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
 
     bool32 dragSelect = 0;
     Rect2Di dragTarget;
+    bool32 setMovePos = 0;
+    v2i movePos;
 
     if (input->mouse_buttons & MOUSE_RIGHT) {
         world->camera -= input->mouse_delta;
+        setMovePos = 1;
+        movePos = ScreenCoordsToWorldCoords(world, world->mousePos);
     }
 
     if (input->mouse_buttons & MOUSE_LEFT) {
@@ -183,11 +188,17 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             }
         }
 
-        e->position.x += 0.3f;
-        e->position.y += 0.2f;
-        if (e->position.x > 0.0f) {
-            e->position = { -100, -100 };
+        if (setMovePos && e->selected) {
+            e->moveTarget = { (r32)movePos.x - TILE_SIZE/2, (r32)movePos.y - TILE_SIZE/2 };
         }
+
+        // TODO: This is probably too slow...
+        if (magnitude(e->position - e->moveTarget) > 1.0f) {
+            v2f direction = unit(e->moveTarget - e->position);
+            r32 speed = 2.0f;
+            e->position += direction * speed;
+        }
+        
     }
 
 }

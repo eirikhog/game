@@ -72,7 +72,18 @@ inline v2<T>& operator/=(v2<T> &left, const T scalar) {
     return left;
 }
 
+template<typename T>
+inline r32 magnitude(v2<T> vec) {
+    r32 result = square_root((r32)(vec.x * vec.x + vec.y * vec.y));
+    return result;
+}
 
+template<typename T>
+inline v2<T> unit(v2<T> vec) {
+    r32 mag = magnitude(vec);
+    v2<T> result = v2<T>((T)(vec.x / mag), (T)(vec.y / mag));
+    return result;
+}
 
 #ifdef _MSC_VER
 
