@@ -108,8 +108,8 @@ void CenterOnChunk(World *world, v2i chunk) {
 
 static inline v2i
 ScreenCoordsToWorldCoords(World *world, v2i screenCoords) {
-    v2i result(-world->screenSize.x / 2 + world->camera.x + screenCoords.x,
-               -world->screenSize.y / 2 + world->camera.y + screenCoords.y);
+    v2i result(-world->screenSize.x / 2 - world->camera.x + screenCoords.x,
+               -world->screenSize.y / 2 - world->camera.y + screenCoords.y);
 
     return result;
 }
