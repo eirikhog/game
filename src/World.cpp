@@ -30,9 +30,14 @@ struct World {
     v2i camera;
     v2i screenSize;
     WorldChunk chunks[CHUNK_COUNT];
+
+    // Input
     v2i mousePos;
     bool32 mouseDrag;
     v2i mouseDragOrigin;
+    r32 mouseLeftHoldTime;
+    r32 mouseRightHoldTime;
+    bool32 cameraMoving;
 
     u32 entityCount;
     Entity entities[ENTITIES_MAX];
@@ -151,12 +156,22 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
     v2i movePos;
 
     if (input->mouse_buttons & MOUSE_RIGHT) {
-        world->camera -= input->mouse_delta;
-        setMovePos = 1;
-        movePos = ScreenCoordsToWorldCoords(world, world->mousePos);
+        world->mouseRightHoldTime += dt;
+        if (magnitude(input->mouse_delta) > 5.0f || world->mouseRightHoldTime > 0.5f) {
+            world->camera -= input->mouse_delta;
+            world->cameraMoving = 1;
+        }
+    } else {
+        if (!world->cameraMoving && world->mouseRightHoldTime > 0.0f && world->mouseRightHoldTime < 0.2f) {
+            setMovePos = 1;
+            movePos = ScreenCoordsToWorldCoords(world, world->mousePos);
+        }
+        world->cameraMoving = 0;
+        world->mouseRightHoldTime = 0.0f;
     }
 
     if (input->mouse_buttons & MOUSE_LEFT) {
+        world->mouseLeftHoldTime += dt;
         if (!world->mouseDrag) {
             world->mouseDragOrigin = world->mousePos;
             world->mouseDrag = 1;
@@ -165,6 +180,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
         //v2i tilePos = GetTileFromScreenPosition(world, input->mouse_position);
         //SetTile(world, tilePos.x, tilePos.y, ASSET_TEXTURE_SHROUD);
     } else {
+        world->mouseLeftHoldTime = 0.0f;
         if (world->mouseDrag) {
             world->mouseDrag = 0;
             // Figure out what we selected...
