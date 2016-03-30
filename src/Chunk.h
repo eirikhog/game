@@ -12,6 +12,7 @@ typedef struct {
     i32 x;
     i32 y;
     u32 tiles[CHUNK_DIM*CHUNK_DIM];
+    //Entity entities[ENTITIES_MAX];
 } WorldChunk;
 
 #endif

@@ -32,8 +32,12 @@ void WorldCreate(World *world) {
     SetTile(world, 8, 9, ASSET_TEXTURE_DIRT);
     SetTile(world, 9, 8, ASSET_TEXTURE_DIRT);
 
+    for (i32 i = 0; i < 20; ++i) {
+        SetTile(world, i / 10, i % 10, ASSET_TEXTURE_STONE);
+    }
+
     v2f origins[] = { v2f(-100.0f, -100.0f), v2f(500.0f, 100.0f), v2f(534, 1234), v2f(-4562, -1455) };
-    v2f targets[] = { v2f(200.0f, 200.0f), v2f(300.0f, 300.0f), v2f(200, 300), v2f(300, 200) };
+    v2f targets[] = { v2f(224.0f, 224.0f), v2f(288.0f, 288.0f), v2f(224, 288), v2f(288, 224) };
 
     for (i32 i = 0; i < 4; ++i) {
         world->entities[i].type = EntityType_Unit;
@@ -91,6 +95,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
 
     for (u32 i = 0; i < world->entityCount; ++i) {
         Entity *e = &world->entities[i];
+        v2f prevPos = e->position;
 
         if (dragSelect) {
             Rect2Di eRect((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
@@ -110,8 +115,24 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             v2f direction = unit(e->moveTarget - e->position);
             r32 speed = 2.0f;
             e->position += direction * speed;
+        } else {
+            e->position = e->moveTarget;
         }
-        
+
+        // TODO: Collision detection, proper
+        // We want to compare only entities in this and adjacent chunks.
+        Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+        for (u32 j = 0; j < world->entityCount; ++j) {
+            if (j == i) {
+                continue;
+            }
+            Rect2Di b((i32)world->entities[j].position.x, (i32)world->entities[j].position.y, TILE_SIZE, TILE_SIZE);
+            if (Intersects(a, b)) {
+                e->position = prevPos;
+                //e->moveTarget = prevPos;
+            }
+
+        }
     }
 
 }
