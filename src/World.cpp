@@ -1,7 +1,3 @@
-#include "World.h"
-#include "Math.h"
-#include "Platform.h"
-#include "Chunk.h"
 
 static inline v2i
 ScreenCoordsToWorldCoords(World *world, v2i screenCoords) {
@@ -19,8 +15,8 @@ void WorldCreate(World *world) {
     CenterOnChunk(world, { 0, 0 });
 
     for (i32 i = 0; i < CHUNK_COUNT; ++i) {
-        world->chunks[i].x = (i % (i32)sqrt(CHUNK_COUNT))-3;
-        world->chunks[i].y = (i / (i32)sqrt(CHUNK_COUNT))-3;
+        world->chunks[i].pos.x = (i % (i32)sqrt(CHUNK_COUNT))-3;
+        world->chunks[i].pos.y = (i / (i32)sqrt(CHUNK_COUNT))-3;
         for (i32 j = 0; j < CHUNK_DIM * CHUNK_DIM; ++j) {
             world->chunks[i].tiles[j] = ASSET_TEXTURE_GRASS;
         }

@@ -1,7 +1,3 @@
-#include "Chunk.h"
-#include "World.h"
-#include "Math.h"
-
 // Concept:
 // A "chunk" is a region on the game world, which includes elements
 // on the chunk. Chunks are loaded when they are required, ie. when
@@ -20,7 +16,7 @@
 static WorldChunk*
 GetChunk(World *world, i32 x, i32 y) {
     for (i32 i = 0; i < CHUNK_COUNT; ++i) {
-        if (world->chunks[i].x == x && world->chunks[i].y == y) {
+        if (world->chunks[i].pos.x == x && world->chunks[i].pos.y == y) {
             return &(world->chunks[i]);
         }
     }

@@ -1,23 +1,5 @@
 #pragma once
 
-#include "Common.h"
-#include "Memory.h"
-#include "Math.h"
-#include "Renderer.h"
-#include "Chunk.h"
-
-enum EntityType {
-    EntityType_None,
-    EntityType_Unit,
-};
-
-struct Entity {
-    EntityType type;
-    v2f position;
-    v2f moveTarget;
-    bool32 selected;
-};
-
 struct World {
     v2i camera;
     v2i screenSize;
@@ -31,6 +13,7 @@ struct World {
     r32 mouseRightHoldTime;
     bool32 cameraMoving;
 
+    // TODO: Move these to chunk
     u32 entityCount;
     Entity entities[ENTITIES_MAX];
 };

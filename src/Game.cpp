@@ -1,11 +1,5 @@
-#include "Game.h"
-#include "Platform.h"
-#include "Math.h"
-#include "Renderer.h"
-#include "World.h"
-#include "Console.h"
 
-#include "Unity.cpp"
+#include "Unity.h"
 
 static void
 GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
