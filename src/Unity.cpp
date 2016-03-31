@@ -7,6 +7,7 @@
 #include "Chunk.cpp"
 #include "Memory.cpp"
 #include "Renderer.cpp"
+#include "Console.cpp"
 #include "World.cpp"
 
 #endif
