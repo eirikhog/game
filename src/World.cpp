@@ -7,6 +7,23 @@ ScreenCoordsToWorldCoords(World *world, v2i screenCoords) {
     return result;
 }
 
+ChunkPosition GetChunkFromWorldCoords(v2i worldPos) {
+    ChunkPosition result;
+    result.x = worldPos.x / (CHUNK_DIM * TILE_SIZE);
+    result.y = worldPos.y / (CHUNK_DIM * TILE_SIZE);
+    return result;
+}
+
+void AddEntity(World *world, Entity e) {
+    v2i worldPos = { (i32)e.position.x, (i32)e.position.y };
+    ChunkPosition chunkPos = GetChunkFromWorldCoords(worldPos);
+    WorldChunk *chunk = GetChunk(world, chunkPos);
+
+    if (chunk) {
+        chunk->entities[chunk->entityCount++] = e;
+    }
+}
+
 // Create world from scratch
 void WorldCreate(World *world) {
     *world = {};
@@ -36,10 +53,11 @@ void WorldCreate(World *world) {
     v2f targets[] = { v2f(224.0f, 224.0f), v2f(288.0f, 288.0f), v2f(224, 288), v2f(288, 224) };
 
     for (i32 i = 0; i < 4; ++i) {
-        world->entities[i].type = EntityType_Unit;
-        world->entities[i].position = origins[i];
-        world->entities[i].moveTarget = targets[i];
-        world->entityCount++;
+        Entity e;
+        e.type = EntityType_Unit;
+        e.position = origins[i];
+        e.moveTarget = targets[i];
+        AddEntity(world, e);
     }
 }
 
@@ -47,10 +65,8 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
 
     world->mousePos = input->mouse_position;
 
-    bool32 dragSelect = 0;
-    Rect2Di dragTarget;
-    bool32 setMovePos = 0;
-    v2i movePos;
+    world->dragSelect = 0;
+    world->setMovePos = 0;
 
     if (input->mouse_buttons & MOUSE_RIGHT) {
         world->mouseRightHoldTime += dt;
@@ -60,8 +76,8 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
         }
     } else {
         if (!world->cameraMoving && world->mouseRightHoldTime > 0.0f && world->mouseRightHoldTime < 0.2f) {
-            setMovePos = 1;
-            movePos = ScreenCoordsToWorldCoords(world, world->mousePos);
+            world->setMovePos = 1;
+            world->movePos = ScreenCoordsToWorldCoords(world, world->mousePos);
         }
         world->cameraMoving = 0;
         world->mouseRightHoldTime = 0.0f;
@@ -84,54 +100,16 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             v2i worldCoords = ScreenCoordsToWorldCoords(world, world->mouseDragOrigin);
             Rect2Di targetRect(worldCoords.x, worldCoords.y,
                                world->mousePos.x - world->mouseDragOrigin.x, world->mousePos.y - world->mouseDragOrigin.y);
-            dragTarget = targetRect;
-            dragSelect = 1;
+            world->dragTarget = targetRect;
+            world->dragSelect = 1;
         }
     }
 
-    for (u32 i = 0; i < world->entityCount; ++i) {
-        Entity *e = &world->entities[i];
-        v2f prevPos = e->position;
-
-        if (dragSelect) {
-            Rect2Di eRect((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
-            if (Intersects(dragTarget, eRect)) {
-                e->selected = 1;
-            } else {
-                e->selected = 0;
-            }
-        }
-
-        if (setMovePos && e->selected) {
-            e->moveTarget = { (r32)movePos.x - TILE_SIZE/2, (r32)movePos.y - TILE_SIZE/2 };
-        }
-
-        // TODO: This is probably too slow...
-        if (magnitude(e->position - e->moveTarget) > 1.0f) {
-            v2f direction = unit(e->moveTarget - e->position);
-            r32 speed = 2.0f;
-            e->position += direction * speed;
-        } else {
-            e->position = e->moveTarget;
-        }
-
-        // TODO: Collision detection, proper
-        // We want to compare only entities in this and adjacent chunks.
-        Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
-        for (u32 j = 0; j < world->entityCount; ++j) {
-            if (j == i) {
-                continue;
-            }
-            Rect2Di b((i32)world->entities[j].position.x, (i32)world->entities[j].position.y, TILE_SIZE, TILE_SIZE);
-            if (Intersects(a, b)) {
-                e->position = prevPos;
-                //e->moveTarget = prevPos;
-            }
-
-        }
+    for (u32 i = 0; i < CHUNK_COUNT; ++i) {
+        UpdateChunk(world, world->chunks + i, dt);
     }
-
 }
+
 void DrawDiagnostics(World *world, RenderContext *ctx) {
     const Color white = { 1.0f, 1.0f, 1.0f };
     char *text = mprintf("Screen size: %ix%i", world->screenSize.x, world->screenSize.y);
@@ -150,9 +128,9 @@ void DrawDiagnostics(World *world, RenderContext *ctx) {
     SCOPE_FREE(tilesText);
     DrawText(ctx, tilesText, { 0, 48 }, white);
 
-    char *entityText = mprintf("Entities: %i", world->entityCount);
-    SCOPE_FREE(entityText);
-    DrawText(ctx, entityText, { 0, 64 }, white);
+    //char *entityText = mprintf("Entities: %i", world->entityCount);
+    //SCOPE_FREE(entityText);
+    //DrawText(ctx, entityText, { 0, 64 }, white);
 }
 
 inline v2i WorldToScreenPosition(World *world, v2i worldPos) {
@@ -214,19 +192,21 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
                 }
             }
 
+            // Draw entities in chunk
+
+            // TODO: Move entities to different chunks
+            for (u32 i = 0; i < chunk->entityCount; ++i) {
+                Entity *e = &chunk->entities[i];
+                v2i screenPos = WorldToScreenPosition(world, { (i32)e->position.x, (i32)e->position.y });
+                Rect2Di target(screenPos.x, screenPos.y, 32, 32);
+                DrawImage(ctx, target, ASSET_TEXTURE_ENTITY);
+
+                if (e->selected) {
+                    DrawRect(ctx, target, { 0.0f, 1.0f, 0.0f });
+                }
+            }
+
             //DrawRect(ctx, { (i32)screenPos.x, (i32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
-        }
-    }
-
-    // TODO: Move entities to different chunks
-    for (u32 i = 0; i < world->entityCount; ++i) {
-        Entity *e = &world->entities[i];
-        v2i screenPos = WorldToScreenPosition(world, { (i32)e->position.x, (i32)e->position.y });
-        Rect2Di target(screenPos.x, screenPos.y, 32, 32);
-        DrawImage(ctx, target, ASSET_TEXTURE_ENTITY);
-
-        if (e->selected) {
-            DrawRect(ctx, target, { 0.0f, 1.0f, 0.0f });
         }
     }
 

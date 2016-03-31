@@ -12,10 +12,10 @@ struct World {
     r32 mouseLeftHoldTime;
     r32 mouseRightHoldTime;
     bool32 cameraMoving;
-
-    // TODO: Move these to chunk
-    u32 entityCount;
-    Entity entities[ENTITIES_MAX];
+    bool32 dragSelect;
+    Rect2Di dragTarget;
+    bool32 setMovePos;
+    v2i movePos;
 };
 
 void WorldCreate(World *world);

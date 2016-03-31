@@ -14,6 +14,8 @@ struct ChunkPosition {
 struct WorldChunk {
     ChunkPosition pos;
     u32 tiles[CHUNK_DIM*CHUNK_DIM];
+
+    u32 entityCount;
     Entity entities[ENTITIES_MAX];
 };
 

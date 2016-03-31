@@ -24,6 +24,11 @@ GetChunk(World *world, i32 x, i32 y) {
     return 0;
 }
 
+static WorldChunk*
+GetChunk(World *world, ChunkPosition pos) {
+    return GetChunk(world, pos.x, pos.y);
+}
+
 static u32
 GetTile(World *world, r32 x, r32 y) {
     i32 chunkX = (i32)floor(x / CHUNK_DIM);
@@ -100,4 +105,53 @@ GetTileCoordinate(v2i camera, v2i screenSize, v2i position) {
 
     return result;
 }
+
+void UpdateChunk(World *world, WorldChunk *chunk, r32 dt) {
+    
+    // Compare entities with neighbor chunks too...
+    // TODO: Move entities to new chunk if it falls outside this.
+
+    for (u32 i = 0; i < chunk->entityCount; ++i) {
+        Entity *e = &chunk->entities[i];
+        v2f prevPos = e->position;
+
+        if (world->dragSelect) {
+            Rect2Di eRect((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+            if (Intersects(world->dragTarget, eRect)) {
+                e->selected = 1;
+            } else {
+                e->selected = 0;
+            }
+        }
+
+        if (world->setMovePos && e->selected) {
+            e->moveTarget = { (r32)world->movePos.x - TILE_SIZE/2, (r32)world->movePos.y - TILE_SIZE/2 };
+        }
+        
+        // TODO: This is probably too slow...
+        if (magnitude(e->position - e->moveTarget) > 1.0f) {
+            v2f direction = unit(e->moveTarget - e->position);
+            r32 speed = 2.0f;
+            e->position += direction * speed;
+        } else {
+            e->position = e->moveTarget;
+        }
+
+        // TODO: Collision detection, proper
+        // We want to compare only entities in this and adjacent chunks.
+        Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+        for (u32 j = 0; j < chunk->entityCount; ++j) {
+            if (j == i) {
+                continue;
+            }
+            Rect2Di b((i32)chunk->entities[j].position.x, (i32)chunk->entities[j].position.y, TILE_SIZE, TILE_SIZE);
+            if (Intersects(a, b)) {
+                e->position = prevPos;
+                //e->moveTarget = prevPos;
+            }
+        }
+    }
+
+}
+
 
