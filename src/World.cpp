@@ -64,11 +64,18 @@ void WorldCreate(World *world) {
     for (u32 i = 0; i < 128; ++i) {
         Entity e;
         e.type = EntityType_Unit;
-        e.position = v2f(rand() % 256, rand() % 256);
+#if 0
+        do {
+            e.position = v2f(rand() % 256, rand() % 256);
+        } while (!IsPassable(GetTile(world, e.position.x, e.position.y)));
+#else
+        e.position = v2f(256.0f, 256.0f);
+#endif
         e.flags = EntityFlag_Collidable | EntityFlag_Selectable;
         AddEntity(world, e);
 
     }
+
 }
 
 void WorldUpdate(World *world, GameInput *input, r32 dt) {
@@ -160,6 +167,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
 
         if (IsCollidable(&world->loadedEntities[i])) {
 
+            // Check if there are other entities which are colliding
             Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
             v2f a_c = e->position + (r32)TILE_SIZE / 2.0f;
             for (u32 j = 0; j < world->loadedEntitiesCount; ++j) {
@@ -170,11 +178,23 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
                 v2f b_c = world->loadedEntities[j].position + (r32)TILE_SIZE / 2.0f;
                 if (Intersects(a, b)) {
                     v2f distance = a_c - b_c;
-                    v2f force = (unit(distance) / magnitude(distance)) * 2000.0f;
+                    r32 dist = magnitude(distance);
+                    if (dist < 0.0001f) {
+                        // Avoid division by zero
+                        // If the entities are at the same _exact_ location, randomize push force
+                        distance = unit(v2f(rand(), rand()));
+                        dist = 0.0001f;
+                    }
+                    v2f force = (unit(distance) / dist) * 2000.0f;
                     e->acceleration += force;
-                    //e->position = prevPos;
-                    //e->moveTarget = prevPos;
                 }
+            }
+
+            // Check if new position is free space (ie. cannot move into a wall)
+            v2i newTilePos = v2i(e->position.x + TILE_SIZE/2, e->position.y + TILE_SIZE / 2);
+            u32 tile = GetTile(world, newTilePos.x, newTilePos.y);
+            if (!IsPassable(tile)) {
+                e->position = prevPos;
             }
         }
 

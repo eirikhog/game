@@ -32,16 +32,16 @@ ChunkPosition GetChunkFromWorldCoords(v2i worldPos) {
 
 static u32
 GetTile(World *world, r32 x, r32 y) {
-    i32 chunkX = (i32)floor(x / CHUNK_DIM);
-    i32 chunkY = (i32)floor(y / CHUNK_DIM);
+    i32 chunkX = (i32)floor(x / (CHUNK_DIM * TILE_SIZE));
+    i32 chunkY = (i32)floor(y / (CHUNK_DIM * TILE_SIZE));
     WorldChunk *chunk = GetChunk(world, chunkX, chunkY);
     if (chunk) {
-        i32 localX = (i32)x % CHUNK_DIM;
-        i32 localY = (i32)y % CHUNK_DIM;
+        i32 localX = ((i32)x % (CHUNK_DIM * TILE_SIZE)) / TILE_SIZE;
+        i32 localY = ((i32)y % (CHUNK_DIM * TILE_SIZE)) / TILE_SIZE;
         return chunk->tiles[localX + localY * CHUNK_DIM];
     }
 
-    InvalidCodePath();
+    //InvalidCodePath();
     return 0;
 }
 
