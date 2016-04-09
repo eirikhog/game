@@ -73,6 +73,12 @@ inline v2<T>& operator/=(v2<T> &left, const T scalar) {
 }
 
 template<typename T>
+inline v2<T> operator+(const v2<T> left, const T scalar) {
+    v2<T> result = { left.x + scalar, left.y + scalar };
+    return result;
+}
+
+template<typename T>
 inline r32 magnitude(v2<T> vec) {
     r32 result = square_root((r32)(vec.x * vec.x + vec.y * vec.y));
     return result;

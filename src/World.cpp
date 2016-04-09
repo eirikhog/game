@@ -7,21 +7,8 @@ ScreenCoordsToWorldCoords(World *world, v2i screenCoords) {
     return result;
 }
 
-ChunkPosition GetChunkFromWorldCoords(v2i worldPos) {
-    ChunkPosition result;
-    result.x = worldPos.x / (CHUNK_DIM * TILE_SIZE);
-    result.y = worldPos.y / (CHUNK_DIM * TILE_SIZE);
-    return result;
-}
-
 void AddEntity(World *world, Entity e) {
-    v2i worldPos = { (i32)e.position.x, (i32)e.position.y };
-    ChunkPosition chunkPos = GetChunkFromWorldCoords(worldPos);
-    WorldChunk *chunk = GetChunk(world, chunkPos);
-
-    if (chunk) {
-        chunk->entities[chunk->entityCount++] = e;
-    }
+    world->loadedEntities[world->loadedEntitiesCount++] = e;
 }
 
 // Create world from scratch
@@ -57,6 +44,7 @@ void WorldCreate(World *world) {
         e.type = EntityType_Unit;
         e.position = origins[i];
         e.moveTarget = targets[i];
+        e.command = EntityCommand_Move;
         AddEntity(world, e);
     }
 }
@@ -99,15 +87,74 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             // Figure out what we selected...
             v2i worldCoords = ScreenCoordsToWorldCoords(world, world->mouseDragOrigin);
             Rect2Di targetRect(worldCoords.x, worldCoords.y,
-                               world->mousePos.x - world->mouseDragOrigin.x, world->mousePos.y - world->mouseDragOrigin.y);
+                    world->mousePos.x - world->mouseDragOrigin.x, world->mousePos.y - world->mouseDragOrigin.y);
             world->dragTarget = targetRect;
             world->dragSelect = 1;
         }
     }
 
-    for (u32 i = 0; i < CHUNK_COUNT; ++i) {
-        UpdateChunk(world, world->chunks + i, dt);
+    for (u32 i = 0; i < world->loadedEntitiesCount; ++i) {
+        Entity *e = &world->loadedEntities[i];
+        v2f prevPos = e->position;
+
+        if (world->dragSelect) {
+            Rect2Di eRect((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+            if (Intersects(world->dragTarget, eRect)) {
+                e->selected = 1;
+            } else {
+                e->selected = 0;
+            }
+        }
+
+        if (world->setMovePos && e->selected) {
+            e->command = EntityCommand_Move;
+            e->speed = v2f();
+            e->acceleration = v2f();
+            e->moveTarget = { (r32)world->movePos.x - TILE_SIZE/2, (r32)world->movePos.y - TILE_SIZE/2 };
+        }
+
+        // Movement
+        r32 maxSpeed = 10000.0f * dt;
+        v2f acceleration = e->acceleration;
+
+        if (e->command == EntityCommand_Move) {
+            v2f direction = unit(e->moveTarget - e->position);
+            acceleration += direction * 10000.0f;
+        }
+
+        e->speed += acceleration * dt;
+        if (magnitude(e->speed) > maxSpeed) {
+            e->speed = unit(e->speed) * maxSpeed;
+        }
+
+        e->position += e->speed * dt;
+        e->acceleration = e->speed * -5.0f;
+
+        if (magnitude(e->position - e->moveTarget) < 5.0f) {
+            e->speed = v2f();
+            e->command = EntityCommand_None;
+        }
+
+
+        Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+        v2f a_c = e->position + (r32)TILE_SIZE / 2.0f;
+        for (u32 j = 0; j < world->loadedEntitiesCount; ++j) {
+            if (j == i) {
+                continue;
+            }
+            Rect2Di b((i32)world->loadedEntities[j].position.x, (i32)world->loadedEntities[j].position.y, TILE_SIZE, TILE_SIZE);
+            v2f b_c = world->loadedEntities[j].position + (r32)TILE_SIZE / 2.0f;
+            if (Intersects(a, b)) {
+                v2f distance = a_c - b_c;
+                v2f force = (unit(distance) / magnitude(distance)) * 2000.0f;
+                e->acceleration += force;
+                //e->position = prevPos;
+                //e->moveTarget = prevPos;
+            }
+        }
+
     }
+
 }
 
 void DrawDiagnostics(World *world, RenderContext *ctx) {
@@ -192,21 +239,23 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
                 }
             }
 
-            // Draw entities in chunk
 
-            // TODO: Move entities to different chunks
-            for (u32 i = 0; i < chunk->entityCount; ++i) {
-                Entity *e = &chunk->entities[i];
-                v2i screenPos = WorldToScreenPosition(world, { (i32)e->position.x, (i32)e->position.y });
-                Rect2Di target(screenPos.x, screenPos.y, 32, 32);
-                DrawImage(ctx, target, ASSET_TEXTURE_ENTITY);
-
-                if (e->selected) {
-                    DrawRect(ctx, target, { 0.0f, 1.0f, 0.0f });
-                }
-            }
 
             //DrawRect(ctx, { (i32)screenPos.x, (i32)screenPos.y, CHUNK_DIM * TILE_SIZE, CHUNK_DIM * TILE_SIZE }, white);
+        }
+    }
+
+    // Draw entities in chunk
+
+
+    for (u32 i = 0; i < world->loadedEntitiesCount; ++i) {
+        Entity *e = &world->loadedEntities[i];
+        v2i screenPos = WorldToScreenPosition(world, { (i32)e->position.x, (i32)e->position.y });
+        Rect2Di target(screenPos.x, screenPos.y, 32, 32);
+        DrawImage(ctx, target, ASSET_TEXTURE_ENTITY);
+
+        if (e->selected) {
+            DrawRect(ctx, target, { 0.0f, 1.0f, 0.0f });
         }
     }
 

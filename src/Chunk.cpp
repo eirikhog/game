@@ -1,17 +1,11 @@
-// Concept:
-// A "chunk" is a region on the game world, which includes elements
-// on the chunk. Chunks are loaded when they are required, ie. when
-// the player is near it and it need to be rendered, or if pathing
-// requires inspection of the chunk.
 
-//WorldChunk *LoadChunk(v2i chunkCoordinate) {
-//    return 0;
+//WorldChunk *LoadChunk(ChunkPosition pos) {
 //}
 
 //void SaveChunk(WorldChunk *chunk) {
 //    // Save the state of the chunk to persistent storage (disk)
 //}
-
+//
 
 static WorldChunk*
 GetChunk(World *world, i32 x, i32 y) {
@@ -27,6 +21,13 @@ GetChunk(World *world, i32 x, i32 y) {
 static WorldChunk*
 GetChunk(World *world, ChunkPosition pos) {
     return GetChunk(world, pos.x, pos.y);
+}
+
+ChunkPosition GetChunkFromWorldCoords(v2i worldPos) {
+    ChunkPosition result;
+    result.x = worldPos.x / (CHUNK_DIM * TILE_SIZE);
+    result.y = worldPos.y / (CHUNK_DIM * TILE_SIZE);
+    return result;
 }
 
 static u32
@@ -110,7 +111,7 @@ void UpdateChunk(World *world, WorldChunk *chunk, r32 dt) {
     
     // Compare entities with neighbor chunks too...
     // TODO: Move entities to new chunk if it falls outside this.
-
+#if 0
     for (u32 i = 0; i < chunk->entityCount; ++i) {
         Entity *e = &chunk->entities[i];
         v2f prevPos = e->position;
@@ -137,6 +138,16 @@ void UpdateChunk(World *world, WorldChunk *chunk, r32 dt) {
             e->position = e->moveTarget;
         }
 
+        WorldChunk *neighbours[8];
+        neighbours[0] = GetChunk(world, chunk->pos.x - 1, chunk->pos.y - 1);
+        neighbours[1] = GetChunk(world, chunk->pos.x, chunk->pos.y - 1);
+        neighbours[2] = GetChunk(world, chunk->pos.x + 1, chunk->pos.y - 1);
+        neighbours[3] = GetChunk(world, chunk->pos.x - 1, chunk->pos.y);
+        neighbours[4] = GetChunk(world, chunk->pos.x + 1, chunk->pos.y);
+        neighbours[5] = GetChunk(world, chunk->pos.x - 1, chunk->pos.y + 1);
+        neighbours[6] = GetChunk(world, chunk->pos.x, chunk->pos.y + 1);
+        neighbours[7] = GetChunk(world, chunk->pos.x + 1, chunk->pos.y + 1);
+
         // TODO: Collision detection, proper
         // We want to compare only entities in this and adjacent chunks.
         Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
@@ -150,8 +161,48 @@ void UpdateChunk(World *world, WorldChunk *chunk, r32 dt) {
                 //e->moveTarget = prevPos;
             }
         }
+
+        // Check neightbour cunks
+        for (u32 cid = 0; cid < 8; ++cid) {
+            WorldChunk *nb = neighbours[cid];
+            if (nb == 0) {
+                continue;
+            }
+
+            // TODO: Unify collision detection
+            for (u32 j = 0; j < nb->entityCount; ++j) {
+                Rect2Di b((i32)chunk->entities[j].position.x, (i32)chunk->entities[j].position.y, TILE_SIZE, TILE_SIZE);
+                if (Intersects(a, b)) {
+                    e->position = prevPos;
+                    //e->moveTarget = prevPos;
+                }
+            }
+        }
+
+        ChunkPosition newChunkPos = GetChunkFromWorldCoords({ (i32)e->position.x, (i32)e->position.y });
+        if (newChunkPos.x != chunk->pos.x && newChunkPos.y != chunk->pos.y) {
+            WorldChunk *newChunk = GetChunk(world, newChunkPos);
+            newChunk->entities[newChunk->entityCount++] = *e;
+
+            // TODO: Improve removal
+            e->deleted = true;
+
+        }
     }
 
+    // Remove deleted items
+    u32 ni = 0;
+    Entity newEntityArray[256];
+    for (u32 i = 0; i < chunk->entityCount; ++i) {
+        if (!chunk->entities[i].deleted) {
+            newEntityArray[ni++] = chunk->entities[i];
+        }
+        Assert(i < 256);
+    }
+
+    chunk->entityCount = ni;
+    memcpy(newEntityArray, chunk->entities, sizeof(Entity)*ni);
+#endif
 }
 
 

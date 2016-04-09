@@ -16,6 +16,10 @@ struct World {
     Rect2Di dragTarget;
     bool32 setMovePos;
     v2i movePos;
+
+    // Entities which are loaded
+    u32 loadedEntitiesCount;
+    Entity loadedEntities[4096]; // TODO: Determine a safe number...
 };
 
 void WorldCreate(World *world);
