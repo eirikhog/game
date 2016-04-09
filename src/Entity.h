@@ -11,8 +11,20 @@ enum EntityCommand {
     EntityCommand_Move
 };
 
+
+enum EntityFlags {
+    EntityFlag_None = 0,
+    EntityFlag_Collidable = 0x01,
+    EntityFlag_Selectable = 0x02,
+};
+
+inline EntityFlags operator|(EntityFlags a, EntityFlags b) {
+    return (EntityFlags)((u32)a | (u32)b);
+}
+
 struct Entity {
     EntityType type;
+    EntityFlags flags;
     v2f acceleration;
     v2f speed;
     v2f position;
@@ -21,6 +33,14 @@ struct Entity {
     bool32 selected;
     bool32 deleted;
 };
+
+inline bool32 IsCollidable(Entity *e) {
+    return (e->flags & EntityFlag_Collidable);
+}
+
+inline bool32 IsSelectable(Entity *e) {
+    return (e->flags & EntityFlag_Selectable);
+}
 
 #endif
 

@@ -45,7 +45,23 @@ void WorldCreate(World *world) {
         e.position = origins[i];
         e.moveTarget = targets[i];
         e.command = EntityCommand_Move;
+        e.flags = EntityFlag_Collidable | EntityFlag_Selectable;
         AddEntity(world, e);
+    }
+
+    Entity e;
+    e.type = EntityType_Unit;
+    e.position = v2f(256.0f, 256.0f);
+    e.flags = EntityFlag_None;
+    AddEntity(world, e);
+
+    for (u32 i = 0; i < 128; ++i) {
+        Entity e;
+        e.type = EntityType_Unit;
+        e.position = v2f(rand() % 256, rand() % 256);
+        e.flags = EntityFlag_Collidable | EntityFlag_Selectable;
+        AddEntity(world, e);
+
     }
 }
 
@@ -99,7 +115,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
 
         if (world->dragSelect) {
             Rect2Di eRect((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
-            if (Intersects(world->dragTarget, eRect)) {
+            if (IsSelectable(e) && Intersects(world->dragTarget, eRect)) {
                 e->selected = 1;
             } else {
                 e->selected = 0;
@@ -136,20 +152,23 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
         }
 
 
-        Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
-        v2f a_c = e->position + (r32)TILE_SIZE / 2.0f;
-        for (u32 j = 0; j < world->loadedEntitiesCount; ++j) {
-            if (j == i) {
-                continue;
-            }
-            Rect2Di b((i32)world->loadedEntities[j].position.x, (i32)world->loadedEntities[j].position.y, TILE_SIZE, TILE_SIZE);
-            v2f b_c = world->loadedEntities[j].position + (r32)TILE_SIZE / 2.0f;
-            if (Intersects(a, b)) {
-                v2f distance = a_c - b_c;
-                v2f force = (unit(distance) / magnitude(distance)) * 2000.0f;
-                e->acceleration += force;
-                //e->position = prevPos;
-                //e->moveTarget = prevPos;
+        if (IsCollidable(&world->loadedEntities[i])) {
+
+            Rect2Di a((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+            v2f a_c = e->position + (r32)TILE_SIZE / 2.0f;
+            for (u32 j = 0; j < world->loadedEntitiesCount; ++j) {
+                if (j == i || !IsCollidable(&world->loadedEntities[j])) {
+                    continue;
+                }
+                Rect2Di b((i32)world->loadedEntities[j].position.x, (i32)world->loadedEntities[j].position.y, TILE_SIZE, TILE_SIZE);
+                v2f b_c = world->loadedEntities[j].position + (r32)TILE_SIZE / 2.0f;
+                if (Intersects(a, b)) {
+                    v2f distance = a_c - b_c;
+                    v2f force = (unit(distance) / magnitude(distance)) * 2000.0f;
+                    e->acceleration += force;
+                    //e->position = prevPos;
+                    //e->moveTarget = prevPos;
+                }
             }
         }
 
