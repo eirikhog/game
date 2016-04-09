@@ -11,6 +11,12 @@ void AddEntity(World *world, Entity e) {
     world->loadedEntities[world->loadedEntitiesCount++] = e;
 }
 
+// Check if a tile is passable
+// TODO: Improve!
+inline bool32 IsPassable(u32 tile) {
+    return tile != ASSET_TEXTURE_STONE;
+}
+
 // Create world from scratch
 void WorldCreate(World *world) {
     *world = {};
@@ -104,7 +110,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             v2i worldCoords = ScreenCoordsToWorldCoords(world, world->mouseDragOrigin);
             Rect2Di targetRect(worldCoords.x, worldCoords.y,
                     world->mousePos.x - world->mouseDragOrigin.x, world->mousePos.y - world->mouseDragOrigin.y);
-            world->dragTarget = targetRect;
+            world->dragTarget = Normalize(targetRect);
             world->dragSelect = 1;
         }
     }

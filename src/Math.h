@@ -109,4 +109,19 @@ bool32 Intersects(Rect2D<T> a, Rect2D<T> b) {
     return 1;
 }
 
+template<typename T>
+Rect2D<T> Normalize(Rect2D<T> rect) {
+    Rect2D<T> result(rect.x, rect.y, rect.width, rect.height);
+    if (result.width < 0) {
+        result.x += result.width;
+        result.width *= -1;
+    }
+
+    if (result.height < 0) {
+        result.y += result.height;
+        result.height *= -1;
+    }
+    return result;
+}
+
 #endif

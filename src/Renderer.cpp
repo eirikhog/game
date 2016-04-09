@@ -142,18 +142,10 @@ void DrawSolidRect(RenderContext *ctx, Rect2Di r, Color c) {
     RenderObject(ctx, r, c, ASSET_TEXTURE_WHITE, ASSET_SPRITEMAP);
 }
 
-void DrawRect(RenderContext *ctx, Rect2Di r, Color c) {
+void DrawRect(RenderContext *ctx, Rect2Di rect, Color c) {
 
     // "Normalize" the rectangle, so that we don't draw empty corners.
-    if (r.width < 0) {
-        r.x += r.width;
-        r.width *= -1;
-    }
-
-    if (r.height < 0) {
-        r.y += r.height;
-        r.height *= -1;
-    }
+    Rect2Di r = Normalize(rect);
 
     DrawSolidRect(ctx, Rect2Di(r.x, r.y, r.width, 1), c);
     DrawSolidRect(ctx, Rect2Di(r.x, r.y, 1, r.height), c);
