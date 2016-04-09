@@ -22,6 +22,11 @@ struct World {
     Entity loadedEntities[4096]; // TODO: Determine a safe number...
 };
 
+struct MoveWaypoint {
+    v2f position;
+    MoveWaypoint *next;
+};
+
 void WorldCreate(World *world);
 void WorldUpdate(World *world, GameInput *input, r32 dt);
 void WorldRender(World *world, RenderContext *renderer, v2i windowSize);

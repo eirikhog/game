@@ -17,6 +17,29 @@ inline bool32 IsPassable(u32 tile) {
     return tile != ASSET_TEXTURE_STONE;
 }
 
+MoveWaypoint* FindPath(MemorySegment memory, v2f start, v2f end) {
+    // TODO: Implement
+    // Find a valid path between two points, and create waypoints
+    // between them.
+    //
+    // Idea for implementation:
+    // (0. Check if points are in two connected regions)
+    // 1. Do a A* search for shortest path
+    // 2. Convert the path to waypoints
+    // 3. Return a structure containing the path.
+    //
+    // Limit resources: If no path is found within X memory/time, return preliminary path.
+    //
+    
+    v2i startTile = v2i((i32)start.x, (i32)start.y);
+    v2i endTile = v2i((i32)end.x, (i32)end.y);
+    // 1. Add all adjacent, passable tiles to the set.
+    // 2. Move to most promising neighbour.
+    // 3. If current == end create path. Else, repeat.
+
+    return 0;
+}
+
 // Create world from scratch
 void WorldCreate(World *world) {
     *world = {};
