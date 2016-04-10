@@ -459,7 +459,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             frameTime = 1.0f / 60.0f;
         } else {
             // If the process did not sleep, it means that we have too much work for the frame!
-            frameTime = (r32)tElapsedUs / 1000000.0f;
+            //frameTime = (r32)tElapsedUs / 1000000.0f;
+
+            // Cap the timesteps to avoid glitches
+            frameTime = 1.0f / 60.0f;
         }
 
         platformState.lastFrameTime = (r32)tElapsedUs / 1000.0f;
