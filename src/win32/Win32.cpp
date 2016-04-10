@@ -333,7 +333,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     memory.permanent = VirtualAlloc(0, permanentMemorySize, MEM_COMMIT, PAGE_READWRITE);
     memory.permanentSize = permanentMemorySize;
 
-    const u32 transientMemorySize = 1024 * 1024 * 32;
+    const u32 transientMemorySize = 1024 * 1024 * 256;
     memory.transient = VirtualAlloc(0, transientMemorySize, MEM_COMMIT, PAGE_READWRITE);
     memory.transientSize = transientMemorySize;
 

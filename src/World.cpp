@@ -41,8 +41,10 @@ MoveWaypoint* FindPath(MemorySegment memory, v2f start, v2f end) {
 }
 
 // Create world from scratch
-void WorldCreate(World *world) {
+void WorldCreate(World *world, MemorySegment memory) {
     *world = {};
+
+    world->transientMemory = memory;
 
     // Start at center
     CenterOnChunk(world, { 0, 0 });

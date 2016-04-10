@@ -9,20 +9,23 @@ GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
     mem_all.used = 0;
     state->game_memory = mem_all;
 
-    MemorySegment mem_transient = {};
-    mem_transient.size = memory->transientSize;
-    mem_transient.base = (u8*)memory->transient;
-    mem_transient.used = 0;
-    state->assets = AssetsInit(api, mem_transient);
+    MemorySegment transientMemory = {};
+    transientMemory.size = memory->transientSize;
+    transientMemory.base = (u8*)memory->transient;
+    transientMemory.used = 0;
+    MemorySegment assetMemory = AllocMemory(&transientMemory, Megabytes(128));
+    state->assets = AssetsInit(api, assetMemory);
 
     // Allocate memory for renderer
-    MemorySegment renderer_memory = AllocMemory(&mem_all, 16 * 1024 * 1024);
+    MemorySegment renderer_memory = AllocMemory(&mem_all, Megabytes(16));
     state->renderer_memory = renderer_memory;
     state->renderer = RenderInit(&state->assets, renderer_memory);
 
+    // Create the game world
     MemorySegment world_memory = AllocMemory(&mem_all, sizeof(World));
     state->world = (World*)world_memory.base;
-    WorldCreate(state->world);
+    MemorySegment worldTransient = AllocMemory(&transientMemory, Megabytes(64));
+    WorldCreate(state->world, transientMemory);
 
     state->console.animationProgress = 0.0f;
     state->console.animationSpeed = 0.05f;

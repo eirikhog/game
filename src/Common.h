@@ -22,6 +22,10 @@ typedef double r64;
 
 typedef u32 bool32;
 
+#define Gigabytes(x) ((x)*1024*1024*1024)
+#define Megabytes(x) ((x)*1024*1024)
+#define Kilobytes(x) ((x)*1024)
+
 struct Color {
     r32 r;
     r32 g;
