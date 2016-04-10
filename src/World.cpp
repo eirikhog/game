@@ -17,7 +17,17 @@ inline bool32 IsPassable(u32 tile) {
     return tile != ASSET_TEXTURE_STONE;
 }
 
-MoveWaypoint* FindPath(MemorySegment memory, v2f start, v2f end) {
+bool32 ContainsTile(PathfinderTile *tiles, u32 tileCount, v2i coords) {
+    for (u32 i = 0; i < tileCount; ++i) {
+        if (tiles[i].position == coords) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
     // TODO: Implement
     // Find a valid path between two points, and create waypoints
     // between them.
@@ -30,21 +40,107 @@ MoveWaypoint* FindPath(MemorySegment memory, v2f start, v2f end) {
     //
     // Limit resources: If no path is found within X memory/time, return preliminary path.
     //
+
+    // TODO: Cannot alloc this way, we need to free the memory (cannot use a stack)
+    MemorySegment memory = AllocMemory(&world->transientMemory, Kilobytes(128));
+
+    v2i startTile = v2i((i32)start.x / TILE_SIZE, (i32)start.y / TILE_SIZE);
+    v2i endTile = v2i((i32)end.x / TILE_SIZE, (i32)end.y / TILE_SIZE);
     
-    v2i startTile = v2i((i32)start.x, (i32)start.y);
-    v2i endTile = v2i((i32)end.x, (i32)end.y);
+    char *findLog = mprintf("Finding path from (%d, %d) to (%d, %d)", startTile.x, startTile.y, endTile.x, endTile.y);
+    SCOPE_FREE(findLog);
+    WriteConsole(world->console, findLog);
+    
     // 1. Add all adjacent, passable tiles to the set.
-    // 2. Move to most promising neighbour.
-    // 3. If current == end create path. Else, repeat.
+    const v2i validDirections[] = { { -1, 0 }, { 0, -1 }, { 1, 0 }, { 0, 1} };
+    constexpr u32 validDirCount = sizeof(validDirections) / sizeof(validDirections[0]);
+
+    PathfinderTile *calculatedTiles = (PathfinderTile*)memory.base;
+    u32 maxTiles = memory.size / sizeof(PathfinderTile);
+    u32 tileCount = 0;
+
+    calculatedTiles[0].position = startTile;
+    calculatedTiles[0].weight = 0;
+    tileCount = 1;
+
+    bool32 pathFound = startTile == endTile;
+    PathfinderTile *originTile = calculatedTiles;
+
+    while (!pathFound) {
+
+        // Error condition.. if we used all memory, stop looking
+        if (tileCount + 4 > maxTiles) {
+            char *failLog = mprintf("Could not find optimal path from (%d, %d) to (%d, %d)... giving up :(", startTile.x, startTile.y, endTile.x, endTile.y);
+            SCOPE_FREE(failLog);
+            WriteConsole(world->console, failLog);
+            return 0;
+        }
+
+        // Add valid neighbours.
+
+        for (u32 dirIndex = 0; dirIndex < validDirCount; ++dirIndex) {
+            if (tileCount == maxTiles) {
+                // Abort, all memory used
+                // TODO: Use best path so far...
+                InvalidCodePath();
+            } 
+
+            v2i currentPos = originTile->position + validDirections[dirIndex];
+            // TODO: Is this tile even passable?
+            if (ContainsTile(calculatedTiles, tileCount, currentPos)) {
+                // Skip this tile...
+                // TODO: New weight?
+                continue;
+            }
+
+            PathfinderTile *current = calculatedTiles + tileCount++;
+            current->position = currentPos;
+            current->weight = originTile->weight + 1; 
+            current->lineDist = magnitude(endTile - current->position);
+            
+            // Are we there yet?
+            if (current->position == endTile) {
+                WriteConsole(world->console, "Found best path!");
+                pathFound = 1;
+                // SUCCESS!
+            }
+        }
+
+        originTile->visited = 1;
+
+        if (!pathFound) {
+            // Select most promising tile as next origin
+            // TODO: Probably select first unvisited as next.
+            PathfinderTile *best = calculatedTiles;
+            for (u32 i = 0; i < tileCount; ++i) {
+                if (best->visited && !calculatedTiles[i].visited) {
+                    best = calculatedTiles + i;
+                } else if (!calculatedTiles[i].visited && calculatedTiles[i].lineDist < best->lineDist) {
+                    best = calculatedTiles + i;
+                }
+            }
+
+            char *nextLog = mprintf("Next tile will be (%d, %d) with weight %d, dist %.02f.", best->position.x, best->position.y, best->weight, best->lineDist);
+            SCOPE_FREE(nextLog);
+            WriteConsole(world->console, nextLog);
+            originTile = best;
+        }
+
+    }
+
+    char *resultLog = mprintf("Found path to (%d, %d), with %d tiles examined!", endTile.x, endTile.y, tileCount);
+    SCOPE_FREE(resultLog);
+    WriteConsole(world->console, resultLog);
 
     return 0;
 }
 
 // Create world from scratch
-void WorldCreate(World *world, MemorySegment memory) {
+void WorldCreate(World *world, MemorySegment memory, ConsoleState *console) {
     *world = {};
 
     world->transientMemory = memory;
+    world->console = console;
 
     // Start at center
     CenterOnChunk(world, { 0, 0 });
@@ -86,7 +182,11 @@ void WorldCreate(World *world, MemorySegment memory) {
     e.flags = EntityFlag_None;
     AddEntity(world, e);
 
+#if 0
     for (u32 i = 0; i < 128; ++i) {
+#else
+        while (0) {
+#endif
         Entity e;
         e.type = EntityType_Unit;
 #if 0
@@ -164,6 +264,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             e->command = EntityCommand_Move;
             e->speed = v2f();
             e->acceleration = v2f();
+            MoveWaypoint *newPath = FindPath(world, v2i((i32)e->position.x, (i32)e->position.y), world->movePos);
             e->moveTarget = { (r32)world->movePos.x - TILE_SIZE/2, (r32)world->movePos.y - TILE_SIZE/2 };
         }
 

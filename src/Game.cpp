@@ -25,7 +25,7 @@ GameInit(GameState *state, PlatformAPI *api, GameMemory *memory) {
     MemorySegment world_memory = AllocMemory(&mem_all, sizeof(World));
     state->world = (World*)world_memory.base;
     MemorySegment worldTransient = AllocMemory(&transientMemory, Megabytes(64));
-    WorldCreate(state->world, transientMemory);
+    WorldCreate(state->world, transientMemory, &state->console);
 
     state->console.animationProgress = 0.0f;
     state->console.animationSpeed = 0.05f;

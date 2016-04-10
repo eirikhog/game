@@ -1,5 +1,7 @@
 #pragma once
 
+struct ConsoleState;
+
 struct World {
     v2i camera;
     v2i screenSize;
@@ -23,6 +25,9 @@ struct World {
     // Entities which are loaded
     u32 loadedEntitiesCount;
     Entity loadedEntities[4096]; // TODO: Determine a safe number...
+
+    // TODO: Better way to handle this?
+    ConsoleState *console;
 };
 
 struct MoveWaypoint {
@@ -33,8 +38,7 @@ struct MoveWaypoint {
 struct PathfinderTile {
     v2i position;
     u32 weight;
+    bool32 visited;
+    r32 lineDist;
 };
 
-void WorldCreate(World *world, MemorySegment transient);
-void WorldUpdate(World *world, GameInput *input, r32 dt);
-void WorldRender(World *world, RenderContext *renderer, v2i windowSize);
