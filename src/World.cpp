@@ -37,7 +37,7 @@ u32 NodesInPath(PathfinderTile *end) {
     while (current) {
 
         v2i moveDelta = current->position - prevPosition;
-        if (moveDelta != prevMoveDelta) {
+        if (1 || moveDelta != prevMoveDelta) {
             nodes++;
         }
         prevMoveDelta = moveDelta;
@@ -61,17 +61,20 @@ MoveWaypoint *ReconstructPath(World *world, PathfinderTile *end) {
 
     PathfinderTile *current = end;
     MoveWaypoint *next = 0;
+    PathfinderTile *prev = end;
+    u32 i = nodes;
     while (current) {
         
         v2i moveDelta = current->position - prevPosition;
-        if (moveDelta != prevMoveDelta) {
-            MoveWaypoint *wp = result + (nodes - 1);
+        if (1 || moveDelta != prevMoveDelta) {
+            MoveWaypoint *wp = result + (i - 1);
+            --i;
             wp->position = current->position * TILE_SIZE + TILE_SIZE / 2;
             wp->next = next;
             next = wp;
-            char *wpCreateLog = mprintf("Creating waypoint at (%d, %d).", wp->position.x, wp->position.y);
-            SCOPE_FREE(wpCreateLog);
-            WriteConsole(world->console, wpCreateLog);
+            //char *wpCreateLog = mprintf("Creating waypoint at (%d, %d).", wp->position.x, wp->position.y);
+            //SCOPE_FREE(wpCreateLog);
+            //WriteConsole(world->console, wpCreateLog);
         }
 
         prevMoveDelta = moveDelta;
@@ -147,7 +150,13 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
             } 
 
             v2i currentPos = originTile->position + validDirections[dirIndex];
+
             // TODO: Is this tile even passable?
+            u32 tile = GetTile(world, currentPos.x * TILE_SIZE, currentPos.y * TILE_SIZE);
+            if (!IsPassable(tile)) {
+                continue;
+            }
+
             if (ContainsTile(calculatedTiles, tileCount, currentPos)) {
                 // Skip this tile...
                 // TODO: New weight?
@@ -157,15 +166,8 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
             PathfinderTile *current = calculatedTiles + tileCount++;
             current->position = currentPos;
             current->weight = originTile->weight + 1; 
-            current->lineDist = magnitude(endTile - current->position);
+            current->lineDist = current->weight + 0.5 * magnitude(endTile - current->position);
             current->prevTile = originTile;
-            
-            // Are we there yet?
-            if (current->position == endTile) {
-                WriteConsole(world->console, "Found best path!");
-                pathFound = 1;
-                // SUCCESS!
-            }
         }
 
         originTile->visited = 1;
@@ -186,6 +188,13 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
             SCOPE_FREE(nextLog);
             WriteConsole(world->console, nextLog);
             originTile = best;
+        }
+
+        // Are we there yet?
+        if (originTile->position == endTile) {
+            WriteConsole(world->console, "Found best path!");
+            pathFound = 1;
+            // SUCCESS!
         }
 
     }
@@ -224,7 +233,7 @@ void WorldCreate(World *world, MemorySegment memory, ConsoleState *console) {
     SetTile(world, 9, 8, ASSET_TEXTURE_DIRT);
 
     for (i32 i = 0; i < 20; ++i) {
-        SetTile(world, i / 10, i % 10, ASSET_TEXTURE_STONE);
+        SetTile(world, 20 + i / 10, i % 10, ASSET_TEXTURE_STONE);
     }
 
     v2f origins[] = { v2f(-100.0f, -100.0f), v2f(500.0f, 100.0f), v2f(534, 1234), v2f(-4562, -1455) };
@@ -246,7 +255,7 @@ void WorldCreate(World *world, MemorySegment memory, ConsoleState *console) {
     e.flags = EntityFlag_None;
     AddEntity(world, e);
 
-#if 0
+#if 1 
     for (u32 i = 0; i < 128; ++i) {
 #else
         while (0) {
@@ -316,7 +325,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
         v2f prevPos = e->position;
 
         if (world->dragSelect) {
-            Rect2Di eRect((i32)e->position.x, (i32)e->position.y, TILE_SIZE, TILE_SIZE);
+            Rect2Di eRect((i32)e->position.x - TILE_SIZE / 2, (i32)e->position.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
             if (IsSelectable(e) && Intersects(world->dragTarget, eRect)) {
                 e->selected = 1;
             } else {
@@ -329,7 +338,13 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             e->speed = v2f();
             e->acceleration = v2f();
             MoveWaypoint *newPath = FindPath(world, v2i((i32)e->position.x, (i32)e->position.y), world->movePos);
-            e->moveTarget = { (r32)world->movePos.x - TILE_SIZE/2, (r32)world->movePos.y - TILE_SIZE/2 };
+            if (newPath) {
+                e->moveWaypoints = newPath;
+                e->moveTarget = v2f(newPath->position.x, newPath->position.y);
+            } else {
+                // TODO: Probably remove this when FindPath returns "best so far"
+                e->moveTarget = v2f(world->movePos.x, world->movePos.y);
+            }
         }
 
         // Movement
@@ -349,9 +364,15 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
         e->position += e->speed * dt;
         e->acceleration = e->speed * -5.0f;
 
-        if (magnitude(e->position - e->moveTarget) < 5.0f) {
-            e->speed = v2f();
-            e->command = EntityCommand_None;
+        if (magnitude(e->position - e->moveTarget) < 3.0f) {
+            if (e->moveWaypoints && e->moveWaypoints->next) {
+                MoveWaypoint *next = e->moveWaypoints->next;
+                e->moveTarget = v2f(next->position.x, next->position.y);
+                e->moveWaypoints = next;
+            } else {
+                e->speed = v2f();
+                e->command = EntityCommand_None;
+            }
         }
 
 
@@ -381,7 +402,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             }
 
             // Check if new position is free space (ie. cannot move into a wall)
-            v2i newTilePos = v2i(e->position.x + TILE_SIZE/2, e->position.y + TILE_SIZE / 2);
+            v2i newTilePos = v2i(e->position.x, e->position.y);
             u32 tile = GetTile(world, newTilePos.x, newTilePos.y);
             if (!IsPassable(tile)) {
                 e->position = prevPos;
@@ -480,17 +501,25 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
         }
     }
 
-    // Draw entities in chunk
-
-
     for (u32 i = 0; i < world->loadedEntitiesCount; ++i) {
         Entity *e = &world->loadedEntities[i];
         v2i screenPos = WorldToScreenPosition(world, { (i32)e->position.x, (i32)e->position.y });
-        Rect2Di target(screenPos.x, screenPos.y, 32, 32);
+        Rect2Di target(screenPos.x - TILE_SIZE / 2, screenPos.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
         DrawImage(ctx, target, ASSET_TEXTURE_ENTITY);
 
         if (e->selected) {
             DrawRect(ctx, target, { 0.0f, 1.0f, 0.0f });
+        }
+
+        // Draw the path
+        if (e->moveWaypoints) {
+            MoveWaypoint *current = e->moveWaypoints;
+            while (current) {
+                v2i screenPos = WorldToScreenPosition(world, current->position);
+                Rect2Di wpRect(screenPos.x - 10, screenPos.y - 10, 20, 20);
+                DrawSolidRect(ctx, wpRect, Color(0.2f, 0.43f, 1.0f));
+                current = current->next;
+            }
         }
     }
 
@@ -499,6 +528,13 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
             world->mousePos.x - world->mouseDragOrigin.x, world->mousePos.y - world->mouseDragOrigin.y };
         DrawRect(ctx, dragArea, white);
     }
+
+    // Highlight tile under mouse
+    v2i tileCoords = GetTileFromScreenPosition(world, world->mousePos);
+    v2i currentTilePos = WorldToScreenPosition(world, tileCoords * TILE_SIZE);
+    Rect2Di currentTileRect(currentTilePos.x, currentTilePos.y, TILE_SIZE, TILE_SIZE);
+    DrawRect(ctx, currentTileRect, white);
+
 
     DrawSolidRect(ctx, Rect2Di((i32)screenSize.x / 2, (i32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
     DrawSolidRect(ctx, Rect2Di((i32)screenSize.x / 2, (i32)screenSize.y / 2, 16, 1), { 0.0f, 0.0f, 1.0f });

@@ -22,6 +22,8 @@ inline EntityFlags operator|(EntityFlags a, EntityFlags b) {
     return (EntityFlags)((u32)a | (u32)b);
 }
 
+struct MoveWaypoint;
+
 struct Entity {
     EntityType type;
     EntityFlags flags;
@@ -32,6 +34,7 @@ struct Entity {
     EntityCommand command;
     bool32 selected;
     bool32 deleted;
+    MoveWaypoint *moveWaypoints;
 };
 
 inline bool32 IsCollidable(Entity *e) {
