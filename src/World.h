@@ -31,7 +31,7 @@ struct World {
 };
 
 struct MoveWaypoint {
-    v2f position;
+    v2i position;
     MoveWaypoint *next;
 };
 
@@ -40,5 +40,6 @@ struct PathfinderTile {
     u32 weight;
     bool32 visited;
     r32 lineDist;
+    PathfinderTile *prevTile;
 };
 

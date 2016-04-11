@@ -27,6 +27,66 @@ bool32 ContainsTile(PathfinderTile *tiles, u32 tileCount, v2i coords) {
     return 0;
 }
 
+u32 NodesInPath(PathfinderTile *end) {
+    
+    v2i prevMoveDelta;
+    v2i prevPosition;
+
+    u32 nodes = 0;
+    PathfinderTile *current = end;
+    while (current) {
+
+        v2i moveDelta = current->position - prevPosition;
+        if (moveDelta != prevMoveDelta) {
+            nodes++;
+        }
+        prevMoveDelta = moveDelta;
+        prevPosition = current->position;
+
+        current = current->prevTile;
+    }
+
+    return nodes;
+}
+
+MoveWaypoint *ReconstructPath(World *world, PathfinderTile *end) {
+
+    u32 nodes = NodesInPath(end);
+    MemorySegment resultMem = AllocMemory(&world->transientMemory, sizeof(MoveWaypoint)*nodes);
+    MoveWaypoint *result = (MoveWaypoint*)resultMem.base;
+
+    // Create the nodes
+    v2i prevMoveDelta;
+    v2i prevPosition;
+
+    PathfinderTile *current = end;
+    MoveWaypoint *next = 0;
+    while (current) {
+        
+        v2i moveDelta = current->position - prevPosition;
+        if (moveDelta != prevMoveDelta) {
+            MoveWaypoint *wp = result + (nodes - 1);
+            wp->position = current->position * TILE_SIZE + TILE_SIZE / 2;
+            wp->next = next;
+            next = wp;
+            char *wpCreateLog = mprintf("Creating waypoint at (%d, %d).", wp->position.x, wp->position.y);
+            SCOPE_FREE(wpCreateLog);
+            WriteConsole(world->console, wpCreateLog);
+        }
+
+        prevMoveDelta = moveDelta;
+        prevPosition = current->position;
+
+        current = current->prevTile;
+    }
+
+    char *reconstructLog = mprintf("Reconstructing path with %d nodes.", nodes);
+    SCOPE_FREE(reconstructLog);
+    WriteConsole(world->console, reconstructLog);
+
+    return result;
+}
+
 MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
     // TODO: Implement
     // Find a valid path between two points, and create waypoints
@@ -61,6 +121,7 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
 
     calculatedTiles[0].position = startTile;
     calculatedTiles[0].weight = 0;
+    calculatedTiles[0].prevTile = 0;
     tileCount = 1;
 
     bool32 pathFound = startTile == endTile;
@@ -97,6 +158,7 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
             current->position = currentPos;
             current->weight = originTile->weight + 1; 
             current->lineDist = magnitude(endTile - current->position);
+            current->prevTile = originTile;
             
             // Are we there yet?
             if (current->position == endTile) {
@@ -132,7 +194,9 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
     SCOPE_FREE(resultLog);
     WriteConsole(world->console, resultLog);
 
-    return 0;
+    MoveWaypoint *waypoints = ReconstructPath(world, originTile);
+
+    return waypoints;
 }
 
 // Create world from scratch

@@ -84,6 +84,11 @@ inline bool operator==(const v2<T> left, const v2<T> right) {
 }
 
 template<typename T>
+inline bool operator!=(const v2<T> left, const v2<T> right) {
+    return left.x != right.x || left.y != right.y;
+}
+
+template<typename T>
 inline r32 magnitude(v2<T> vec) {
     r32 result = square_root((r32)(vec.x * vec.x + vec.y * vec.y));
     return result;
