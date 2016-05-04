@@ -1,3 +1,6 @@
+#ifndef _MEMORY_H
+#define _MEMORY_H
+
 #pragma once
 
 #include "Platform.h"
@@ -38,3 +41,55 @@ inline void
 SegmentClear(MemorySegment *segment) {
     segment->used = 0;
 }
+
+#if 0
+// General purpose memory allocator
+struct AllocatorRange {
+    AllocatorRange *next;
+    u32 size;
+    bool32 used;
+};
+
+struct AllocatorContext {
+    MemorySegment segment;
+    AllocatorRange *first;
+};
+
+AllocatorContext InitializeGenAllocator(MemorySegment memory) {
+    AllocatorContext context = {};
+    context.segment = memory;
+}
+
+bool32 GenAllocate(AllocatorContext *ctx, u32 size) {
+    if (!ctx->first) {
+        if (size > ctx->segment->size) {
+            // Bad allocation
+            InvalidCodePath();
+            return 0;
+        }
+
+        AllocatorRange *range;
+        range = (AllocatorRange*)ctx->memory->base;
+        range->size = size;
+        range->next = 0;
+        return 1;
+    }
+
+    AllocatorRange *current = ctx->first;
+    while (current->next) {
+        if (!current->used && size <= current->size) {
+            // The allocation fits in this space.
+            // TODO: Use best-fit instead?
+        }
+        current = current->next;
+    }
+
+}
+
+bool32 GenFree(void *ptr) {
+}
+
+#endif
+
+#endif
+
