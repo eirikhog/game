@@ -9,6 +9,7 @@ set INCLUDES=-I../dep/glew-1.13.0/include
 set WIN32SRC=../src/win32/win32.cpp
 set GAMESRC=../src/Game.cpp
 set ASSETSRC=../src/Assets/Builder.cpp
+set TESTSRC=../src/Test.cpp
 
 :SETUP
 if not exist "%BUILDDIR%" mkdir "%BUILDDIR%"
@@ -16,9 +17,16 @@ if not exist "%BUILDDIR%" mkdir "%BUILDDIR%"
 pushd .
 cd %BUILDDIR%
 
+if not "%1" == "test" goto CLEAN
+echo Building test...
+cl %CFLAGS% %TESTSRC% %INCLUDES% /link %LFLAGS% user32.lib gdi32.lib winmm.lib
+goto END
+
+:CLEAN
 if not "%1" == "clean" goto ASSETS
 del *.pdb *.dll *.exe *.obj *.exp *.lib > NUL 2> NUL
 goto END
+
 
 :ASSETS
 if not "%1" == "assets" if not "%1" == "all" goto WIN32

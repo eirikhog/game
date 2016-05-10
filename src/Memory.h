@@ -76,6 +76,7 @@ void *Allocate(MemoryPool *pool, u32 size) {
     MemoryPoolRegion *current = (MemoryPoolRegion*)pool->base;
     for (;;) {
         if (current->used || current->size < requiredSize) {
+            Assert(current->size > 0);
             current = (MemoryPoolRegion*)((u8*)current + current->size);
         } else {
             // We can use this region
