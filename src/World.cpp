@@ -104,8 +104,9 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
     //
 
     // TODO: Cannot alloc this way, we need to free the memory (cannot use a stack)
-    u32 memorySize =Kilobytes(128);
+    u32 memorySize = Kilobytes(128);
     void *memory = Allocate(&world->transientMemory, memorySize);
+    SCOPE_ALLOC_FREE(&world->transientMemory, memory);
 
     v2i startTile = v2i((i32)start.x / TILE_SIZE, (i32)start.y / TILE_SIZE);
     v2i endTile = v2i((i32)end.x / TILE_SIZE, (i32)end.y / TILE_SIZE);
@@ -163,11 +164,13 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
                 continue;
             }
 
-            PathfinderTile *current = calculatedTiles + tileCount++;
+            PathfinderTile *current = calculatedTiles + tileCount;
             current->position = currentPos;
             current->weight = originTile->weight + 1; 
             current->lineDist = current->weight + 0.5 * magnitude(endTile - current->position);
             current->prevTile = originTile;
+            current->visited = 0;
+            tileCount++;
         }
 
         originTile->visited = 1;
@@ -175,7 +178,7 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
         if (!pathFound) {
             // Select most promising tile as next origin
             // TODO: Probably select first unvisited as next.
-            PathfinderTile *best = calculatedTiles;
+            PathfinderTile *best = originTile;
             for (u32 i = 0; i < tileCount; ++i) {
                 if (best->visited && !calculatedTiles[i].visited) {
                     best = calculatedTiles + i;
