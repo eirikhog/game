@@ -93,9 +93,9 @@ void *Allocate(MemoryPool *pool, u32 size) {
             return (void*)((u8*)current + sizeof(MemoryPoolRegion));
         }
 
-        if ((i64)current - (i64)pool->base > (i64)pool->size) {
+        if ((i64)current - (i64)pool->base >= (i64)pool->size) {
             // No more free memory
-            InvalidCodePath(); // TODO: Assert
+            // InvalidCodePath(); // TODO: Assert?
             return 0;
         }
     }
@@ -120,9 +120,9 @@ void Free(MemoryPool *pool, void *ptr) {
     }
 
     MemoryPoolRegion *before = NULL;
+    MemoryPoolRegion *current = (MemoryPoolRegion*)offset;
     for (;;) {
         if (offset + sizeof(MemoryPoolRegion) == ptr) {
-            MemoryPoolRegion *current = (MemoryPoolRegion*)offset;
             current->used = 0;
 
             // Find the following region, and see if we should merge...
@@ -137,6 +137,10 @@ void Free(MemoryPool *pool, void *ptr) {
                 before->size += current->size;
             }
             return;
+        } else {
+            offset += current->size;
+            before = current;
+            current = (MemoryPoolRegion*)offset;
         }
 
         if (offset >= pool->base + pool->size) {

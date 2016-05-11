@@ -34,6 +34,9 @@ void testMemoryAllocator() {
     Free(&pool, overlap1);
     Free(&pool, overlap2);
 
+    void *tooBig = Allocate(&pool, 128 * 1024);
+    Assert(tooBig == NULL);
+
 }
 
 int main (int argc, char *argv) {
