@@ -35,6 +35,7 @@ struct Entity {
     bool32 selected;
     bool32 deleted;
     MoveWaypoint *moveWaypoints;
+    MoveWaypoint *firstWaypoint;
 };
 
 inline bool32 IsCollidable(Entity *e) {

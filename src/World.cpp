@@ -339,6 +339,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             e->acceleration = v2f();
             MoveWaypoint *newPath = FindPath(world, v2i((i32)e->position.x, (i32)e->position.y), world->movePos);
             if (newPath) {
+                e->firstWaypoint = newPath;
                 e->moveWaypoints = newPath;
                 e->moveTarget = v2f(newPath->position.x, newPath->position.y);
             } else {
@@ -372,6 +373,9 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             } else {
                 e->speed = v2f();
                 e->command = EntityCommand_None;
+                Free(&world->transientMemory, e->firstWaypoint);
+                e->firstWaypoint = 0;
+                e->moveWaypoints = 0;
             }
         }
 
