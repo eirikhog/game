@@ -52,8 +52,7 @@ u32 NodesInPath(PathfinderTile *end) {
 MoveWaypoint *ReconstructPath(World *world, PathfinderTile *end) {
 
     u32 nodes = NodesInPath(end);
-    MemorySegment resultMem = AllocMemory(&world->transientMemory, sizeof(MoveWaypoint)*nodes);
-    MoveWaypoint *result = (MoveWaypoint*)resultMem.base;
+    MoveWaypoint *result = (MoveWaypoint*)Allocate(&world->transientMemory, sizeof(MoveWaypoint)*nodes);
 
     // Create the nodes
     v2i prevMoveDelta;
@@ -105,7 +104,8 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
     //
 
     // TODO: Cannot alloc this way, we need to free the memory (cannot use a stack)
-    MemorySegment memory = AllocMemory(&world->transientMemory, Kilobytes(128));
+    u32 memorySize =Kilobytes(128);
+    void *memory = Allocate(&world->transientMemory, memorySize);
 
     v2i startTile = v2i((i32)start.x / TILE_SIZE, (i32)start.y / TILE_SIZE);
     v2i endTile = v2i((i32)end.x / TILE_SIZE, (i32)end.y / TILE_SIZE);
@@ -118,8 +118,8 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
     const v2i validDirections[] = { { -1, 0 }, { 0, -1 }, { 1, 0 }, { 0, 1} };
     constexpr u32 validDirCount = sizeof(validDirections) / sizeof(validDirections[0]);
 
-    PathfinderTile *calculatedTiles = (PathfinderTile*)memory.base;
-    u32 maxTiles = memory.size / sizeof(PathfinderTile);
+    PathfinderTile *calculatedTiles = (PathfinderTile*)memory;
+    u32 maxTiles = memorySize / sizeof(PathfinderTile);
     u32 tileCount = 0;
 
     calculatedTiles[0].position = startTile;
@@ -209,7 +209,7 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
 }
 
 // Create world from scratch
-void WorldCreate(World *world, MemorySegment memory, ConsoleState *console) {
+void WorldCreate(World *world, MemoryPool memory, ConsoleState *console) {
     *world = {};
 
     world->transientMemory = memory;

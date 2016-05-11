@@ -18,5 +18,7 @@ typedef struct {
 
     r32 elapsedTime;
     ConsoleState console;
+
+    MemoryPool transientMemory;
 } GameState;
 

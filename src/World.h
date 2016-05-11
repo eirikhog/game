@@ -8,7 +8,7 @@ struct World {
     WorldChunk chunks[CHUNK_COUNT];
 
     // Transient memory
-    MemorySegment transientMemory;
+    MemoryPool transientMemory;
 
     // Input
     v2i mousePos;
