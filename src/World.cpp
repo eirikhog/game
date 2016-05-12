@@ -190,6 +190,7 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
             char *nextLog = mprintf("Next tile will be (%d, %d) with weight %d, dist %.02f.", best->position.x, best->position.y, best->weight, best->lineDist);
             SCOPE_FREE(nextLog);
             WriteConsole(world->console, nextLog);
+            Assert(originTile != best);
             originTile = best;
         }
 
@@ -340,6 +341,10 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
             e->command = EntityCommand_Move;
             e->speed = v2f();
             e->acceleration = v2f();
+            if (e->firstWaypoint) {
+                Free(&world->transientMemory, e->firstWaypoint);
+                e->firstWaypoint = 0;
+            }
             MoveWaypoint *newPath = FindPath(world, v2i((i32)e->position.x, (i32)e->position.y), world->movePos);
             if (newPath) {
                 e->firstWaypoint = newPath;
