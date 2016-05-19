@@ -37,9 +37,8 @@ u32 NodesInPath(PathfinderTile *end) {
     while (current) {
 
         v2i moveDelta = current->position - prevPosition;
-        if (1 || moveDelta != prevMoveDelta) {
-            nodes++;
-        }
+        // TODO: Count only direction chanes.
+        nodes++;
         prevMoveDelta = moveDelta;
         prevPosition = current->position;
 
@@ -63,18 +62,17 @@ MoveWaypoint *ReconstructPath(World *world, PathfinderTile *end) {
     PathfinderTile *prev = end;
     u32 i = nodes;
     while (current) {
-        
+
+        // TODO: We only need to keep waypoints when direction changes.
         v2i moveDelta = current->position - prevPosition;
-        if (1 || moveDelta != prevMoveDelta) {
-            MoveWaypoint *wp = result + (i - 1);
-            --i;
-            wp->position = current->position * TILE_SIZE + TILE_SIZE / 2;
-            wp->next = next;
-            next = wp;
-            //char *wpCreateLog = mprintf("Creating waypoint at (%d, %d).", wp->position.x, wp->position.y);
-            //SCOPE_FREE(wpCreateLog);
-            //WriteConsole(world->console, wpCreateLog);
-        }
+        MoveWaypoint *wp = result + (i - 1);
+        --i;
+        wp->position = current->position * TILE_SIZE + TILE_SIZE / 2;
+        wp->next = next;
+        next = wp;
+        //char *wpCreateLog = mprintf("Creating waypoint at (%d, %d).", wp->position.x, wp->position.y);
+        //SCOPE_FREE(wpCreateLog);
+        //WriteConsole(world->console, wpCreateLog);
 
         prevMoveDelta = moveDelta;
         prevPosition = current->position;
@@ -108,8 +106,8 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
     void *memory = Allocate(&world->transientMemory, memorySize);
     SCOPE_ALLOC_FREE(&world->transientMemory, memory);
 
-    v2i startTile = v2i((i32)start.x / TILE_SIZE, (i32)start.y / TILE_SIZE);
-    v2i endTile = v2i((i32)end.x / TILE_SIZE, (i32)end.y / TILE_SIZE);
+    v2i startTile = v2i((i32)floor((r32)start.x / TILE_SIZE), (i32)floor((r32)start.y / TILE_SIZE));
+    v2i endTile = v2i((i32)floor((r32)end.x / TILE_SIZE), (i32)floor((r32)end.y / TILE_SIZE));
     
     char *findLog = mprintf("Finding path from (%d, %d) to (%d, %d)", startTile.x, startTile.y, endTile.x, endTile.y);
     SCOPE_FREE(findLog);
@@ -345,7 +343,7 @@ void WorldUpdate(World *world, GameInput *input, r32 dt) {
                 Free(&world->transientMemory, e->firstWaypoint);
                 e->firstWaypoint = 0;
             }
-            MoveWaypoint *newPath = FindPath(world, v2i((i32)e->position.x, (i32)e->position.y), world->movePos);
+            MoveWaypoint *newPath = FindPath(world, v2i((i32)floor(e->position.x), (i32)floor(e->position.y)), world->movePos);
             if (newPath) {
                 e->firstWaypoint = newPath;
                 e->moveWaypoints = newPath;
