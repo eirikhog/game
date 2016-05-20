@@ -37,6 +37,18 @@ void testMemoryAllocator() {
     void *tooBig = Allocate(&pool, 128 * 1024);
     Assert(tooBig == NULL);
 
+    // Scattered allocations
+    void *resrv[3];
+    resrv[0] = Allocate(&pool, 128);
+    resrv[1] = Allocate(&pool, 64);
+    resrv[2] = Allocate(&pool, 128);
+
+    Free(&pool, resrv[1]);
+    void *nxt = Allocate(&pool, 64);
+    Assert(nxt == resrv[1]);
+    Free(&pool, resrv[0]);
+    Free(&pool, resrv[1]);
+    Free(&pool, resrv[2]);
 }
 
 int main (int argc, char *argv) {
