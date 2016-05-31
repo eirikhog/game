@@ -52,6 +52,7 @@ MoveWaypoint *ReconstructPath(World *world, PathfinderTile *end) {
 
     u32 nodes = NodesInPath(end);
     MoveWaypoint *result = (MoveWaypoint*)Allocate(&world->transientMemory, sizeof(MoveWaypoint)*nodes);
+    Assert(result != NULL);
 
     // Create the nodes
     v2i prevMoveDelta;
