@@ -55,7 +55,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         case WM_NCCREATE:{
             // Set game state.
             void* state_ptr = (((LPCREATESTRUCT)lParam)->lpCreateParams);
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG)state_ptr);
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)state_ptr);
             result = DefWindowProc(hwnd, uMsg, wParam, lParam);
         }break;
         case WM_CLOSE:{
