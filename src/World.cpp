@@ -243,7 +243,7 @@ void WorldCreate(World *world, MemoryPool memory, ConsoleState *console) {
     v2f targets[] = { v2f(224.0f, 224.0f), v2f(288.0f, 288.0f), v2f(224, 288), v2f(288, 224) };
 
     for (i32 i = 0; i < 4; ++i) {
-        Entity e;
+        Entity e = {};
         e.type = EntityType_Unit;
         e.position = origins[i];
         e.moveTarget = targets[i];
@@ -252,7 +252,7 @@ void WorldCreate(World *world, MemoryPool memory, ConsoleState *console) {
         AddEntity(world, e);
     }
 
-    Entity e;
+    Entity e = {};
     e.type = EntityType_Unit;
     e.position = v2f(256.0f, 256.0f);
     e.flags = EntityFlag_None;
@@ -263,7 +263,7 @@ void WorldCreate(World *world, MemoryPool memory, ConsoleState *console) {
 #else
         while (0) {
 #endif
-        Entity e;
+        Entity e = {};
         e.type = EntityType_Unit;
 #if 0
         do {
