@@ -48,7 +48,7 @@ typedef struct {
 } Image;
 
 Image LoadBMP(char *filename) {
-    void *data;
+    void *data = 0;
     FILE *fp = fopen(filename, "rb");
     Assert(fp);
     if (fp) {
@@ -60,6 +60,7 @@ Image LoadBMP(char *filename) {
         fread(data, size, 1, fp);
         fclose(fp);
     }
+    Assert(data);
 
     bmp_header *header = (bmp_header*)data;
     Assert(header->file_type == BMP_FILE_TYPE);
