@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Game", "src\Game.vcxproj", "{6FB146D7-D3C2-457B-89D4-9598BEB2EC05}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Windows", "src\Windows.vcxproj", "{AEAB2277-F072-4C74-8038-78A6E0B17EBD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6FB146D7-D3C2-457B-89D4-9598BEB2EC05} = {6FB146D7-D3C2-457B-89D4-9598BEB2EC05}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Assets", "src\assets\Assets.vcxproj", "{6F85A632-8C37-4402-AE4B-86D666EFB52A}"
 EndProject
