@@ -63,6 +63,8 @@ MemoryPool InitializeAllocator(MemorySegment *segment) {
     pool.base = segment->base;
     pool.size = segment->size;
 
+    segment->used += pool.size;
+
     MemoryPoolRegion *region = (MemoryPoolRegion*)pool.base;
     region->size = pool.size;
     region->used = 0;

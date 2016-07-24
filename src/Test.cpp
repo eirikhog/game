@@ -60,6 +60,7 @@ void testMemoryAllocatorFuzzy() {
     MemorySegment segment;
     segment.base = memory;
     segment.size = memSize;
+    segment.used = 0;
 
     MemoryPool pool = InitializeAllocator(&segment);
     void *resrv[128];
@@ -76,6 +77,10 @@ void testMemoryAllocatorFuzzy() {
     for (int i = 0; i < 128; ++i) {
         Free(&pool, resrv[i]);
     }
+
+    Assert(segment.used == memSize);
+    auto derp = (MemoryPoolRegion*)pool.base;
+    Assert(derp->used == 0);
 
     free(memory);
 
