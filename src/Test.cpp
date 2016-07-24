@@ -49,6 +49,36 @@ void testMemoryAllocator() {
     Free(&pool, resrv[0]);
     Free(&pool, resrv[1]);
     Free(&pool, resrv[2]);
+
+    free(memory);
+}
+
+void testMemoryAllocatorFuzzy() {
+    const int memSize = 64 * 1024 * 1024;
+    u8 *memory = (u8*)malloc(memSize);
+
+    MemorySegment segment;
+    segment.base = memory;
+    segment.size = memSize;
+
+    MemoryPool pool = InitializeAllocator(&segment);
+    void *resrv[128];
+    memset(resrv, 0, 128 * sizeof(void*));
+
+    for (int i = 0; i < 128; ++i) {
+        resrv[i] = Allocate(&pool, rand() % (memSize / 128));
+    }
+
+    for (int i = 0; i < 64; ++i) {
+        Free(&pool, resrv[rand() % 128]);
+    }
+
+    for (int i = 0; i < 128; ++i) {
+        Free(&pool, resrv[i]);
+    }
+
+    free(memory);
+
 }
 
 int main (int argc, char *argv) {
@@ -57,6 +87,10 @@ int main (int argc, char *argv) {
 
     printf("testMemoryAllocator...");
     testMemoryAllocator();
+    printf("OK!\n");
+
+    printf("testMemoryAllocatorFuzzy...");
+    testMemoryAllocatorFuzzy();
     printf("OK!\n");
 
     printf("Done!\n");
