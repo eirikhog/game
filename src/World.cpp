@@ -186,9 +186,11 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
                 }
             }
 
+#if DEBUG_PATHFINDING
             char *nextLog = mprintf("Next tile will be (%d, %d) with weight %d, dist %.02f.", best->position.x, best->position.y, best->weight, best->lineDist);
             SCOPE_FREE(nextLog);
             WriteConsole(world->console, nextLog);
+#endif
             Assert(originTile != best);
             originTile = best;
         }
@@ -239,6 +241,7 @@ void WorldCreate(World *world, MemoryPool memory, ConsoleState *console) {
         SetTile(world, 20 + i / 10, i % 10, ASSET_TEXTURE_STONE);
     }
 
+#if 0
     v2f origins[] = { v2f(-100.0f, -100.0f), v2f(500.0f, 100.0f), v2f(534, 1234), v2f(-4562, -1455) };
     v2f targets[] = { v2f(224.0f, 224.0f), v2f(288.0f, 288.0f), v2f(224, 288), v2f(288, 224) };
 
@@ -251,31 +254,12 @@ void WorldCreate(World *world, MemoryPool memory, ConsoleState *console) {
         e.flags = EntityFlag_Collidable | EntityFlag_Selectable;
         AddEntity(world, e);
     }
-
-    Entity e = {};
-    e.type = EntityType_Unit;
-    e.position = v2f(256.0f, 256.0f);
-    e.flags = EntityFlag_None;
-    AddEntity(world, e);
-
-#if 1 
-    for (u32 i = 0; i < 128; ++i) {
-#else
-        while (0) {
 #endif
-        Entity e = {};
-        e.type = EntityType_Unit;
-#if 0
-        do {
-            e.position = v2f(rand() % 256, rand() % 256);
-        } while (!IsPassable(GetTile(world, e.position.x, e.position.y)));
-#else
-        e.position = v2f(256.0f, 256.0f);
-#endif
-        e.flags = EntityFlag_Collidable | EntityFlag_Selectable;
-        AddEntity(world, e);
 
-    }
+    Entity unit1 = {};
+    unit1.type = EntityType_Unit;
+    unit1.flags = EntityFlag_Collidable | EntityFlag_Selectable;
+    AddEntity(world, unit1);
 
 }
 
