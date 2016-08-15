@@ -242,6 +242,9 @@ void WorldCreate(PlatformAPI *api, World *world, MemoryPool memory, ConsoleState
 
     gameStartCount++;
 
+    if (api->FileExists("world.dat.old")) {
+        api->FileDelete("world.dat.old");
+    }
     api->FileMove("world.dat", "world.dat.old");
     FileHandle fh = api->FileOpen("world.dat");    
     api->FileWrite(fh, 4, &gameStartCount);
