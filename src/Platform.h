@@ -79,6 +79,9 @@ typedef FileHandle file_open(char *filename);
 typedef bool32 file_close(FileHandle);
 typedef u32 file_write(FileHandle, u32 size, void *source);
 typedef u32 file_read(FileHandle, u32 size, void *dest);
+typedef bool32 file_move(char *src, char *dest);
+typedef bool32 file_delete(char *filename);
+typedef bool32 file_exists(char *filename);
 
 typedef struct PlatformAPI {
     read_entire_file* ReadEntireFile;
@@ -88,6 +91,9 @@ typedef struct PlatformAPI {
     file_close *FileClose;
     file_write *FileWrite;
     file_read *FileRead;
+    file_move *FileMove;
+    file_delete *FileDelete;
+    file_exists *FileExists;
 } PlatformAPI;
 
 typedef struct {

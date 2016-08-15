@@ -229,7 +229,28 @@ MoveWaypoint* FindPath(World *world, v2i start, v2i end) {
 }
 
 // Create world from scratch
-void WorldCreate(World *world, MemoryPool memory, ConsoleState *console) {
+void WorldCreate(PlatformAPI *api, World *world, MemoryPool memory, ConsoleState *console) {
+
+    // See if there is an existing world...
+    u32 gameStartCount = 0;
+
+    if (api->FileExists("world.dat")) {
+        FileHandle fh = api->FileOpen("world.dat");
+        u32 readSize = api->FileRead(fh, 4, &gameStartCount);
+        api->FileClose(fh);
+    }
+
+    gameStartCount++;
+
+    api->FileMove("world.dat", "world.dat.old");
+    FileHandle fh = api->FileOpen("world.dat");    
+    api->FileWrite(fh, 4, &gameStartCount);
+    api->FileClose(fh);
+
+    char *openstatus = mprintf("Game starts: %d\n", gameStartCount);
+    SCOPE_FREE(openstatus);
+    WriteConsole(console, openstatus); 
+
     *world = {};
 
     world->transientMemory = memory;

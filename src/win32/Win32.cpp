@@ -284,18 +284,18 @@ void InputPushKeyboard(KeyboardState *keyboard, u32 key) {
 }
 
 // Platform API, TODO: Move to separate file?
-FileHandle Platform_FileOpen(char *filename) {
+FileHandle Win32FileOpen(char *filename) {
     HANDLE hfile = CreateFile(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
-            CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+        OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
     return (FileHandle)hfile;
 }
 
-bool32 Platform_FileClose(FileHandle handle) {
+bool32 Win32FileClose(FileHandle handle) {
     return (bool32)CloseHandle(handle);
 }
 
-u32 Platform_FileRead(FileHandle handle, u32 size, void *dest) {
+u32 Win32FileRead(FileHandle handle, u32 size, void *dest) {
     DWORD bytesRead = 0;
     BOOL result = ReadFile(handle, dest, size, &bytesRead, NULL);
     Assert(result);
@@ -303,7 +303,7 @@ u32 Platform_FileRead(FileHandle handle, u32 size, void *dest) {
     return (u32)bytesRead;
 }
 
-u32 Platform_FileWrite(FileHandle handle, u32 size, void *src) {
+u32 Win32FileWrite(FileHandle handle, u32 size, void *src) {
     DWORD bytesWritten;
     BOOL result = WriteFile(handle, src, size, &bytesWritten, NULL);
     Assert(result);
@@ -311,6 +311,20 @@ u32 Platform_FileWrite(FileHandle handle, u32 size, void *src) {
     return (u32)bytesWritten;
 }
 
+bool32 Win32FileMove(char *src, char *dest) {
+    BOOL result = MoveFile(src, dest);
+    return result;
+}
+
+bool32 Win32FileDelete(char *filename) {
+    BOOL result = DeleteFile(filename);
+    return result;
+}
+
+bool32 Win32FileExists(char *filename) {
+    DWORD attrib = GetFileAttributes(filename);
+    return (attrib != INVALID_FILE_ATTRIBUTES) && !(attrib & FILE_ATTRIBUTE_DIRECTORY);
+}
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     Win32State programState = {};
@@ -319,10 +333,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     PlatformAPI api = {};
     api.ReadEntireFile = Win32ReadFile;
     api.WriteEntireFile = Win32WriteFile;
-    api.FileOpen = Platform_FileOpen;
-    api.FileClose = Platform_FileClose;
-    api.FileRead = Platform_FileRead;
-    api.FileWrite = Platform_FileWrite;
+    api.FileOpen = Win32FileOpen;
+    api.FileClose = Win32FileClose;
+    api.FileRead = Win32FileRead;
+    api.FileWrite = Win32FileWrite;
+    api.FileMove = Win32FileMove;
+    api.FileDelete = Win32FileDelete;
+    api.FileExists = Win32FileExists;
 
     platformState.api = &api;
     programState.platformState = &platformState;
