@@ -283,6 +283,35 @@ void InputPushKeyboard(KeyboardState *keyboard, u32 key) {
     keyboard->keyStack[keyboard->keyCount++] = key;
 }
 
+// Platform API, TODO: Move to separate file?
+FileHandle Platform_FileOpen(char *filename) {
+    HANDLE hfile = CreateFile(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
+            CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    return (FileHandle)hfile;
+}
+
+bool32 Platform_FileClose(FileHandle handle) {
+    return (bool32)CloseHandle(handle);
+}
+
+u32 Platform_FileRead(FileHandle handle, u32 size, void *dest) {
+    DWORD bytesRead = 0;
+    BOOL result = ReadFile(handle, dest, size, &bytesRead, NULL);
+    Assert(result);
+
+    return (u32)bytesRead;
+}
+
+u32 Platform_FileWrite(FileHandle handle, u32 size, void *src) {
+    DWORD bytesWritten;
+    BOOL result = WriteFile(handle, src, size, &bytesWritten, NULL);
+    Assert(result);
+
+    return (u32)bytesWritten;
+}
+
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     Win32State programState = {};
 
@@ -290,6 +319,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     PlatformAPI api = {};
     api.ReadEntireFile = Win32ReadFile;
     api.WriteEntireFile = Win32WriteFile;
+    api.FileOpen = Platform_FileOpen;
+    api.FileClose = Platform_FileClose;
+    api.FileRead = Platform_FileRead;
+    api.FileWrite = Platform_FileWrite;
 
     platformState.api = &api;
     programState.platformState = &platformState;

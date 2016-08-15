@@ -66,15 +66,28 @@ struct GameInput {
     KeyboardState keyboard;
 };
 
+// TODO: These are platform specific. Probably have to do this define in the implementation header?
+typedef void *FileHandle;
+
 typedef void update_game(PlatformState *state, GameMemory *memory, GameInput *input, r32 dt);
 typedef char *read_entire_file(char *filename, u32 *size);
 typedef void write_entire_file(char *filename, void *data, u32 size);
 typedef void RunExternalProgram(const char* command, char *outputBuffer, u32 bufferSize);
 
+// File functions... (Do we need asynch versions?)
+typedef FileHandle file_open(char *filename);
+typedef bool32 file_close(FileHandle);
+typedef u32 file_write(FileHandle, u32 size, void *source);
+typedef u32 file_read(FileHandle, u32 size, void *dest);
+
 typedef struct PlatformAPI {
     read_entire_file* ReadEntireFile;
     write_entire_file* WriteEntireFile;
     RunExternalProgram* RunProgram;
+    file_open *FileOpen;
+    file_close *FileClose;
+    file_write *FileWrite;
+    file_read *FileRead;
 } PlatformAPI;
 
 typedef struct {

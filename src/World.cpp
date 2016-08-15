@@ -1,4 +1,19 @@
 
+#define WORLD_FILE "world.dat"
+
+bool32 LoadWorld(PlatformAPI *platform, World **world) {
+    // TODO: Load the world...
+    //
+    return 0;
+}
+
+bool32 SaveWorld(PlatformAPI *platform) {
+
+    // Save world file.
+
+    return 0;
+}
+
 static inline v2i
 ScreenCoordsToWorldCoords(World *world, v2i screenCoords) {
     v2i result(-world->screenSize.x / 2 - world->camera.x + screenCoords.x,
