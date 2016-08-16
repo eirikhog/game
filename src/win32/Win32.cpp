@@ -4,7 +4,6 @@
 #include <Windows.h>
 #include "../../dep/glew-1.13.0/src/glew.c"
 
-// TODO: Dynamic loading
 #include <xinput.h>
 
 #include <chrono>
@@ -29,10 +28,18 @@ typedef struct {
 #define GAMELIB "Game.dll"
 #define GAMELIB_ACTIVE "Game_loaded.dll"
 
+typedef DWORD xinput_get_state(DWORD, XINPUT_STATE *state);
+
+typedef struct {
+    xinput_get_state *get_state;
+} XinputFunctions;
+
 typedef struct {
     bool running;
     WINDOWPLACEMENT windowPlacement;
     PlatformState *platformState;
+
+	XinputFunctions XInput;
 
     HMODULE gamelibHandle;
     Time gamelibTimestamp;
@@ -89,16 +96,17 @@ char *Win32ReadFile(char *filename, u32 *filesize) {
     HANDLE handle = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     Assert(handle != INVALID_HANDLE_VALUE);
     if (handle == INVALID_HANDLE_VALUE) {
-        filesize = 0;
+        *filesize = 0;
         return 0;
     }
 
     DWORD size = GetFileSize(handle, NULL);
     void *content = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
 
-    ReadFile(handle, content, size, NULL, NULL);
-    *filesize = size;
-
+    DWORD bytesRead;
+    ReadFile(handle, content, size, &bytesRead, NULL);
+    Assert(size == bytesRead);
+    *filesize = (u32)bytesRead;
     CloseHandle(handle);
 
     return (char*)content;
@@ -163,6 +171,15 @@ GameFunctions LoadGameLibrary(Win32State *state) {
     Assert(state->gamelibHandle);
 
     return library;
+}
+
+void LoadXInput(Win32State *state) {
+    HMODULE xHandle = LoadLibrary("Xinput1_4.dll");
+    if (xHandle) {
+        state->XInput.get_state = (xinput_get_state*)GetProcAddress(xHandle, "XInputGetState");
+    } else {
+	    state->XInput.get_state = NULL;
+    }
 }
 
 void UnloadGameLibrary(Win32State *state) {
@@ -238,12 +255,16 @@ void SetupOpenGL(HDC hdc) {
     }
 }
 
-void UpdateJoystick(GameInput *input) {
+void UpdateJoystick(Win32State *win32state, GameInput *input) {
+    if (!win32state->XInput.get_state) {
+        return;
+    }
+
     // TODO: Handle more than one joystick
     XINPUT_STATE state;
     ZeroMemory(&state, sizeof(XINPUT_STATE));
 
-    if (!XInputGetState(0, &state)) {
+    if (!win32state->XInput.get_state(0, &state)) {
         v2f leftStick = { (r32)state.Gamepad.sThumbLX, (r32)state.Gamepad.sThumbLY };
         r32 magnitude = sqrt( leftStick.x * leftStick.x + leftStick.y * leftStick.y);
         if (magnitude > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
@@ -371,6 +392,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     LARGE_INTEGER cpuFreq;
     QueryPerformanceFrequency(&cpuFreq);
 
+    LoadXInput(&programState);
+
     // Initialize game functions.
     // TODO: Copy the game dll to a different location, so that the compiler can
     // overwrite the old file with a newer version...
@@ -414,7 +437,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
         
         QueryPerformanceCounter(&tStart);    
-        UpdateJoystick(&input);
+        UpdateJoystick(&programState, &input);
         InputKeyboardReset(&input.keyboard);
 
         MSG msg;
