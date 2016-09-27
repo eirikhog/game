@@ -152,6 +152,12 @@ GameFunctions LoadGameLibrary(Win32State *state) {
     GameFunctions library = {};
     library.DebugOutput = OutputDebug;
 
+	char gamePath[MAX_PATH];
+	GetModuleFileName(NULL, gamePath, MAX_PATH);
+
+	char workDir[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, workDir);
+
     u32 copyRetryCount = 5;
     BOOL copyResult;
     do {

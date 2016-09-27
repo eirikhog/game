@@ -564,10 +564,12 @@ void WorldRender(World *world, RenderContext *ctx, v2i windowSize) {
     }
 
     // Highlight tile under mouse
-    v2i tileCoords = GetTileFromScreenPosition(world, world->mousePos);
-    v2i currentTilePos = WorldToScreenPosition(world, tileCoords * TILE_SIZE);
-    Rect2Di currentTileRect(currentTilePos.x, currentTilePos.y, TILE_SIZE, TILE_SIZE);
-    DrawRect(ctx, currentTileRect, white);
+    if (world->mousePos.x < windowSize.x - 128) {
+        v2i tileCoords = GetTileFromScreenPosition(world, world->mousePos);
+        v2i currentTilePos = WorldToScreenPosition(world, tileCoords * TILE_SIZE);
+        Rect2Di currentTileRect(currentTilePos.x, currentTilePos.y, TILE_SIZE, TILE_SIZE);
+        DrawRect(ctx, currentTileRect, white);
+    }
 
 
     DrawSolidRect(ctx, Rect2Di((i32)screenSize.x / 2, (i32)screenSize.y / 2, 1, 16), { 1.0f, 0.0f, 0.0f });
