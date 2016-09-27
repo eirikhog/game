@@ -66,6 +66,13 @@ void DrawElapsedTime(GameState *state, RenderContext *ctx, v2i windowSize, r32 f
     DrawText(ctx, lastFrame, { windowSize.x - 300, 18}, Color(1.0f, 1.0f, 1.0f));
 }
 
+void DrawUI(GameState *state, RenderContext *ctx, v2i windowSize) {
+    Rect2Di menuSpace(0, windowSize.y - 128, windowSize.x, 128);
+    Color menuBg(.2f, .2f, .2f);
+
+    DrawSolidRect(ctx, menuSpace, menuBg);
+}
+
 extern "C"
 void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInput *input, r32 dt) {
 
@@ -92,6 +99,7 @@ void EXPORT UpdateGame(PlatformState *platformState, GameMemory *memory, GameInp
     // Rendering
     RenderStart(state->renderer, platformState->windowSize);
     WorldRender(state->world, state->renderer, platformState->windowSize);
+    DrawUI(state, state->renderer, platformState->windowSize);
 
     DrawElapsedTime(state, state->renderer, platformState->windowSize, platformState->lastFrameTime);
     DrawConsole(&state->console, state->renderer, state->world->screenSize);

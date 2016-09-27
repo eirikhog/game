@@ -13,6 +13,7 @@
 #include "World.h"
 #include "Game.h"
 #include "Console.h"
+#include "PlayerCommands.h"
 
 #include "Assets.cpp"
 #include "Chunk.cpp"
